@@ -6,10 +6,12 @@ A portable and efficient C library for developing Zero-Knowledge applications fo
 
 ## Overview
 
-Currently we only support the [Groth'16 zk-SNARK construction](https://eprint.iacr.org/2016/260.pdf) over BN128 and BLS12-381 curves. Moreover, we provide the following circuits for proof verification:
+ZPiE supports the following Zero-Knowledge schemes, defined over the elliptic curves BN128 and BLS12-381:
 
-- [EdDSA](https://eprint.iacr.org/2015/677.pdf) signature algorithm over [Baby JubJub](https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf) elliptic curve.
-- [MiMC-7](https://eprint.iacr.org/2016/492.pdf) hashing function (BN128 order).
+- zk-SNARKs for arithmetic circuits. We support the [Groth'16](https://eprint.iacr.org/2016/260.pdf) scheme. ZPiE includes the following arithmetic circuits:
+    - [EdDSA](https://eprint.iacr.org/2015/677.pdf) signature algorithm over [Baby JubJub](https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf) elliptic curve and BN128.
+    - [MiMC-7](https://eprint.iacr.org/2016/492.pdf) hashing function (BN128 order).
+- (experimental) [Bulletproofs](https://eprint.iacr.org/2017/1066.pdf). We support range proofs (and aggregated range proofs).
 
 In order to compute the circuit inputs for the above described circuits, you can use this [repository](https://github.com/xevisalle/cryptoolz).
 
@@ -96,7 +98,7 @@ int main()
 
 ### Benchmarks
 
-For benchmarking purposes, usign `bench.c` you can execute the different algorithms as follows:
+For benchmarking purposes, using `bench.c` you can execute the different algorithms as follows:
 
 ```
 ./zpie -s && ./zpie -p && ./zpie -v
