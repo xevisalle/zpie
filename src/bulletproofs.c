@@ -1,57 +1,67 @@
-#define Nb 32
-#define Mc 1
+#define Nb 64
+#define Mc 2
 
 void bulletproof()
 {
-	// SETUP
-	char buff1[2048], buff2[2048];
+    // SETUP
+    char buff1[2048], buff2[2048];
     mclBnG1 Gen;
     mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
 
-	mclBnFr rnd, gamma[Mc];
-	mclBnG1 Gb, Hb, Ub;
+    mclBnFr rnd, *gamma;
+    mclBnG1 Gb, Hb, Ub;
+    mclBnG1 *G, *H;
+
+    gamma = (mclBnFr*) malloc((Mc) * sizeof(mclBnFr));
+    G = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
+    H = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
 
     for (int i = 0; i < Mc; i++)
     {
         mclBnFr_setByCSPRNG(&gamma[i]);
     }
-	
-	mclBnFr_setByCSPRNG(&rnd);
-	mclBnG1_mul(&Gb, &Gen, &rnd);
+    
+    mclBnFr_setByCSPRNG(&rnd);
+    mclBnG1_mul(&Gb, &Gen, &rnd);
 
-	mclBnFr_setByCSPRNG(&rnd);
-	mclBnG1_mul(&Hb, &Gen, &rnd);
+    mclBnFr_setByCSPRNG(&rnd);
+    mclBnG1_mul(&Hb, &Gen, &rnd);
 
-	mclBnFr_setByCSPRNG(&rnd);
-	mclBnG1_mul(&Ub, &Gen, &rnd);
+    mclBnFr_setByCSPRNG(&rnd);
+    mclBnG1_mul(&Ub, &Gen, &rnd);
 
-	mclBnG1 G[Nb*Mc], H[Nb*Mc];
+    mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
 
-	mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
-
-	for (int i = 0; i < Nb*Mc; i++)
-	{
-		mclBnFr_setInt(&frFactor, i);
-		mclBnG1_mul(&G[i], &Gb, &frFactor);
-		mclBnG1_mul(&H[i], &Hb, &frFactor);
-	}
+    for (int i = 0; i < Nb*Mc; i++)
+    {
+        mclBnFr_setInt(&frFactor, i);
+        mclBnG1_mul(&G[i], &Gb, &frFactor);
+        mclBnG1_mul(&H[i], &Hb, &frFactor);
+    }
 
     //PROVER
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    mclBnFr aL[Nb*Mc], aR[Nb*Mc], l[Nb*Mc], r[Nb*Mc];
-    mclBnFr two_vec[Nb*Mc], v[Mc];
+    mclBnFr *aL, *aR, *l, *r;
+    mclBnFr *two_vec, v[Mc];
 
-    mclBnG1 V[Mc], g1Factor, g1Factor2, g1Factor3;
+    aL = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    aR = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    l = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    r = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    two_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+
+    mclBnG1 g1Factor;
+    mclBnG1 *V = (mclBnG1*) malloc((Mc) * sizeof(mclBnG1));
 
     mclBnFr_setInt(&two_vec[0], 1);
     mclBnFr_setInt(&two_vec[1], 2);
 
     for (int i = 2; i < Nb*Mc; i++)
     {
-    	mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
+        mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
     }
 
     mclBnFr_setInt(&aL[3], 1);
@@ -72,6 +82,7 @@ void bulletproof()
     // compute inner products v[]
     for (int i = 0; i < Mc; i++)
     {
+        mclBnFr_clear(&v[i]);
         for (int j = 0; j < Nb; j++)
         {
             mclBnFr_mul(&frFactor, &aL[j + (i * Nb)], &two_vec[j]);
@@ -86,20 +97,20 @@ void bulletproof()
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	// compute aR
-    	mclBnFr_sub(&aR[i], &aL[i], &one);
-    	// compute commitment A
-    	mclBnG1_mul(&g1Factor, &G[i], &aL[i]);
-    	mclBnG1_add(&A, &A, &g1Factor);
-    	mclBnG1_mul(&g1Factor, &H[i], &aR[i]);
-    	mclBnG1_add(&A, &A, &g1Factor);
-    	// compute commitment S
-    	mclBnFr_setByCSPRNG(&sL[i]);
-    	mclBnFr_setByCSPRNG(&sR[i]);
-    	mclBnG1_mul(&g1Factor, &G[i], &sL[i]);
-    	mclBnG1_add(&S, &S, &g1Factor);
-    	mclBnG1_mul(&g1Factor, &H[i], &sR[i]);
-    	mclBnG1_add(&S, &S, &g1Factor);
+        // compute aR
+        mclBnFr_sub(&aR[i], &aL[i], &one);
+        // compute commitment A
+        mclBnG1_mul(&g1Factor, &G[i], &aL[i]);
+        mclBnG1_add(&A, &A, &g1Factor);
+        mclBnG1_mul(&g1Factor, &H[i], &aR[i]);
+        mclBnG1_add(&A, &A, &g1Factor);
+        // compute commitment S
+        mclBnFr_setByCSPRNG(&sL[i]);
+        mclBnFr_setByCSPRNG(&sR[i]);
+        mclBnG1_mul(&g1Factor, &G[i], &sL[i]);
+        mclBnG1_add(&S, &S, &g1Factor);
+        mclBnG1_mul(&g1Factor, &H[i], &sR[i]);
+        mclBnG1_add(&S, &S, &g1Factor);
     }
 
     mclBnFr y, z, z2;
@@ -113,33 +124,35 @@ void bulletproof()
 
     for (int i = 2; i < Nb*Mc; i++)
     {
-    	mclBnFr_mul(&y_vec[i], &y_vec[i-1], &y);
+        mclBnFr_mul(&y_vec[i], &y_vec[i-1], &y);
     }
 
     mclBnFr t1, t2;
+    mclBnFr_clear(&t1);
+    mclBnFr_clear(&t2);
     mclBnFr_clear(&frFactor3);
     mclBnFr_mul(&frFactor3, &one, &z);
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	mclBnFr_add(&frFactor, &aR[i], &z);
-    	mclBnFr_mul(&frFactor, &y_vec[i], &frFactor);
+        mclBnFr_add(&frFactor, &aR[i], &z);
+        mclBnFr_mul(&frFactor, &y_vec[i], &frFactor);
 
         if (i % Nb == 0) mclBnFr_mul(&frFactor3, &frFactor3, &z);
-    	mclBnFr_mul(&frFactor2, &two_vec[i % Nb], &frFactor3);
+        mclBnFr_mul(&frFactor2, &two_vec[i % Nb], &frFactor3);
 
-    	mclBnFr_add(&frFactor, &frFactor, &frFactor2);
+        mclBnFr_add(&frFactor, &frFactor, &frFactor2);
 
-    	mclBnFr_mul(&frFactor, &sL[i], &frFactor);
-    	mclBnFr_add(&t1, &t1, &frFactor);
+        mclBnFr_mul(&frFactor, &sL[i], &frFactor);
+        mclBnFr_add(&t1, &t1, &frFactor);
 
-    	mclBnFr_sub(&frFactor, &aL[i], &z);
-    	mclBnFr_mul(&frFactor2, &y_vec[i], &sR[i]);
-    	mclBnFr_mul(&frFactor, &frFactor, &frFactor2);
-    	mclBnFr_add(&t1, &t1, &frFactor);
+        mclBnFr_sub(&frFactor, &aL[i], &z);
+        mclBnFr_mul(&frFactor2, &y_vec[i], &sR[i]);
+        mclBnFr_mul(&frFactor, &frFactor, &frFactor2);
+        mclBnFr_add(&t1, &t1, &frFactor);
 
-    	mclBnFr_mul(&frFactor, &y_vec[i], &sR[i]);
-    	mclBnFr_mul(&frFactor, &sL[i], &frFactor);
-    	mclBnFr_add(&t2, &t2, &frFactor);
+        mclBnFr_mul(&frFactor, &y_vec[i], &sR[i]);
+        mclBnFr_mul(&frFactor, &sL[i], &frFactor);
+        mclBnFr_add(&t2, &t2, &frFactor);
     }
 
     mclBnFr tau1, tau2;
@@ -163,21 +176,21 @@ void bulletproof()
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	mclBnFr_sub(&l[i], &aL[i], &z);
-    	mclBnFr_mul(&frFactor, &sL[i], &x);
-    	mclBnFr_add(&l[i], &l[i], &frFactor);
+        mclBnFr_sub(&l[i], &aL[i], &z);
+        mclBnFr_mul(&frFactor, &sL[i], &x);
+        mclBnFr_add(&l[i], &l[i], &frFactor);
 
-    	mclBnFr_mul(&frFactor, &sR[i], &x);
-    	mclBnFr_add(&frFactor, &frFactor, &z);
-    	mclBnFr_add(&frFactor, &frFactor, &aR[i]);
-    	mclBnFr_mul(&frFactor, &frFactor, &y_vec[i]);
+        mclBnFr_mul(&frFactor, &sR[i], &x);
+        mclBnFr_add(&frFactor, &frFactor, &z);
+        mclBnFr_add(&frFactor, &frFactor, &aR[i]);
+        mclBnFr_mul(&frFactor, &frFactor, &y_vec[i]);
 
         if (i % Nb == 0) mclBnFr_mul(&frFactor2, &frFactor2, &z);
-    	mclBnFr_mul(&r[i], &frFactor2, &two_vec[i % Nb]);
-    	mclBnFr_add(&r[i], &r[i], &frFactor);
+        mclBnFr_mul(&r[i], &frFactor2, &two_vec[i % Nb]);
+        mclBnFr_add(&r[i], &r[i], &frFactor);
 
-    	mclBnFr_mul(&frFactor, &l[i], &r[i]);
-    	mclBnFr_add(&t_inner, &t_inner, &frFactor);
+        mclBnFr_mul(&frFactor, &l[i], &r[i]);
+        mclBnFr_add(&t_inner, &t_inner, &frFactor);
     }
 
     mclBnFr_mul(&frFactor, &x, &x);
@@ -210,106 +223,106 @@ void bulletproof()
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	mclBnFr_inv(&frFactor, &y_vec[i]);
-    	mclBnG1_mul(&Hs[i], &H[i], &frFactor);
+        mclBnFr_inv(&frFactor, &y_vec[i]);
+        mclBnG1_mul(&Hs[i], &H[i], &frFactor);
 
-    	mclBnFr_mul(&frFactor, &z, &y_vec[i]);
+        mclBnFr_mul(&frFactor, &z, &y_vec[i]);
         if (i % Nb == 0) mclBnFr_mul(&frFactor3, &frFactor3, &z);
-    	mclBnFr_mul(&frFactor2, &frFactor3, &two_vec[i % Nb]);
-    	mclBnFr_add(&frFactor, &frFactor, &frFactor2);
+        mclBnFr_mul(&frFactor2, &frFactor3, &two_vec[i % Nb]);
+        mclBnFr_add(&frFactor, &frFactor, &frFactor2);
 
-    	mclBnG1_mul(&g1Factor, &Hs[i], &frFactor);
-    	mclBnG1_add(&P, &P, &g1Factor);
+        mclBnG1_mul(&g1Factor, &Hs[i], &frFactor);
+        mclBnG1_add(&P, &P, &g1Factor);
 
-    	mclBnFr_neg(&frFactor, &z);
-    	mclBnG1_mul(&g1Factor, &G[i], &frFactor);
-    	mclBnG1_add(&P, &P, &g1Factor);
+        mclBnFr_neg(&frFactor, &z);
+        mclBnG1_mul(&g1Factor, &G[i], &frFactor);
+        mclBnG1_add(&P, &P, &g1Factor);
     }
 
     mclBnG1 Pp;
     mclBnFr xp;
-	mclBnFr_neg(&frFactor, &mu);
-	mclBnG1_mul(&g1Factor, &Hb, &frFactor);
-	mclBnG1_add(&Pp, &P, &g1Factor);
+    mclBnFr_neg(&frFactor, &mu);
+    mclBnG1_mul(&g1Factor, &Hb, &frFactor);
+    mclBnG1_add(&Pp, &P, &g1Factor);
 
-	// inner product
-	mclBnFr_setByCSPRNG(&xp);
-	mclBnFr_mul(&frFactor, &xp, &t_inner);
-	mclBnG1_mul(&g1Factor, &Ub, &frFactor);
-	mclBnG1_add(&Pp, &Pp, &g1Factor);
+    // inner product
+    mclBnFr_setByCSPRNG(&xp);
+    mclBnFr_mul(&frFactor, &xp, &t_inner);
+    mclBnG1_mul(&g1Factor, &Ub, &frFactor);
+    mclBnG1_add(&Pp, &Pp, &g1Factor);
 
-	mclBnG1_mul(&Ub, &Ub, &xp);
+    mclBnG1_mul(&Ub, &Ub, &xp);
 
-	int logN = log(Nb*Mc)/log(2);
-	mclBnFr xp_vec[logN];
-	mclBnG1 L_vec[logN], R_vec[logN];
+    int logN = log(Nb*Mc)/log(2);
+    mclBnFr xp_vec[logN];
+    mclBnG1 L_vec[logN], R_vec[logN];
 
-	mclBnFr lp[Nb*Mc], rp[Nb*Mc];
-	mclBnG1 Gp[Nb*Mc], Hp[Nb*Mc];
+    mclBnFr lp[Nb*Mc], rp[Nb*Mc];
+    mclBnG1 Gp[Nb*Mc], Hp[Nb*Mc];
 
-	for (int i = 0; i < Nb*Mc; i++)
-	{
-		mclBnFr_mul(&lp[i], &l[i], &one);
-		mclBnFr_mul(&rp[i], &r[i], &one);
-		mclBnG1_mul(&Gp[i], &G[i], &one);
-		mclBnG1_mul(&Hp[i], &Hs[i], &one);
-	}
+    for (int i = 0; i < Nb*Mc; i++)
+    {
+        mclBnFr_mul(&lp[i], &l[i], &one);
+        mclBnFr_mul(&rp[i], &r[i], &one);
+        mclBnG1_mul(&Gp[i], &G[i], &one);
+        mclBnG1_mul(&Hp[i], &Hs[i], &one);
+    }
 
-	int np = Nb*Mc;
-	mclBnFr cl, cr;
-	for (int i = 0; i < logN; i++)
-	{
-		np = np / 2;
+    int np = Nb*Mc;
+    mclBnFr cl, cr;
+    for (int i = 0; i < logN; i++)
+    {
+        np = np / 2;
 
-		mclBnFr_clear(&cl);
-		mclBnFr_clear(&cr);
+        mclBnFr_clear(&cl);
+        mclBnFr_clear(&cr);
 
-		for (int j = 0; j < np; j++)
-		{
-			mclBnFr_mul(&frFactor, &lp[j], &rp[j+np]);
-    		mclBnFr_add(&cl, &cl, &frFactor);
-    		mclBnFr_mul(&frFactor, &lp[j+np], &rp[j]);
-    		mclBnFr_add(&cr, &cr, &frFactor);
-		}
+        for (int j = 0; j < np; j++)
+        {
+            mclBnFr_mul(&frFactor, &lp[j], &rp[j+np]);
+            mclBnFr_add(&cl, &cl, &frFactor);
+            mclBnFr_mul(&frFactor, &lp[j+np], &rp[j]);
+            mclBnFr_add(&cr, &cr, &frFactor);
+        }
 
-		mclBnG1_mul(&L_vec[i], &Ub, &cl);
-		mclBnG1_mul(&R_vec[i], &Ub, &cr);
+        mclBnG1_mul(&L_vec[i], &Ub, &cl);
+        mclBnG1_mul(&R_vec[i], &Ub, &cr);
 
-		for (int j = 0; j < np; j++)
-		{
-			mclBnG1_mul(&g1Factor, &Gp[j+np], &lp[j]);
-			mclBnG1_add(&L_vec[i], &L_vec[i], &g1Factor);
-			mclBnG1_mul(&g1Factor, &Hp[j], &rp[j+np]);
-			mclBnG1_add(&L_vec[i], &L_vec[i], &g1Factor);
+        for (int j = 0; j < np; j++)
+        {
+            mclBnG1_mul(&g1Factor, &Gp[j+np], &lp[j]);
+            mclBnG1_add(&L_vec[i], &L_vec[i], &g1Factor);
+            mclBnG1_mul(&g1Factor, &Hp[j], &rp[j+np]);
+            mclBnG1_add(&L_vec[i], &L_vec[i], &g1Factor);
 
-			mclBnG1_mul(&g1Factor, &Gp[j], &lp[j+np]);
-			mclBnG1_add(&R_vec[i], &R_vec[i], &g1Factor);
-			mclBnG1_mul(&g1Factor, &Hp[j+np], &rp[j]);
-			mclBnG1_add(&R_vec[i], &R_vec[i], &g1Factor);
-		}
+            mclBnG1_mul(&g1Factor, &Gp[j], &lp[j+np]);
+            mclBnG1_add(&R_vec[i], &R_vec[i], &g1Factor);
+            mclBnG1_mul(&g1Factor, &Hp[j+np], &rp[j]);
+            mclBnG1_add(&R_vec[i], &R_vec[i], &g1Factor);
+        }
 
-		mclBnFr_setByCSPRNG(&xp_vec[i]);
-		mclBnFr_inv(&frFactor, &xp_vec[i]);
+        mclBnFr_setByCSPRNG(&xp_vec[i]);
+        mclBnFr_inv(&frFactor, &xp_vec[i]);
 
-		for (int j = 0; j < np; j++)
-		{
-			mclBnG1_mul(&g1Factor, &Gp[j], &frFactor);
-			mclBnG1_mul(&Gp[j], &Gp[j+np], &xp_vec[i]);
-			mclBnG1_add(&Gp[j], &Gp[j], &g1Factor);
+        for (int j = 0; j < np; j++)
+        {
+            mclBnG1_mul(&g1Factor, &Gp[j], &frFactor);
+            mclBnG1_mul(&Gp[j], &Gp[j+np], &xp_vec[i]);
+            mclBnG1_add(&Gp[j], &Gp[j], &g1Factor);
 
-			mclBnG1_mul(&Hp[j], &Hp[j], &xp_vec[i]);
-			mclBnG1_mul(&g1Factor, &Hp[j+np], &frFactor);
-			mclBnG1_add(&Hp[j], &Hp[j], &g1Factor);
+            mclBnG1_mul(&Hp[j], &Hp[j], &xp_vec[i]);
+            mclBnG1_mul(&g1Factor, &Hp[j+np], &frFactor);
+            mclBnG1_add(&Hp[j], &Hp[j], &g1Factor);
 
-			mclBnFr_mul(&lp[j], &lp[j], &xp_vec[i]);
-			mclBnFr_mul(&frFactor2, &lp[j+np], &frFactor);
-			mclBnFr_add(&lp[j], &lp[j], &frFactor2);
+            mclBnFr_mul(&lp[j], &lp[j], &xp_vec[i]);
+            mclBnFr_mul(&frFactor2, &lp[j+np], &frFactor);
+            mclBnFr_add(&lp[j], &lp[j], &frFactor2);
 
-			mclBnFr_mul(&frFactor2, &rp[j], &frFactor);
-			mclBnFr_mul(&rp[j], &rp[j+np], &xp_vec[i]);
-			mclBnFr_add(&rp[j], &rp[j], &frFactor2);
-		}
-	}
+            mclBnFr_mul(&frFactor2, &rp[j], &frFactor);
+            mclBnFr_mul(&rp[j], &rp[j+np], &xp_vec[i]);
+            mclBnFr_add(&rp[j], &rp[j], &frFactor2);
+        }
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -327,7 +340,7 @@ void bulletproof()
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	mclBnFr_add(&frFactor, &frFactor, &y_vec[i]);
+        mclBnFr_add(&frFactor, &frFactor, &y_vec[i]);
     }
 
     for (int i = 0; i < Nb; i++)
@@ -359,6 +372,7 @@ void bulletproof()
     mclBnG1_mul(&g1Factor, &Gb, &t_inner);
     mclBnG1_mul(&CL, &Hb, &tx);
     mclBnG1_add(&CL, &CL, &g1Factor);
+    mclBnG1_clear(&CR);
 
     for (int i = 0; i < Mc; i++)
     {
@@ -387,17 +401,17 @@ void bulletproof()
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	mclBnFr_setInt(&s_vec[i], 1);
-    	for (int j = 0; j < logN; j++)
-    	{
-    		int bin = i >> (logN - 1 - j);
-    		if (bin & 1) mclBnFr_mul(&s_vec[i], &s_vec[i], &xp_vec[j]);
-    		else
-    		{
-    			mclBnFr_inv(&frFactor, &xp_vec[j]);
-    			mclBnFr_mul(&s_vec[i], &s_vec[i], &frFactor);
-    		}
-    	}
+        mclBnFr_setInt(&s_vec[i], 1);
+        for (int j = 0; j < logN; j++)
+        {
+            int bin = i >> (logN - 1 - j);
+            if (bin & 1) mclBnFr_mul(&s_vec[i], &s_vec[i], &xp_vec[j]);
+            else
+            {
+                mclBnFr_inv(&frFactor, &xp_vec[j]);
+                mclBnFr_mul(&s_vec[i], &s_vec[i], &frFactor);
+            }
+        }
     }
 
     mclBnG1 LHS, RHS;
@@ -407,28 +421,29 @@ void bulletproof()
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-    	mclBnFr_mul(&frFactor, &s_vec[i], &lp[0]);
-    	mclBnG1_mul(&g1Factor, &G[i], &frFactor);
-    	mclBnG1_add(&LHS, &LHS, &g1Factor);
+        mclBnFr_mul(&frFactor, &s_vec[i], &lp[0]);
+        mclBnG1_mul(&g1Factor, &G[i], &frFactor);
+        mclBnG1_add(&LHS, &LHS, &g1Factor);
 
-    	mclBnFr_inv(&frFactor, &s_vec[i]);
-    	mclBnFr_mul(&frFactor, &frFactor, &rp[0]);
-    	mclBnG1_mul(&g1Factor, &Hs[i], &frFactor);
-    	mclBnG1_add(&LHS, &LHS, &g1Factor);
+        mclBnFr_inv(&frFactor, &s_vec[i]);
+        mclBnFr_mul(&frFactor, &frFactor, &rp[0]);
+        mclBnG1_mul(&g1Factor, &Hs[i], &frFactor);
+        mclBnG1_add(&LHS, &LHS, &g1Factor);
     }
 
+    mclBnG1_clear(&RHS);
     mclBnG1_add(&RHS, &RHS, &Pp);
 
     for (int i = 0; i < logN; i++)
     {
-    	mclBnFr_mul(&frFactor, &xp_vec[i], &xp_vec[i]);
-    	mclBnG1_mul(&g1Factor, &L_vec[i], &frFactor);
-    	mclBnG1_add(&RHS, &RHS, &g1Factor);
+        mclBnFr_mul(&frFactor, &xp_vec[i], &xp_vec[i]);
+        mclBnG1_mul(&g1Factor, &L_vec[i], &frFactor);
+        mclBnG1_add(&RHS, &RHS, &g1Factor);
 
-    	mclBnFr_mul(&frFactor, &xp_vec[i], &xp_vec[i]);
-    	mclBnFr_inv(&frFactor, &frFactor);
-    	mclBnG1_mul(&g1Factor, &R_vec[i], &frFactor);
-    	mclBnG1_add(&RHS, &RHS, &g1Factor);
+        mclBnFr_mul(&frFactor, &xp_vec[i], &xp_vec[i]);
+        mclBnFr_inv(&frFactor, &frFactor);
+        mclBnG1_mul(&g1Factor, &R_vec[i], &frFactor);
+        mclBnG1_add(&RHS, &RHS, &g1Factor);
     }
 
     mclBnG1_getStr(buff1, sizeof(buff1), &LHS, 10);
