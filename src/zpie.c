@@ -297,6 +297,10 @@ void init_prover()
 void generate_proof()
 {
     uwn = 0;
+    for (int i = 0; i < M; i++)
+    {
+        mpz_init(uw[i]);
+    }
     
     mclBnG1 piA, piC;
     mclBnG2 piB2;

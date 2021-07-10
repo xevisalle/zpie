@@ -22,6 +22,7 @@
 #include <string.h>
 #include <time.h>
 #include <omp.h>
+#include <math.h> 
 
 int M;
 int N;
@@ -31,7 +32,9 @@ int setParams;
 mpz_t *uw;
 
 #include "gro16.h"
+#include "bulletproofs.c"
 
+void bulletproof();
 void init_setup();
 void perform_setup();
 void init_prover();

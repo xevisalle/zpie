@@ -6,6 +6,7 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic])
     mclBnFr frFactor;
     mclBnGT pairing1, pairing2, pairing3, factorGT;
 
+    mclBnG1_clear(&Vu);
     for (int i = nPublic; i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
