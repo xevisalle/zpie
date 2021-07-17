@@ -1,5 +1,8 @@
 #include <mcl/bn_c384_256.h>
 
+#define Nb 64
+#define Mc 2
+
 #ifdef BN128
     #define USEDCURVE MCL_BN_SNARK1
     #define BITS 254
@@ -33,8 +36,11 @@ mpz_t *uw;
 
 #include "gro16.h"
 
-void bulletproof_prove(unsigned char *si);
+void bulletproof_prove(unsigned char *si[Mc]);
 void bulletproof_verify();
+void bulletproof_save();
+void bulletproof_read();
+static inline void bulletproof_init();
 void init_setup();
 void perform_setup();
 void init_prover();
