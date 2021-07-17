@@ -32,9 +32,9 @@ int setParams;
 mpz_t *uw;
 
 #include "gro16.h"
-#include "bulletproofs.c"
 
-void bulletproof();
+void bulletproof_prove(unsigned char *si);
+void bulletproof_verify();
 void init_setup();
 void perform_setup();
 void init_prover();
@@ -43,3 +43,4 @@ void init_verifier();
 int verify_proof();
 
 #include "zpie.c"
+#include "bulletproofs.c"

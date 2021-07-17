@@ -55,15 +55,8 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic])
     }
 
     log_message("e(piA, piB2) = e(alpha, beta) * e(Vu, gamma) * e(piC, delta)???");
-    int verified = 0;
-
-    char buff1[2048];
-    char buff2[2048];
-
-    mclBnGT_getStr(buff1, sizeof(buff1), &pairing1, 10);
-    mclBnGT_getStr(buff2, sizeof(buff2), &factorGT, 10);
-
-    if (!strcmp(buff1, buff2)) verified = 1;
+    
+    int verified = mclBnGT_isEqual(&pairing1, &factorGT);
 
     if (verified) log_state(1);
     else log_state(0);

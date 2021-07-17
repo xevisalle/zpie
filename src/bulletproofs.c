@@ -1,20 +1,15 @@
 #define Nb 64
 #define Mc 2
 
-void bulletproof()
+void bulletproof_prove(unsigned char *si)
 {
     // SETUP
-    char buff1[2048], buff2[2048];
     mclBnG1 Gen;
     mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
 
-    mclBnFr rnd, *gamma;
-    mclBnG1 Gb, Hb, Ub;
-    mclBnG1 *G, *H;
-
-    gamma = (mclBnFr*) malloc((Mc) * sizeof(mclBnFr));
-    G = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
-    H = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
+    mclBnFr rnd, gamma[Mc];
+    mclBnG1 Gb, Hb, Ub, Ubn;
+    mclBnG1 G[Nb*Mc], H[Nb*Mc];
 
     for (int i = 0; i < Mc; i++)
     {
@@ -44,17 +39,11 @@ void bulletproof()
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    mclBnFr *aL, *aR, *l, *r;
-    mclBnFr *two_vec, v[Mc];
-
-    aL = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    aR = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    l = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    r = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    two_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    mclBnFr aL[Nb*Mc], aR[Nb*Mc], l[Nb*Mc], r[Nb*Mc];
+    mclBnFr two_vec[Nb*Mc], v[Mc];
 
     mclBnG1 g1Factor;
-    mclBnG1 *V = (mclBnG1*) malloc((Mc) * sizeof(mclBnG1));
+    mclBnG1 V[Mc];
 
     mclBnFr_setInt(&two_vec[0], 1);
     mclBnFr_setInt(&two_vec[1], 2);
@@ -64,7 +53,14 @@ void bulletproof()
         mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
     }
 
-    mclBnFr_setInt(&aL[3], 1);
+    char buff[2048];
+    mclBnFr_setStr(&frFactor, si, strlen(si), 10);
+    mclBnFr_getStr(buff, sizeof(buff), &frFactor, 2);
+
+    for (int i = 0; i < strlen(buff); i++)
+    {
+        if(buff[strlen(buff) - 1 - i] == '1') mclBnFr_setInt(&aL[i], 1);
+    }
 
     mclBnFr one;
     mclBnFr_setInt(&one, 1);
@@ -251,7 +247,7 @@ void bulletproof()
     mclBnG1_mul(&g1Factor, &Ub, &frFactor);
     mclBnG1_add(&Pp, &Pp, &g1Factor);
 
-    mclBnG1_mul(&Ub, &Ub, &xp);
+    mclBnG1_mul(&Ubn, &Ub, &xp);
 
     int logN = log(Nb*Mc)/log(2);
     mclBnFr xp_vec[logN];
@@ -285,8 +281,8 @@ void bulletproof()
             mclBnFr_add(&cr, &cr, &frFactor);
         }
 
-        mclBnG1_mul(&L_vec[i], &Ub, &cl);
-        mclBnG1_mul(&R_vec[i], &Ub, &cr);
+        mclBnG1_mul(&L_vec[i], &Ubn, &cl);
+        mclBnG1_mul(&R_vec[i], &Ubn, &cr);
 
         for (int j = 0; j < np; j++)
         {
@@ -331,8 +327,224 @@ void bulletproof()
     printf("\033[1;32m[SUCCESS] :\033[0m Bulletproof created in ");
     printf("%fs\n", elapsed);
 
+    FILE *fbp;
+    fbp = fopen("data/bulletproof.params", "w");
+
+    mclBnG1_getStr(buff, sizeof(buff), &Gb, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnG1_getStr(buff, sizeof(buff), &Hb, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnG1_getStr(buff, sizeof(buff), &Ub, 10);
+    fprintf(fbp, "%s\n", buff);
+
+    for (int i = 0; i < Mc; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &V[i], 10);
+        fprintf(fbp, "%s\n", buff);
+    }
+
+    mclBnG1_getStr(buff, sizeof(buff), &A, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnG1_getStr(buff, sizeof(buff), &S, 10);
+    fprintf(fbp, "%s\n", buff);
+
+    mclBnFr_getStr(buff, sizeof(buff), &y, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnFr_getStr(buff, sizeof(buff), &z, 10);
+    fprintf(fbp, "%s\n", buff);
+
+    mclBnG1_getStr(buff, sizeof(buff), &T1, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnG1_getStr(buff, sizeof(buff), &T2, 10);
+    fprintf(fbp, "%s\n", buff);
+
+    mclBnFr_getStr(buff, sizeof(buff), &x, 10);
+    fprintf(fbp, "%s\n", buff);
+
+    mclBnFr_getStr(buff, sizeof(buff), &tx, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnFr_getStr(buff, sizeof(buff), &t_inner, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnFr_getStr(buff, sizeof(buff), &mu, 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnFr_getStr(buff, sizeof(buff), &xp, 10);
+    fprintf(fbp, "%s\n", buff);
+
+    mclBnFr_getStr(buff, sizeof(buff), &lp[0], 10);
+    fprintf(fbp, "%s\n", buff);
+    mclBnFr_getStr(buff, sizeof(buff), &rp[0], 10);
+    fprintf(fbp, "%s\n", buff);
+
+    for (int i = 0; i < logN; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &L_vec[i], 10);
+        fprintf(fbp, "%s\n", buff);
+        mclBnG1_getStr(buff, sizeof(buff), &R_vec[i], 10);
+        fprintf(fbp, "%s\n", buff);
+        mclBnFr_getStr(buff, sizeof(buff), &xp_vec[i], 10);
+        fprintf(fbp, "%s\n", buff);
+    }
+
+    fclose(fbp);
+}
+
+void bulletproof_verify()
+{
+    mclBnG1 Gb, Hb, Ub;
+    mclBnG1 G[Nb*Mc], H[Nb*Mc];
+
+    mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
+
+    mclBnFr two_vec[Nb*Mc];
+    mclBnFr one;
+    mclBnFr_setInt(&one, 1);
+
+    mclBnG1 g1Factor;
+    mclBnG1 V[Mc];
+
+    mclBnFr_setInt(&two_vec[0], 1);
+    mclBnFr_setInt(&two_vec[1], 2);
+
+    for (int i = 2; i < Nb*Mc; i++)
+    {
+        mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
+    }
+
+    mclBnG1 A;
+    mclBnG1 S;
+
+    mclBnFr y, z, z2;
+    mclBnFr y_vec[Nb*Mc];
+
+    mclBnG1 T1, T2;
+    mclBnFr x, t_inner, tx, mu;
+    mclBnG1 Hs[Nb*Mc], P;
+
+    mclBnG1 Pp;
+    mclBnFr xp;
+
+    int logN = log(Nb*Mc)/log(2);
+    mclBnFr xp_vec[logN];
+    mclBnG1 L_vec[logN], R_vec[logN];
+
+    mclBnFr lp[Nb*Mc], rp[Nb*Mc];
+
+    char buff[2048];
+
     // VERIFIER
+    FILE *fbp;
+    fbp = fopen("data/bulletproof.params", "r");
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&Gb, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&Hb, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&Ub, buff, strlen(buff), 10);
+
+    for (int i = 0; i < Mc; i++)
+    {
+        fgets(buff, sizeof buff, fbp);
+        mclBnG1_setStr(&V[i], buff, strlen(buff), 10);
+    }
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&A, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&S, buff, strlen(buff), 10);
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&y, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&z, buff, strlen(buff), 10);
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&T1, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnG1_setStr(&T2, buff, strlen(buff), 10);
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&x, buff, strlen(buff), 10);
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&tx, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&t_inner, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&mu, buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&xp, buff, strlen(buff), 10);
+
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&lp[0], buff, strlen(buff), 10);
+    fgets(buff, sizeof buff, fbp);
+    mclBnFr_setStr(&rp[0], buff, strlen(buff), 10);
+
+    for (int i = 0; i < logN; i++)
+    {
+        fgets(buff, sizeof buff, fbp);
+        mclBnG1_setStr(&L_vec[i], buff, strlen(buff), 10);
+        fgets(buff, sizeof buff, fbp);
+        mclBnG1_setStr(&R_vec[i], buff, strlen(buff), 10);  
+        fgets(buff, sizeof buff, fbp);
+        mclBnFr_setStr(&xp_vec[i], buff, strlen(buff), 10);      
+    }
+
+    fclose(fbp);
+
+    for (int i = 0; i < Nb*Mc; i++)
+    {
+        mclBnFr_setInt(&frFactor, i);
+        mclBnG1_mul(&G[i], &Gb, &frFactor);
+        mclBnG1_mul(&H[i], &Hb, &frFactor);
+    }
+
+    struct timespec begin, end;
+    double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
+
+    mclBnFr_mul(&z2, &z, &z);
+    mclBnFr_setInt(&y_vec[0], 1);
+    mclBnFr_mul(&y_vec[1], &y_vec[0], &y);
+
+    for (int i = 2; i < Nb*Mc; i++)
+    {
+        mclBnFr_mul(&y_vec[i], &y_vec[i-1], &y);
+    }
+
+    mclBnG1_mul(&P, &S, &x);
+    mclBnG1_add(&P, &P, &A);
+
+    mclBnFr_clear(&frFactor3);
+    mclBnFr_mul(&frFactor3, &one, &z);
+
+    for (int i = 0; i < Nb*Mc; i++)
+    {
+        mclBnFr_inv(&frFactor, &y_vec[i]);
+        mclBnG1_mul(&Hs[i], &H[i], &frFactor);
+
+        mclBnFr_mul(&frFactor, &z, &y_vec[i]);
+        if (i % Nb == 0) mclBnFr_mul(&frFactor3, &frFactor3, &z);
+        mclBnFr_mul(&frFactor2, &frFactor3, &two_vec[i % Nb]);
+        mclBnFr_add(&frFactor, &frFactor, &frFactor2);
+
+        mclBnG1_mul(&g1Factor, &Hs[i], &frFactor);
+        mclBnG1_add(&P, &P, &g1Factor);
+
+        mclBnFr_neg(&frFactor, &z);
+        mclBnG1_mul(&g1Factor, &G[i], &frFactor);
+        mclBnG1_add(&P, &P, &g1Factor);
+    }
+
+    mclBnFr_neg(&frFactor, &mu);
+    mclBnG1_mul(&g1Factor, &Hb, &frFactor);
+    mclBnG1_add(&Pp, &P, &g1Factor);
+
+    mclBnFr_mul(&frFactor, &xp, &t_inner);
+    mclBnG1_mul(&g1Factor, &Ub, &frFactor);
+    mclBnG1_add(&Pp, &Pp, &g1Factor);
+
+    mclBnG1_mul(&Ub, &Ub, &xp);
 
     mclBnFr delta_yz;
     mclBnFr_clear(&frFactor);
@@ -389,13 +601,7 @@ void bulletproof()
     mclBnG1_mul(&g1Factor, &g1Factor, &x);
     mclBnG1_add(&CR, &CR, &g1Factor);   
 
-    mclBnG1_getStr(buff1, sizeof(buff1), &CL, 10);
-    mclBnG1_getStr(buff2, sizeof(buff2), &CR, 10);
-
-    int cond1 = 0;
-    int cond2 = 0;
-
-    if (!strcmp(buff1, buff2)) cond1 = 1;
+    int cond1 = mclBnG1_isEqual(&CL, &CR);
 
     mclBnFr s_vec[Nb*Mc];
 
@@ -446,10 +652,7 @@ void bulletproof()
         mclBnG1_add(&RHS, &RHS, &g1Factor);
     }
 
-    mclBnG1_getStr(buff1, sizeof(buff1), &LHS, 10);
-    mclBnG1_getStr(buff2, sizeof(buff2), &RHS, 10);
-
-    if (!strcmp(buff1, buff2)) cond2 = 1;
+    int cond2 = mclBnG1_isEqual(&LHS, &RHS);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -460,5 +663,5 @@ void bulletproof()
         printf("\033[1;32m[SUCCESS] :\033[0m Bulletproof verified in ");
         printf("%fs\n", elapsed);
     } 
-    else printf("\033[1;31m[FAIL] :\033[0m Bulletproof INCORRECT.");
+    else printf("\033[1;31m[FAIL] :\033[0m Bulletproof INCORRECT."); 
 }
