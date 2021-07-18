@@ -1,5 +1,52 @@
 double elapsedSort;
 double elapsedBosCoster;
+char *transcript;
+
+char *to_hex(const unsigned char *array, size_t length)
+{
+    char *outstr = malloc(2 * length + 1);
+    if (!outstr) return outstr;
+
+    char *p = outstr;
+    for (size_t i = 0; i < length; i++) 
+    {
+        p += sprintf(p, "%02hhx", array[i]);
+    }
+
+    return outstr;
+}
+
+void transcript_hash(mclBnFr *hash)
+{
+    BYTE buff_hash_bytes[SHA256_BLOCK_SIZE];
+
+    SHA256_CTX ctx;
+
+    sha256_init(&ctx);
+    sha256_update(&ctx, transcript, strlen(transcript));
+    sha256_final(&ctx, buff_hash_bytes);
+
+    char *buff_hash = to_hex(buff_hash_bytes, sizeof buff_hash_bytes);
+    mclBnFr_setStr(hash, buff_hash, strlen(buff_hash), 16);
+}
+
+static inline void transcript_add_Fr(mclBnFr *val)
+{
+    char buff[2048];
+    mclBnFr_getStr(buff, sizeof(buff), val, 10);
+
+    strcat(transcript, buff);
+    strcat(transcript, "\n");
+}
+
+static inline void transcript_add_G1(mclBnG1 *val)
+{
+    char buff[2048];
+    mclBnG1_getStr(buff, sizeof(buff), val, 10);
+
+    strcat(transcript, buff);
+    strcat(transcript, "\n");
+}
 
 void binarymaxheap(mpz_t *exp[], int i, int heapsize)
 {

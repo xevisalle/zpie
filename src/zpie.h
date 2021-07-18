@@ -26,6 +26,7 @@
 #include <time.h>
 #include <omp.h>
 #include <math.h> 
+#include "sha256.c" 
 
 int M;
 int N;
@@ -36,7 +37,7 @@ mpz_t *uw;
 
 #include "gro16.h"
 
-void bulletproof_prove(unsigned char *si[Mc]);
+void bulletproof_prove(unsigned char *si[]);
 void bulletproof_verify();
 void bulletproof_save();
 void bulletproof_read();

@@ -11,7 +11,7 @@ mclBnFr xp_vec[Nb*Mc];
 mclBnG1 L_vec[Nb*Mc], R_vec[Nb*Mc];
 mclBnFr lp[Nb*Mc], rp[Nb*Mc];
 
-void bulletproof_prove(unsigned char *si[Mc])
+void bulletproof_prove(unsigned char *si[])
 {
     mclBnG1 Gen;
     mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
@@ -119,9 +119,15 @@ void bulletproof_prove(unsigned char *si[Mc])
         mclBnG1_add(&S, &S, &g1Factor);
     }
 
+    transcript_add_G1(&A);
+    transcript_add_G1(&S);
+
     mclBnFr z2;
-    mclBnFr_setByCSPRNG(&y);
-    mclBnFr_setByCSPRNG(&z);
+    transcript_hash(&y);
+    transcript_add_Fr(&y);
+    transcript_hash(&z);
+    transcript_add_Fr(&z);
+
     mclBnFr_mul(&z2, &z, &z);
 
     static mclBnFr y_vec[Nb*Mc];
@@ -173,7 +179,11 @@ void bulletproof_prove(unsigned char *si[Mc])
     mclBnG1_mul(&T2, &Hb, &tau2);
     mclBnG1_add(&T2, &T2, &g1Factor);
 
-    mclBnFr_setByCSPRNG(&x);
+    transcript_add_G1(&T1);
+    transcript_add_G1(&T2);
+
+    transcript_hash(&x);
+    transcript_add_Fr(&x);
 
     mclBnFr_clear(&frFactor2);
     mclBnFr_mul(&frFactor2, &one, &z);
@@ -249,7 +259,9 @@ void bulletproof_prove(unsigned char *si[Mc])
     mclBnG1_add(&Pp, &P, &g1Factor);
 
     // inner product
-    mclBnFr_setByCSPRNG(&xp);
+    transcript_hash(&xp);
+    transcript_add_Fr(&xp);
+    
     mclBnFr_mul(&frFactor, &xp, &t_inner);
     mclBnG1_mul(&g1Factor, &Ub, &frFactor);
     mclBnG1_add(&Pp, &Pp, &g1Factor);
@@ -300,7 +312,12 @@ void bulletproof_prove(unsigned char *si[Mc])
             mclBnG1_add(&R_vec[i], &R_vec[i], &g1Factor);
         }
 
-        mclBnFr_setByCSPRNG(&xp_vec[i]);
+        transcript_add_G1(&L_vec[i]);
+        transcript_add_G1(&R_vec[i]);
+
+        transcript_hash(&xp_vec[i]);
+        transcript_add_Fr(&xp_vec[i]);
+
         mclBnFr_inv(&frFactor, &xp_vec[i]);
 
         for (int j = 0; j < np; j++)
@@ -672,5 +689,6 @@ static inline void bulletproof_init()
     struct stat st = {0};
     if (stat("data", &st) == -1) mkdir("data", 0700);
 
+    transcript = (char *) malloc(8192 * sizeof(char));
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 }
