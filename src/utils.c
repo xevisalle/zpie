@@ -27,7 +27,7 @@ void transcript_hash(mclBnFr *hash)
     sha256_final(&ctx, buff_hash_bytes);
 
     char *buff_hash = to_hex(buff_hash_bytes, sizeof buff_hash_bytes);
-    mclBnFr_setStr(hash, buff_hash, strlen(buff_hash), 16);
+    mclBnFr_setStr(hash, buff_hash, strlen(buff_hash)-1, 16);
 }
 
 static inline void transcript_add_Fr(mclBnFr *val)
