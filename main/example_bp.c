@@ -5,7 +5,7 @@
 int main()
 {
     // we init the bulletproofs module
-    bulletproof_init();
+    bulletproof_init(64, 2);
 
     // we set some values to prove knowledge of, and compute the proof (../data/bulletproof.params)
     unsigned char *si[] = {"1234", "5678"};
