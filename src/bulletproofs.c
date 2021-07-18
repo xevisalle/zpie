@@ -268,7 +268,6 @@ void bulletproof_prove(unsigned char *si[])
 
     mclBnG1_mul(&Ubn, &Ub, &xp);
 
-    int logN = log(Nb*Mc)/log(2);
     static mclBnG1 Gp[Nb*Mc], Hp[Nb*Mc];
 
     for (int i = 0; i < Nb*Mc; i++)
@@ -372,7 +371,6 @@ void bulletproof_verify()
     static mclBnFr y_vec[Nb*Mc];
     mclBnG1 P, Pp;
 
-    int logN = log(Nb*Mc)/log(2);
     mclBnG1 buff_p[Nb*Mc];
     mclBnG1_clear(&buff_p[0]);
 
@@ -555,7 +553,6 @@ void bulletproof_verify()
 void bulletproof_save()
 {
     char buff[2048];
-    int logN = log(Nb*Mc)/log(2);
 
     FILE *fbp;
     fbp = fopen("data/bulletproof.params", "w");
@@ -621,7 +618,6 @@ void bulletproof_save()
 void bulletproof_read()
 {
     char buff[2048];
-    int logN = log(Nb*Mc)/log(2);
 
     FILE *fbp;
     fbp = fopen("data/bulletproof.params", "r");
@@ -691,4 +687,8 @@ static inline void bulletproof_init()
 
     transcript = (char *) malloc(8192 * sizeof(char));
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
+
+    float log_up = log(Nb*Mc);
+    float log_down = log(2);
+    logN = log_up / log_down;
 }

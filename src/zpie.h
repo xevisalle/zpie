@@ -28,6 +28,7 @@
 #include <math.h> 
 #include "sha256.c" 
 
+int logN;
 int M;
 int N;
 int nPublic = 0;
