@@ -71,7 +71,7 @@ void mul_exp(struct mulExpResult *result)
             exp[i-(th*(n/totTh))] = &wM[i];
         }
 
-        bos_coster(exp, n/totTh, 1, pk); 
+        bos_coster(exp, n/totTh, 1, &pk); 
         mpz_to_fr(&frFactor, exp[0]);
         mclBnG1_mul(&htdeltaTh[th], &pk.xt1[exp[0]-wM], &frFactor); 
     }
@@ -115,7 +115,7 @@ void mul_exp(struct mulExpResult *result)
             exp[i-start] = &uw[i];
         }
 
-        bos_coster(exp, sizeM, 0, pk);
+        bos_coster(exp, sizeM, 0, &pk);
 
         mpz_to_fr(&frFactor, exp[0]);
         mclBnG1_mul(&thA1[th], &pk.A1[exp[0]-uw], &frFactor);
