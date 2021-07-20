@@ -112,21 +112,25 @@ void bulletproof_prove(unsigned char *si[])
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-        // compute aR
         mclBnFr_sub(&aR[i], &aL[i], &one);
-        // compute commitment A
-        mclBnG1_mul(&g1Factor, &G[i], &aL[i]);
-        mclBnG1_add(&A, &A, &g1Factor);
-        mclBnG1_mul(&g1Factor, &H[i], &aR[i]);
-        mclBnG1_add(&A, &A, &g1Factor);
-        // compute commitment S
+        
         mclBnFr_setByCSPRNG(&sL[i]);
         mclBnFr_setByCSPRNG(&sR[i]);
-        mclBnG1_mul(&g1Factor, &G[i], &sL[i]);
-        mclBnG1_add(&S, &S, &g1Factor);
-        mclBnG1_mul(&g1Factor, &H[i], &sR[i]);
-        mclBnG1_add(&S, &S, &g1Factor);
     }
+
+    // compute commitment A
+    mclBnG1 A_chunk;
+    mclBnG1_mulVec(&A_chunk, G, aL, Nb*Mc);
+    mclBnG1_add(&A, &A, &A_chunk);
+    mclBnG1_mulVec(&A_chunk, H, aR, Nb*Mc);
+    mclBnG1_add(&A, &A, &A_chunk);
+
+    // compute commitment S
+    mclBnG1 S_chunk;
+    mclBnG1_mulVec(&S_chunk, G, sL, Nb*Mc);
+    mclBnG1_add(&S, &S, &S_chunk);
+    mclBnG1_mulVec(&S_chunk, H, sR, Nb*Mc);
+    mclBnG1_add(&S, &S, &S_chunk);
 
     transcript_add_G1(&A);
     transcript_add_G1(&S);
@@ -387,20 +391,24 @@ void bulletproof_verify()
         mclBnG1_mul(&Hp[i], &H[i], &frTmp);
     }
 
+    mclBnFr frFactor_vec[Nb*Mc];
+    mclBnFr frFactor_vec2[Nb*Mc];
+    mclBnG1 P_chunk;
+
     for (int i = 0; i < Nb*Mc; i++)
     {
         mclBnFr_mul(&frFactor, &z, &y_vec[i]);
         if (i % Nb == 0) mclBnFr_mul(&frFactor3, &frFactor3, &z);
         mclBnFr_mul(&frFactor2, &frFactor3, &two_vec[i % Nb]);
-        mclBnFr_add(&frFactor, &frFactor, &frFactor2);
+        mclBnFr_add(&frFactor_vec[i], &frFactor, &frFactor2);
 
-        mclBnG1_mul(&g1Factor, &Hp[i], &frFactor);
-        mclBnG1_add(&P, &P, &g1Factor);
-
-        mclBnFr_neg(&frFactor, &z);
-        mclBnG1_mul(&g1Factor, &G[i], &frFactor);
-        mclBnG1_add(&P, &P, &g1Factor);
+        mclBnFr_neg(&frFactor_vec2[i], &z);
     }
+
+    mclBnG1_mulVec(&P_chunk, Hp, frFactor_vec, Nb*Mc);
+    mclBnG1_add(&P, &P, &P_chunk);
+    mclBnG1_mulVec(&P_chunk, G, frFactor_vec2, Nb*Mc);
+    mclBnG1_add(&P, &P, &P_chunk);
 
     mclBnFr_neg(&frFactor, &mu);
     mclBnG1_mul(&g1Factor, &Hb, &frFactor);
@@ -456,10 +464,10 @@ void bulletproof_verify()
 
     for (int i = 0; i < Mc; i++)
     {
-        mclBnFr_mul(&frFactor, &z_vec[i], &z2);
-        mclBnG1_mul(&g1Factor, &V[i], &frFactor);
-        mclBnG1_add(&CR, &CR, &g1Factor);
+        mclBnFr_mul(&frFactor_vec[i], &z_vec[i], &z2);
     }
+
+    mclBnG1_mulVec(&CR, V, frFactor_vec, Mc);
     
     mclBnG1_mul(&g1Factor, &Gb, &delta_yz);
     mclBnG1_add(&CR, &CR, &g1Factor);
@@ -489,36 +497,36 @@ void bulletproof_verify()
     }
 
     mclBnG1 LHS, RHS;
+    mclBnG1 LHS_chunk, RHS_chunk;
 
     mclBnFr_mul(&frFactor, &l[0], &r[0]);
     mclBnG1_mul(&LHS, &Ub, &frFactor);
 
     for (int i = 0; i < Nb*Mc; i++)
     {
-        mclBnFr_mul(&frFactor, &s_vec[i], &l[0]);
-        mclBnG1_mul(&g1Factor, &G[i], &frFactor);
-        mclBnG1_add(&LHS, &LHS, &g1Factor);
-
+        mclBnFr_mul(&frFactor_vec[i], &s_vec[i], &l[0]);
         mclBnFr_inv(&frFactor, &s_vec[i]);
-        mclBnFr_mul(&frFactor, &frFactor, &r[0]);
-        mclBnG1_mul(&g1Factor, &Hp[i], &frFactor);
-        mclBnG1_add(&LHS, &LHS, &g1Factor);
+        mclBnFr_mul(&frFactor_vec2[i], &frFactor, &r[0]);
     }
+
+    mclBnG1_mulVec(&LHS_chunk, G, frFactor_vec, Nb*Mc);
+    mclBnG1_add(&LHS, &LHS, &LHS_chunk);
+    mclBnG1_mulVec(&LHS_chunk, Hp, frFactor_vec2, Nb*Mc);
+    mclBnG1_add(&LHS, &LHS, &LHS_chunk);
 
     mclBnG1_clear(&RHS);
     mclBnG1_add(&RHS, &RHS, &Pp);
 
     for (int i = 0; i < logN; i++)
     {
-        mclBnFr_mul(&frFactor, &xp_vec[i], &xp_vec[i]);
-        mclBnG1_mul(&g1Factor, &L_vec[i], &frFactor);
-        mclBnG1_add(&RHS, &RHS, &g1Factor);
-
-        mclBnFr_mul(&frFactor, &xp_vec[i], &xp_vec[i]);
-        mclBnFr_inv(&frFactor, &frFactor);
-        mclBnG1_mul(&g1Factor, &R_vec[i], &frFactor);
-        mclBnG1_add(&RHS, &RHS, &g1Factor);
+        mclBnFr_mul(&frFactor_vec[i], &xp_vec[i], &xp_vec[i]);
+        mclBnFr_inv(&frFactor_vec2[i], &frFactor_vec[i]);
     }
+
+    mclBnG1_mulVec(&RHS_chunk, L_vec, frFactor_vec, logN);
+    mclBnG1_add(&RHS, &RHS, &RHS_chunk);
+    mclBnG1_mulVec(&RHS_chunk, R_vec, frFactor_vec2, logN);
+    mclBnG1_add(&RHS, &RHS, &RHS_chunk);
 
     int cond2 = mclBnG1_isEqual(&LHS, &RHS);
 
