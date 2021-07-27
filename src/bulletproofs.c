@@ -114,16 +114,16 @@ void bulletproof_prove(unsigned char *si[])
 
     // compute commitment A
     mclBnG1 A_chunk;
-    mclBnG1_mulVec(&A_chunk, G, aL, Nb*Mc);
+    mult_exp(&A_chunk, G, aL, Nb*Mc);
     mclBnG1_add(&A, &A, &A_chunk);
-    mclBnG1_mulVec(&A_chunk, H, aR, Nb*Mc);
+    mult_exp(&A_chunk, H, aR, Nb*Mc);
     mclBnG1_add(&A, &A, &A_chunk);
 
     // compute commitment S
     mclBnG1 S_chunk;
-    mclBnG1_mulVec(&S_chunk, G, sL, Nb*Mc);
+    mult_exp(&S_chunk, G, sL, Nb*Mc);
     mclBnG1_add(&S, &S, &S_chunk);
-    mclBnG1_mulVec(&S_chunk, H, sR, Nb*Mc);
+    mult_exp(&S_chunk, H, sR, Nb*Mc);
     mclBnG1_add(&S, &S, &S_chunk);
 
     transcript_add_G1(&A);
@@ -390,9 +390,9 @@ void bulletproof_verify()
         mclBnFr_neg(&frFactor_vec2[i], &z);
     }
 
-    mclBnG1_mulVec(&P_chunk, Hp, frFactor_vec, Nb*Mc);
+    mult_exp(&P_chunk, Hp, frFactor_vec, Nb*Mc);
     mclBnG1_add(&P, &P, &P_chunk);
-    mclBnG1_mulVec(&P_chunk, G, frFactor_vec2, Nb*Mc);
+    mult_exp(&P_chunk, G, frFactor_vec2, Nb*Mc);
     mclBnG1_add(&P, &P, &P_chunk);
 
     mclBnFr_neg(&frFactor, &mu);
@@ -494,9 +494,9 @@ void bulletproof_verify()
         mclBnFr_mul(&frFactor_vec2[i], &frFactor, &r[0]);
     }
 
-    mclBnG1_mulVec(&LHS_chunk, G, frFactor_vec, Nb*Mc);
+    mult_exp(&LHS_chunk, G, frFactor_vec, Nb*Mc);
     mclBnG1_add(&LHS, &LHS, &LHS_chunk);
-    mclBnG1_mulVec(&LHS_chunk, Hp, frFactor_vec2, Nb*Mc);
+    mult_exp(&LHS_chunk, Hp, frFactor_vec2, Nb*Mc);
     mclBnG1_add(&LHS, &LHS, &LHS_chunk);
 
     mclBnG1_clear(&RHS);

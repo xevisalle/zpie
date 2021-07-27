@@ -25,6 +25,9 @@ void add3mul(element *oo, element *lo1, element *lo2, element *lo3, element *ro)
 void addmuladd(element *oo, element *lo1, element *lo2, element *ro1, element *ro2);
 void mpz_to_fr(mclBnFr *frFactor, mpz_t *convert);
 void fr_to_mpz(mpz_t *convert, mclBnFr *frFactor);
+int fr_cmp(mclBnFr *frFactor1, mclBnFr *frFactor2);
+void sort_list(mpz_t *exp[], int heapsize);
+void binarymaxheap(mpz_t *exp[], int i, int heapsize);
 
 static mpz_t pPrime;
 

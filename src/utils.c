@@ -2,6 +2,43 @@ double elapsedSort;
 double elapsedBosCoster;
 char *transcript;
 
+void bos_coster_bp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsize)
+{
+    mpz_t *exp[heapsize];
+    mpz_t scalars_p[heapsize];
+    mclBnG1 points_p[heapsize];
+    mclBnFr one;
+    mclBnFr_setInt(&one, 1);
+
+    for (int i = 0; i < heapsize; i++)
+    {
+        fr_to_mpz(&scalars_p[i], &scalars[i]);
+        mclBnG1_mul(&points_p[i], &points[i], &one);
+        exp[i] = &scalars_p[i];
+    }
+
+    sort_list(exp, heapsize);
+    while (mpz_cmp_ui(*exp[2], 0) != 0)
+    {
+        mpz_sub(*exp[0], *exp[0], *exp[2]); 
+        mclBnG1_add(&points_p[exp[2]-scalars_p], &points_p[exp[0]-scalars_p], &points_p[exp[2]-scalars_p]);
+        binarymaxheap(exp, 0, heapsize);
+    }
+
+    mclBnFr frFactor;
+    mpz_to_fr(&frFactor, exp[0]);
+    mclBnG1_mul(chunk, &points_p[exp[0]-scalars_p], &frFactor); 
+}
+
+static inline void mult_exp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsize)
+{
+    #ifdef BOSCOSTER_MULEXP
+        bos_coster_bp(chunk, points, scalars, heapsize);
+    #elif MCL_MULEXP
+        mclBnG1_mulVec(chunk, points, scalars, heapsize);
+    #endif
+}
+
 char *to_hex(const unsigned char *array, size_t length)
 {
     char *outstr = malloc(2 * length + 1);
@@ -121,10 +158,15 @@ void bos_coster(mpz_t *exp[], int heapsize, int baseNum, struct ProvingKey *pk)
 
 int fr_cmp(mclBnFr *frFactor1, mclBnFr *frFactor2)
 {
-    mclBnFr f;
-    mclBnFr_sub(&f, frFactor2, frFactor1);
+    mpz_t f1, f2;
+    
+    char buff[2048];
+    mclBnFr_getStr(buff, sizeof(buff), frFactor1, 10);
+    mpz_init_set_str(f1, buff, 10);
+    mclBnFr_getStr(buff, sizeof(buff), frFactor2, 10);
+    mpz_init_set_str(f2, buff, 10);
 
-    return mclBnFr_isNegative(&f);
+    return mpz_cmp(f1, f2);
 }
 
 void log_polynomial(mpz_t P[], int size, char letter[], int idx)
