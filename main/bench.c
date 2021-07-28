@@ -5,12 +5,14 @@ int main(int argc, char *argv[])
     bench = 1; 
     if (argc < 2)
     {
-        printf("******************* ZPiE v0.1 *******************\n");
+        printf("******************* ZPiE v0.2 *******************\n");
         printf("USAGE: ./zpie [ACTIONS] [OPTIONS]\n\n");
         printf("[ACTIONS]:\n");
         printf("-s : Perform setup.\n");
         printf("-p : Generate proof.\n");
-        printf("-v : Verify proof.\n\n");
+        printf("-v : Verify proof.\n");
+        printf("-pbp <Nb> <Mc> : Generate bulletproof where Nb is the bit size and Mc the number of aggregated proofs.\n");
+        printf("-vbp <Nb> <Mc> : Verify bulletproof where Nb is the bit size and Mc the number of aggregated proofs.\n\n");
         printf("[OPTIONS]\n");
         printf("-l : Activate operation logs.\n");
 
@@ -19,13 +21,22 @@ int main(int argc, char *argv[])
 
     if ((argc == 3) && (strcmp(argv[2], "-l") == 0)) logs = 1;
 
-    init_setup();
+    printf("******************* ZPiE v0.2 *******************\n");
 
-    printf("******************* ZPiE v0.1 *******************\n");
-    printf("--- Starting ZPiE...\n");
-    printf("  |--- # of constraints: %d\n", N);
-    printf("  |--- # of variables: %d\n", M);
-    printf("  |--- # of public outputs: %d\n", nPublic);
+    if ((strcmp(argv[1], "-s") == 0) || (strcmp(argv[1], "-p") == 0) || (strcmp(argv[1], "-v") == 0))
+    {
+        init_setup();
+        printf("--- Starting ZPiE - Groth'16...\n");
+        printf("  |--- # of constraints: %d\n", N);
+        printf("  |--- # of variables: %d\n", M);
+        printf("  |--- # of public outputs: %d\n", nPublic);
+    }
+    else
+    {
+        printf("--- Starting ZPiE - Bulletproofs...\n");
+        printf("  |--- # of bits : %s\n", argv[2]);
+        printf("  |--- # of aggregated proofs: %s\n", argv[3]);       
+    }
     #ifdef MULTI
     printf("  |--- Multi-core execution: ON\n");
     #else
@@ -48,6 +59,29 @@ int main(int argc, char *argv[])
     {
         init_verifier();
         verify_proof();
+    }
+    else if (strcmp(argv[1], "-pbp") == 0)
+    {
+        int Nbu = atoi(argv[2]);
+        int Mcu = atoi(argv[3]);
+
+        bulletproof_init(Nbu, Mcu);
+        unsigned char *si[Mcu];
+
+        for (int i = 0; i < Mcu; i++)
+        {
+            si[i] = "1234";
+        }
+
+        bulletproof_prove(si);
+    }
+    else if (strcmp(argv[1], "-vbp") == 0)
+    {
+        int Nbu = atoi(argv[2]);
+        int Mcu = atoi(argv[3]);
+
+        bulletproof_init(Nbu, Mcu);
+        bulletproof_verify();
     }
 
     return 0;
