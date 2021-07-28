@@ -11,7 +11,7 @@ ZPiE supports the following Zero-Knowledge schemes, defined over the elliptic cu
 - zk-SNARKs for arithmetic circuits. We support the [Groth'16](https://eprint.iacr.org/2016/260.pdf) scheme. ZPiE includes the following arithmetic circuits:
     - [EdDSA](https://eprint.iacr.org/2015/677.pdf) signature algorithm over [Baby JubJub](https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf) elliptic curve and BN128.
     - [MiMC-7](https://eprint.iacr.org/2016/492.pdf) hashing function (BN128 order).
-- (experimental) [Bulletproofs](https://eprint.iacr.org/2017/1066.pdf). We support range proofs (and aggregated range proofs).
+- [Bulletproofs](https://eprint.iacr.org/2017/1066.pdf). We support range proofs (and aggregated range proofs).
 
 In order to compute the circuit inputs for the above described circuits, you can use this [repository](https://github.com/xevisalle/cryptoolz).
 
@@ -27,15 +27,16 @@ make -j4
 ```
 
 ## Compile
-By default, a benchmarking application is compiled as follows:
+By default, a benchmarking application is compiled and executed as follows:
 
 ```
 git clone https://github.com/xevisalle/zpie
 cd zpie
 make
+./zpie
 ```
 
-Otherwise, you can compile your program as follows (which must be placed into `/main`):
+The last command will prompt you with a set of available options to benchmark all the features of ZPiE. Otherwise, you can compile your program as follows (which must be placed into `/main`):
 
 ```
 make MAIN=example
@@ -64,9 +65,18 @@ NAIVE_MULEXP: serial multi-exponentiation will be performed.
 MCL_MULEXP: the multi-exponentiation algorithm provided by the MCL library will be used.
 ```
 
-## Usage
+We can also specify the elliptic curve to be used:
 
-Currently ZPiE only supports the Groth'16 construction. As such, it requires a trusted setup. Next subsections explain the circuit generation, the setup phase and how to compute proofs and verify them.
+```
+make CURVE=[OPTION]
+
+Where [OPTION] can be:
+BN128 (default)
+BLS12_381
+```
+
+
+## zk-SNARKs for arithmetic circuits
 
 ### Circuit
 
@@ -74,7 +84,7 @@ Circuits in ZPiE are .c files, integrated into the binary. You can edit the file
 
 ### Setup, Prove, and Verify
 
-Here there is an example on how to use the library (placed into `/main`):
+Here there is an example on how to use zk-SNARKs (`/main/example_gro16`):
 
 ```c
 #include "../src/zpie.h"
@@ -96,14 +106,27 @@ int main()
 }
 ```
 
-### Benchmarks
+## Bulletproofs
 
-For benchmarking purposes, using `bench.c` you can execute the different algorithms as follows:
+Here there is an example on how to use Bulletproofs (`/main/example_bp`):
 
+```c
+#include "../src/zpie.h"
+
+int main()
+{
+    // we init the bulletproofs module, for 2 aggregated proofs of 64 bits
+    bulletproof_init(64, 2);
+
+    // we set some values to prove knowledge of, and compute the proof (../data/bulletproof.params)
+    unsigned char *si[] = {"1234", "5678"};
+    bulletproof_prove(si);
+
+    // we verify the bulletproof (../data/bulletproof.params)
+    if(bulletproof_verify()) printf("Bulletproof verified.\n");
+    else printf("Bulletroof cannot be verified.\n");
+}
 ```
-./zpie -s && ./zpie -p && ./zpie -v
-```
-
 
 ## Cross-compile
 
