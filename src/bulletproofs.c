@@ -322,11 +322,14 @@ void bulletproof_prove(unsigned char *si[])
     elapsed = (end.tv_sec - begin.tv_sec);
     elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
 
-    printf("\033[1;32m[SUCCESS] :\033[0m Bulletproof created in ");
-    printf("%fs\n", elapsed);
+    if (bench)
+    {
+        printf("\033[1;32m[SUCCESS] :\033[0m Bulletproof created in ");
+        printf("%fs\n", elapsed);
+    }
 }
 
-void bulletproof_verify()
+int bulletproof_verify()
 {
     struct timespec begin, end;
     double elapsed;
@@ -521,10 +524,19 @@ void bulletproof_verify()
 
     if ((cond1) && (cond2))
     {
-        printf("\033[1;32m[SUCCESS] :\033[0m Bulletproof verified in ");
-        printf("%fs\n", elapsed);
+        if (bench)
+        {
+            printf("\033[1;32m[SUCCESS] :\033[0m Bulletproof verified in ");
+            printf("%fs\n", elapsed);
+        }
+
+        return 1;
     } 
-    else printf("\033[1;31m[FAIL] :\033[0m Bulletproof INCORRECT."); 
+    else
+    {
+        if (bench) printf("\033[1;31m[FAIL] :\033[0m Bulletproof INCORRECT."); 
+        return 0;
+    }
 }
 
 void bulletproof_save()
