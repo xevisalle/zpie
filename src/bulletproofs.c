@@ -274,15 +274,15 @@ void bulletproof_prove(unsigned char *si[])
         mclBnG1_mul(&R, &Ubn, &cr);
 
         mclBnG1 L_chunk;
-        mclBnG1_mulVec(&L_chunk, Gp+np, l, np);
+        mult_exp(&L_chunk, Gp+np, l, np);
         mclBnG1_add(&L, &L, &L_chunk);
-        mclBnG1_mulVec(&L_chunk, Hp, r+np, np);
+        mult_exp(&L_chunk, Hp, r+np, np);
         mclBnG1_add(&L, &L, &L_chunk);
 
         mclBnG1 R_chunk;
-        mclBnG1_mulVec(&R_chunk, Gp, l+np, np);
+        mult_exp(&R_chunk, Gp, l+np, np);
         mclBnG1_add(&R, &R, &R_chunk);
-        mclBnG1_mulVec(&R_chunk, Hp+np, r, np);
+        mult_exp(&R_chunk, Hp+np, r, np);
         mclBnG1_add(&R, &R, &R_chunk);
 
         transcript_add_G1(&L);
@@ -452,7 +452,7 @@ void bulletproof_verify()
         mclBnFr_mul(&frFactor_vec[i], &z_vec[i], &z2);
     }
 
-    mclBnG1_mulVec(&CR, V, frFactor_vec, Mc);
+    mult_exp(&CR, V, frFactor_vec, Mc);
     
     mclBnG1_mul(&g1Factor, &Gb, &delta_yz);
     mclBnG1_add(&CR, &CR, &g1Factor);
@@ -508,9 +508,9 @@ void bulletproof_verify()
         mclBnFr_inv(&frFactor_vec2[i], &frFactor_vec[i]);
     }
 
-    mclBnG1_mulVec(&RHS_chunk, L_vec, frFactor_vec, logN);
+    mult_exp(&RHS_chunk, L_vec, frFactor_vec, logN);
     mclBnG1_add(&RHS, &RHS, &RHS_chunk);
-    mclBnG1_mulVec(&RHS_chunk, R_vec, frFactor_vec2, logN);
+    mult_exp(&RHS_chunk, R_vec, frFactor_vec2, logN);
     mclBnG1_add(&RHS, &RHS, &RHS_chunk);
 
     int cond2 = mclBnG1_isEqual(&LHS, &RHS);

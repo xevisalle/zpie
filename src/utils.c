@@ -33,7 +33,8 @@ void bos_coster_bp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsi
 static inline void mult_exp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsize)
 {
     #ifdef BOSCOSTER_MULEXP
-        bos_coster_bp(chunk, points, scalars, heapsize);
+        if ((heapsize >= 32) && (heapsize == Nb*Mc)) bos_coster_bp(chunk, points, scalars, heapsize);
+        else mclBnG1_mulVec(chunk, points, scalars, heapsize);
     #elif MCL_MULEXP
         mclBnG1_mulVec(chunk, points, scalars, heapsize);
     #endif
@@ -89,8 +90,6 @@ void binarymaxheap(mpz_t *exp[], int i, int heapsize)
 {
     int largest, left, right;
     mpz_t *temp;
-    mclBnG1 *tmpPointG1;
-    mclBnG2 *tmpPointG2;
 
     left = (2*i+1);
     right = ((2*i)+2);
