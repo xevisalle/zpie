@@ -11,6 +11,7 @@ mclBnFr *xp_vec;
 mclBnG1 *L_vec, *R_vec;
 mclBnFr *l, *r;
 mclBnFr *two_vec;
+mclBnFr *gammas;
 
 void bulletproof_prove(unsigned char *si[])
 {
@@ -22,12 +23,11 @@ void bulletproof_prove(unsigned char *si[])
     mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
 
     mclBnFr rnd;
-    mclBnFr gamma[Mc];
     mclBnG1 Ubn;
 
     for (int i = 0; i < Mc; i++)
     {
-        mclBnFr_setByCSPRNG(&gamma[i]);
+        mclBnFr_setByCSPRNG(&gammas[i]);
     }
     
     mclBnFr_setByCSPRNG(&rnd);
@@ -63,8 +63,8 @@ void bulletproof_prove(unsigned char *si[])
 
     for (int j = 0; j < Mc; j++)
     {
-        mclBnFr_setStr(&frFactor, si[j], strlen(si[j]), 10);
-        mclBnFr_getStr(buff, sizeof(buff), &frFactor, 2);
+        mclBnFr_setStr(&v[j], si[j], strlen(si[j]), 10);
+        mclBnFr_getStr(buff, sizeof(buff), &v[j], 2);
 
         for (int i = 0; i < strlen(buff); i++)
         {
@@ -85,22 +85,13 @@ void bulletproof_prove(unsigned char *si[])
     mclBnG1_mul(&A, &Hb, &alpha);
     mclBnG1_mul(&S, &Hb, &rho);
 
-    // compute inner products v[]
     #pragma omp parallel for
     for (int i = 0; i < Mc; i++)
     {
-        mclBnFr_clear(&v[i]);
-        mclBnFr frTmp;
-        for (int j = 0; j < Nb; j++)
-        {
-            mclBnFr_mul(&frTmp, &aL[j + (i * Nb)], &two_vec[j]);
-            mclBnFr_add(&v[i], &v[i], &frTmp);
-        }
-
         // compute commitment V
         mclBnG1 g1Tmp;
         mclBnG1_mul(&g1Tmp, &Gb, &v[i]);
-        mclBnG1_mul(&V[i], &Hb, &gamma[i]);
+        mclBnG1_mul(&V[i], &Hb, &gammas[i]);
         mclBnG1_add(&V[i], &V[i], &g1Tmp);
     }
 
@@ -113,9 +104,12 @@ void bulletproof_prove(unsigned char *si[])
     }
 
     // compute commitment A
+    for (int i = 0; i < Nb*Mc; i++)
+    {
+        if (mclBnFr_isOne(&aL[i])) mclBnG1_add(&A, &A, &G[i]);
+    }
+
     mclBnG1 A_chunk;
-    mult_exp(&A_chunk, G, aL, Nb*Mc);
-    mclBnG1_add(&A, &A, &A_chunk);
     mult_exp(&A_chunk, H, aR, Nb*Mc);
     mclBnG1_add(&A, &A, &A_chunk);
 
@@ -225,7 +219,7 @@ void bulletproof_prove(unsigned char *si[])
     for (int i = 1; i < Mc + 1; i++)
     {
         mclBnFr_mul(&frFactor2, &frFactor2, &z);
-        mclBnFr_mul(&frFactor, &frFactor2, &gamma[i-1]);
+        mclBnFr_mul(&frFactor, &frFactor2, &gammas[i-1]);
         mclBnFr_add(&frFactor3, &frFactor3, &frFactor);
     }
 
@@ -668,6 +662,7 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
     l = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
     r = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
     two_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    gammas = (mclBnFr*) malloc((Mc) * sizeof(mclBnFr));
 
     mclBnFr_setInt(&two_vec[0], 1);
     mclBnFr_setInt(&two_vec[1], 2);
