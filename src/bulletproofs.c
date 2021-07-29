@@ -677,3 +677,20 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
         mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
     }
 }
+
+static inline void bulletproof_get_context(context *ctx)
+{
+    ctx->V = V;
+    ctx->G = Gb;
+    ctx->H = Hb;
+}
+
+static inline void bulletproof_get_gammas(context *ctx)
+{
+    ctx->gammas = gammas;
+}
+
+static inline void bulletproof_user_gammas(int val)
+{
+    userGammas = val;
+}
