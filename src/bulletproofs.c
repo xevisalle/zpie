@@ -13,6 +13,8 @@ mclBnFr *l, *r;
 mclBnFr *two_vec;
 mclBnFr *gammas;
 
+int userGammas = 0;
+
 void bulletproof_prove(unsigned char *si[])
 {
     struct timespec begin, end;
@@ -25,9 +27,12 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr rnd;
     mclBnG1 Ubn;
 
-    for (int i = 0; i < Mc; i++)
+    if (!userGammas)
     {
-        mclBnFr_setByCSPRNG(&gammas[i]);
+        for (int i = 0; i < Mc; i++)
+        {
+            mclBnFr_setByCSPRNG(&gammas[i]);
+        }
     }
     
     mclBnFr_setByCSPRNG(&rnd);
