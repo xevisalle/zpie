@@ -21,12 +21,6 @@ void bulletproof_prove(unsigned char *si[])
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    mclBnG1 Gen;
-    mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
-
-    mclBnFr rnd;
-    mclBnG1 Ubn;
-
     if (!userGammas)
     {
         for (int i = 0; i < Mc; i++)
@@ -34,27 +28,8 @@ void bulletproof_prove(unsigned char *si[])
             mclBnFr_setByCSPRNG(&gammas[i]);
         }
     }
-    
-    mclBnFr_setByCSPRNG(&rnd);
-    mclBnG1_mul(&Gb, &Gen, &rnd);
-
-    mclBnFr_setByCSPRNG(&rnd);
-    mclBnG1_mul(&Hb, &Gen, &rnd);
-
-    mclBnFr_setByCSPRNG(&rnd);
-    mclBnG1_mul(&Ub, &Gen, &rnd);
 
     mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
-
-    mclBnG1_clear(&G[0]);
-    mclBnG1_clear(&H[0]); 
-
-    for (int i = 1; i < Nb*Mc; i++)
-    {
-        mclBnG1_add(&G[i], &G[i-1], &Gb);
-        mclBnG1_add(&H[i], &H[i-1], &Hb);
-    }
-
     mclBnFr aL[Nb*Mc], aR[Nb*Mc];
 
     for (int i = 0; i < Nb*Mc; i++)
@@ -237,6 +212,7 @@ void bulletproof_prove(unsigned char *si[])
     transcript_hash(&xp);
     transcript_add_Fr(&xp);
     
+    mclBnG1 Ubn;
     mclBnG1_mul(&Ubn, &Ub, &xp);
 
     mclBnG1 Gp[Nb*Mc];
@@ -334,6 +310,8 @@ int bulletproof_verify()
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
+    bulletproof_read();
+
     mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
 
     mclBnFr one;
@@ -343,17 +321,6 @@ int bulletproof_verify()
     mclBnFr z2;
     mclBnFr y_vec[Nb*Mc];
     mclBnG1 P, Pp;
-
-    bulletproof_read();
-
-    mclBnG1_clear(&G[0]);
-    mclBnG1_clear(&H[0]); 
-
-    for (int i = 1; i < Nb*Mc; i++)
-    {
-        mclBnG1_add(&G[i], &G[i-1], &Gb);
-        mclBnG1_add(&H[i], &H[i-1], &Hb);
-    }
 
     mclBnFr_mul(&z2, &z, &z);
     mclBnFr_setInt(&y_vec[0], 1);
@@ -545,13 +512,6 @@ void bulletproof_save()
     FILE *fbp;
     fbp = fopen("data/bulletproof.params", "w");
 
-    mclBnG1_getStr(buff, sizeof(buff), &Gb, 10);
-    fprintf(fbp, "%s\n", buff);
-    mclBnG1_getStr(buff, sizeof(buff), &Hb, 10);
-    fprintf(fbp, "%s\n", buff);
-    mclBnG1_getStr(buff, sizeof(buff), &Ub, 10);
-    fprintf(fbp, "%s\n", buff);
-
     for (int i = 0; i < Mc; i++)
     {
         mclBnG1_getStr(buff, sizeof(buff), &V[i], 10);
@@ -581,13 +541,6 @@ void bulletproof_read()
 
     FILE *fbp;
     fbp = fopen("data/bulletproof.params", "r");
-
-    fgets(buff, sizeof buff, fbp);
-    mclBnG1_setStr(&Gb, buff, strlen(buff), 10);
-    fgets(buff, sizeof buff, fbp);
-    mclBnG1_setStr(&Hb, buff, strlen(buff), 10);
-    fgets(buff, sizeof buff, fbp);
-    mclBnG1_setStr(&Ub, buff, strlen(buff), 10);
 
     for (int i = 0; i < Mc; i++)
     {
@@ -676,6 +629,26 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
     {
         mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
     }
+
+    mclBnG1 Gen;
+    mclBnFr seed;
+    mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
+    
+    mclBnFr_setStr(&seed, SEED1, strlen(SEED1), 10);
+    mclBnG1_mul(&Gb, &Gen, &seed);
+    mclBnFr_setStr(&seed, SEED2, strlen(SEED2), 10);
+    mclBnG1_mul(&Hb, &Gen, &seed);
+    mclBnFr_setStr(&seed, SEED3, strlen(SEED3), 10);
+    mclBnG1_mul(&Ub, &Gen, &seed);
+
+    mclBnG1_clear(&G[0]);
+    mclBnG1_clear(&H[0]); 
+
+    for (int i = 1; i < Nb*Mc; i++)
+    {
+        mclBnG1_add(&G[i], &G[i-1], &Gb);
+        mclBnG1_add(&H[i], &H[i-1], &Hb);
+    }
 }
 
 static inline void bulletproof_get_context(context *ctx)
@@ -683,10 +656,6 @@ static inline void bulletproof_get_context(context *ctx)
     ctx->V = V;
     ctx->G = Gb;
     ctx->H = Hb;
-}
-
-static inline void bulletproof_get_gammas(context *ctx)
-{
     ctx->gammas = gammas;
 }
 

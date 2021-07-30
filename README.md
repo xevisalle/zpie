@@ -124,7 +124,7 @@ int main()
 
     // we verify the bulletproof (../data/bulletproof.params)
     if(bulletproof_verify()) printf("Bulletproof verified.\n");
-    else printf("Bulletroof cannot be verified.\n");
+    else printf("Bulletproof cannot be verified.\n");
 }
 ```
 
