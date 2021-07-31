@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
         for (int i = 0; i < Mcu; i++)
         {
-            si[i] = "1234";
+            si[i] = "2";
         }
 
         bulletproof_prove(si);
