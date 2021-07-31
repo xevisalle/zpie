@@ -6,7 +6,8 @@ void bos_coster_bp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsi
 {
     mpz_t *exp[heapsize];
     mpz_t scalars_p[heapsize];
-    mclBnG1 points_p[heapsize];
+    mclBnG1 *points_p;
+    points_p = (mclBnG1*) malloc((heapsize) * sizeof(mclBnG1));
     mclBnFr one;
     mclBnFr_setInt(&one, 1);
 

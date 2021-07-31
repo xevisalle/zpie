@@ -11,6 +11,7 @@ mclBnFr *xp_vec;
 mclBnG1 *L_vec, *R_vec;
 mclBnFr *l, *r;
 mclBnFr *two_vec;
+mclBnFr *y_vec;
 mclBnFr *gammas;
 
 int userGammas = 0;
@@ -30,7 +31,10 @@ void bulletproof_prove(unsigned char *si[])
     }
 
     mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
-    mclBnFr aL[Nb*Mc], aR[Nb*Mc];
+
+    mclBnFr *aL, *aR;
+    aL = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    aR = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
 
     for (int i = 0; i < Nb*Mc; i++)
     {
@@ -57,7 +61,9 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr alpha;
     mclBnFr_setByCSPRNG(&alpha);
 
-    mclBnFr sL[Nb*Mc], sR[Nb*Mc];
+    mclBnFr *sL, *sR;
+    sL = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    sR = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
 
     mclBnFr rho;
     mclBnFr_setByCSPRNG(&rho);
@@ -110,8 +116,6 @@ void bulletproof_prove(unsigned char *si[])
     transcript_add_Fr(&z);
 
     mclBnFr_mul(&z2, &z, &z);
-
-    mclBnFr y_vec[Nb*Mc];
     mclBnFr_setInt(&y_vec[0], 1);
     mclBnFr_mul(&y_vec[1], &y_vec[0], &y);
 
@@ -215,7 +219,8 @@ void bulletproof_prove(unsigned char *si[])
     mclBnG1 Ubn;
     mclBnG1_mul(&Ubn, &Ub, &xp);
 
-    mclBnG1 Gp[Nb*Mc];
+    mclBnG1 *Gp;
+    Gp = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
 
     #pragma omp parallel for
     for (int i = 0; i < Nb*Mc; i++)
@@ -319,9 +324,8 @@ int bulletproof_verify()
     mclBnG1 g1Factor;
 
     mclBnFr z2;
-    mclBnFr y_vec[Nb*Mc];
+    
     mclBnG1 P, Pp;
-
     mclBnFr_mul(&z2, &z, &z);
     mclBnFr_setInt(&y_vec[0], 1);
     mclBnFr_mul(&y_vec[1], &y_vec[0], &y);
@@ -345,8 +349,10 @@ int bulletproof_verify()
         mclBnG1_mul(&Hp[i], &H[i], &frTmp);
     }
 
-    mclBnFr frFactor_vec[Nb*Mc];
-    mclBnFr frFactor_vec2[Nb*Mc];
+    mclBnFr *frFactor_vec;
+    frFactor_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    mclBnFr *frFactor_vec2;
+    frFactor_vec2 = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
     mclBnG1 P_chunk;
 
     for (int i = 0; i < Nb*Mc; i++)
@@ -433,7 +439,8 @@ int bulletproof_verify()
 
     int cond1 = mclBnG1_isEqual(&CL, &CR);
 
-    mclBnFr s_vec[Nb*Mc];
+    mclBnFr *s_vec;
+    s_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
 
     for (int i = 0; i < Nb*Mc; i++)
     {
@@ -596,6 +603,14 @@ void bulletproof_read()
 
 static inline void bulletproof_init(int Nb_set, int Mc_set)
 {
+    int check = Nb_set * Mc_set;
+
+    if (!((check != 0) && ((check & (check - 1)) == 0)))
+    {
+        printf("\033[1;31m[ERROR] :\033[0m Input values must be powers of two.\n");
+        exit(0);
+    }
+
     Nb = Nb_set;
     Mc = Mc_set;
 
@@ -604,10 +619,7 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
 
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 
-    float log_up = log(Nb*Mc);
-    float log_down = log(2);
-    logN = log_up / log_down;
-
+    logN = log2(Nb*Mc);
     transcript = (char *) malloc(1024 * logN * sizeof(char));
 
     G = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
@@ -620,6 +632,7 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
     l = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
     r = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
     two_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    y_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
     gammas = (mclBnFr*) malloc((Mc) * sizeof(mclBnFr));
 
     mclBnFr_setInt(&two_vec[0], 1);
