@@ -4,6 +4,8 @@ A portable and efficient C library for developing Zero-Knowledge applications fo
 
 **DISCLAIMER**: this library is currently **unstable**. Furthermore, **it has not gone through an exhaustive security analysis**, so it is not intended to be used in a production environment, only for academic purposes.
 
+A paper with all the details about ZPiE has been published in the special issue *Recent Advances in Security, Privacy, and Applied Cryptography* of the journal *Mathematics* (2021) and can be found [here](https://doi.org/10.3390/math9202569).
+
 ## Overview
 
 ZPiE supports the following Zero-Knowledge schemes, defined over the elliptic curves BN128 and BLS12-381:
