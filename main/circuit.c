@@ -24,11 +24,16 @@ void test1(int mulsize)
 // verify an EdDSA signature
 void test2()
 {
+	element equal1, equal2;
+
+	init_public(&equal1);
+	init_public(&equal2);
+
 	element out[4];
 
 	for (int i = 0; i < 4; ++i)
 	{
-		init_public(&out[i]);
+		init(&out[i]);
 	}
 
 	char *B1 = "5299619240641551281634865583518297030282874472190772894086521144482721001553";
@@ -44,10 +49,11 @@ void test2()
 
 	verify_eddsa(out, B1, B2, R1, R2, A1, A2, msg, signature);
 
-	element_log("LS1 = ", &out[2]);
-	element_log("LS2 = ", &out[3]);
-	element_log("RS1 = ", &out[0]);
-	element_log("RS2 = ", &out[1]);	
+	assertEqual(&equal1, &out[2], &out[0]);
+	assertEqual(&equal2, &out[3], &out[1]);
+
+	element_log("equal1 = ", &equal1);
+	element_log("equal2 = ", &equal2);
 }
 
 // compute a MiMC hash
