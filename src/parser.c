@@ -92,6 +92,15 @@ void mul(element *oo, element *lo, element *ro)
 	}
 }
 
+void assertEqual(element *oo, element *lo, element *ro)
+{
+	element factor;
+	init(&factor);
+
+	mul(&factor, ro, &oneNeg);
+	addmul(oo, lo, &factor, &one);
+}
+
 void input(element *var, char *val)
 {
 	if (!setParams) mpz_set_str(uw[var->index], val, 10);
@@ -124,6 +133,10 @@ void init(element *toAdd)
 void init_circuit()
 {
 	init_public(&one);
+	init_public(&oneNeg);
+
 	input(&one, "1");
+	input(&oneNeg, "-1");
+
 	circuit();
 }
