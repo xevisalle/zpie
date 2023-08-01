@@ -171,8 +171,15 @@ void to_bits(element *bits, element val, int size)
 	mul(&checkCnst, &check, &one);
 }
 
-void verify_eddsa(element out[4], char *B1s, char *B2s, char *R1s, char *R2s, char *A1s, char *A2s, char *msg, char *signatures)
+void verify_eddsa(char *B1s, char *B2s, char *R1s, char *R2s, char *A1s, char *A2s, char *msg, char *signatures)
 {
+	element out[4];
+
+	for (int i = 0; i < 4; ++i)
+	{
+		init(&out[i]);
+	}
+
 	element outPrivate[3];
 	init_array(outPrivate, 3);
 
@@ -213,6 +220,9 @@ void verify_eddsa(element out[4], char *B1s, char *B2s, char *R1s, char *R2s, ch
 	add(out[0], out[1], outPrivate[1], outPrivate[2], ram[0], ram[1]);
 
 	mul_scalar(out[2], out[3], B1, B2, sBits, size-1);
+
+	assertEqual(&out[2], &out[0]);
+	assertEqual(&out[3], &out[1]);
 }
 
 #endif

@@ -24,18 +24,6 @@ void test1(int mulsize)
 // verify an EdDSA signature
 void test2()
 {
-	element equal1, equal2;
-
-	init_public(&equal1);
-	init_public(&equal2);
-
-	element out[4];
-
-	for (int i = 0; i < 4; ++i)
-	{
-		init(&out[i]);
-	}
-
 	char *B1 = "5299619240641551281634865583518297030282874472190772894086521144482721001553";
 	char *B2 = "16950150798460657717958625567821834550301663161624707787222815936182638968203";
 	
@@ -47,13 +35,7 @@ void test2()
 
 	char *signature = "2674591880888862378688383832785447197125897205360861957116147165712709455207";
 
-	verify_eddsa(out, B1, B2, R1, R2, A1, A2, msg, signature);
-
-	assertEqual(&equal1, &out[2], &out[0]);
-	assertEqual(&equal2, &out[3], &out[1]);
-
-	element_log("equal1 = ", &equal1);
-	element_log("equal2 = ", &equal2);
+	verify_eddsa(B1, B2, R1, R2, A1, A2, msg, signature);
 }
 
 // compute a MiMC hash
