@@ -27,6 +27,25 @@ void addmul(element *oo, element *lo1, element *lo2, element *ro)
 	}	
 }
 
+void addmul0(element *oo, element *lo1, element *lo2, element *ro)
+{
+	if (setParams) N++;
+	else if (prover)
+	{
+		mpz_add(uw[oo->index], uw[lo1->index], uw[lo2->index]);
+		mpz_mul(uw[oo->index], uw[oo->index], uw[ro->index]);
+		mpz_mod(uw[oo->index], uw[oo->index], pPrime);
+	}
+	else
+	{
+		L[cn][lo1->index] = 1;
+		L[cn][lo2->index] = 1;
+		R[cn][ro->index] = 1;
+
+		cn++;
+	}	
+}
+
 void add3mul(element *oo, element *lo1, element *lo2, element *lo3, element *ro)
 {
 	if (setParams) N++;
@@ -92,6 +111,16 @@ void mul(element *oo, element *lo, element *ro)
 	}
 }
 
+void assertEqual(element *lo, element *ro)
+{
+	element factor1, factor2;
+	init(&factor1);
+	init(&factor2);
+
+	mul(&factor1, ro, &oneNeg);
+	addmul0(&factor2, lo, &factor1, &one);
+}
+
 void input(element *var, char *val)
 {
 	if (!setParams) mpz_set_str(uw[var->index], val, 10);
@@ -124,6 +153,10 @@ void init(element *toAdd)
 void init_circuit()
 {
 	init_public(&one);
+	init_public(&oneNeg);
+
 	input(&one, "1");
+	input(&oneNeg, "-1");
+
 	circuit();
 }

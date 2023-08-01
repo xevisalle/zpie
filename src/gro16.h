@@ -8,7 +8,7 @@ typedef struct Element
     int index;
 } element;
 
-element one;
+element one, oneNeg;
 
 int logs;
 
@@ -19,6 +19,7 @@ void init_public(element *toAdd);
 void setPublic(element *set);
 void input(element *var, char *val);
 void mul(element *oo, element *lo, element *ro);
+void assertEqual(element *lo, element *ro);
 void addmul(element *oo, element *lo1, element *lo2, element *ro);
 void submul(element *oo, element *lo1, element *lo2, element *ro);
 void add3mul(element *oo, element *lo1, element *lo2, element *lo3, element *ro);
