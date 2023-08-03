@@ -221,8 +221,8 @@ void verify_eddsa(char *B1s, char *B2s, char *R1s, char *R2s, char *A1s, char *A
 
 	mul_scalar(out[2], out[3], B1, B2, sBits, size-1);
 
-	assertEqual(&out[2], &out[0]);
-	assertEqual(&out[3], &out[1]);
+	assert_equal(&out[2], &out[0]);
+	assert_equal(&out[3], &out[1]);
 }
 
 #endif

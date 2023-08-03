@@ -318,7 +318,10 @@ void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC)
 
     struct mulExpResult result;
     
-    #ifdef BOSCOSTER_MULEXP
+    #ifdef AUTO_MULEXP
+        if(M > 1000) mul_exp(&result);
+        else mcl_mul_exp(&result);
+    #elif BOSCOSTER_MULEXP
         mul_exp(&result);
     #elif NAIVE_MULEXP
         naive_mul_exp(&result);
@@ -332,6 +335,9 @@ void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC)
     if (bench) printf("  |--- G1, G2 multiexponentiations:  [%fs]\n", elapsed);
     #ifdef MULTI
     #elif BOSCOSTER_MULEXP
+    if (bench) printf("     |--- Bos-Coster:  [%fs]\n", elapsedBosCoster);
+    if (bench) printf("     |--- Heap sorting:  [%fs]\n", elapsedSort);
+    #elif AUTO_MULEXP
     if (bench) printf("     |--- Bos-Coster:  [%fs]\n", elapsedBosCoster);
     if (bench) printf("     |--- Heap sorting:  [%fs]\n", elapsedSort);
     #endif

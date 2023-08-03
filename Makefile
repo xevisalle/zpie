@@ -10,7 +10,7 @@ LIB = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I $(MCLPATH)/inc
 LIBCROSS = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a $(GMPPATH)/lib/libgmp.a -I $(MCLPATH)/include -I $(GMPPATH)/include -lstdc++
 SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/main/*.c $(shell pwd)/src/*.h
 
-MULEXP = BOSCOSTER_MULEXP
+MULEXP = AUTO_MULEXP
 CURVE = BN128
 ARCH = None
 

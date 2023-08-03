@@ -1,5 +1,26 @@
 #include "../src/zpie.h"
 
+void circuit()
+{
+    int mulsize = 1000;
+    
+    element out;
+    init_public(&out);
+
+    element arr[mulsize];
+    init_array(arr, mulsize);
+
+    input(&arr[0], "213");
+    input(&arr[1], "1122");
+
+    for (int i = 2; i < mulsize; i++)
+    {
+        mul(&arr[i], &arr[1], &arr[i-1]);
+    }
+
+    mul(&out, &arr[0], &arr[mulsize-1]);
+}
+
 int main(int argc, char *argv[])
 {   
     bench = 1; 

@@ -14,6 +14,7 @@ int logs;
 
 void element_log(char *text, element *oo);
 void init(element *toAdd);
+void circuit();
 void init_array(element *toAdd, int size);
 void init_public(element *toAdd);
 void setPublic(element *set);
@@ -31,8 +32,6 @@ void sort_list(mpz_t *exp[], int heapsize);
 void binarymaxheap(mpz_t *exp[], int i, int heapsize);
 
 static mpz_t pPrime;
-
-#include "../main/circuit.c"
 
 static int n;
 static gmp_randstate_t state;
@@ -57,6 +56,11 @@ static mpz_t Ne;
 static mpz_t *wM;
 
 #include "fourier.c"
+
+int prover;
+int cn = 0;
+int uwn = 0;
+
 #include "parser.c"
 
 struct Trapdoor

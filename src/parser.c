@@ -1,6 +1,3 @@
-int prover;
-int cn = 0;
-int uwn = 0;
 
 void element_log(char *text, element *oo)
 {
@@ -111,7 +108,7 @@ void mul(element *oo, element *lo, element *ro)
 	}
 }
 
-void assertEqual(element *lo, element *ro)
+void assert_equal(element *lo, element *ro)
 {
 	element factor1, factor2;
 	init(&factor1);
