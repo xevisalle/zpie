@@ -294,7 +294,7 @@ void init_prover()
     if (bench) printf("%fs\n\n", elapsed);
 }
 
-void generate_proof()
+proof generate_proof()
 {
     uwn = 0;
     for (int i = 0; i < M; i++)
@@ -302,15 +302,14 @@ void generate_proof()
         mpz_init(uw[i]);
     }
     
-    mclBnG1 piA, piC;
-    mclBnG2 piB2;
+    proof p;
 
     if (bench) printf("--- Computing proof...\n");
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    prove(&piA, &piB2, &piC);
+    prove(&p.piA, &p.piB2, &p.piC);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -319,26 +318,13 @@ void generate_proof()
     log_success("Proof generated successfully in ", 1);
     if (bench) printf("%fs\n", elapsed);
 
-    char buff[2048];
-    FILE *fproof;
-    fproof = fopen("data/proof.params", "w");
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
 
     for (int i = 0; i < nPublic; i++)
     {
-        mpz_out_str(fproof, 10, uwProof[i]);
-        fprintf(fproof, "\n");
+        mpz_init(p.uwProof[i]);
+        mpz_set(p.uwProof[i], uwProof[i]);
     }
-
-    mclBnG1_getStr(buff, sizeof(buff), &piA, 10);
-    fprintf(fproof, "%s\n", buff);
-
-    mclBnG2_getStr(buff, sizeof(buff), &piB2, 10);
-    fprintf(fproof, "%s\n", buff);
-
-    mclBnG1_getStr(buff, sizeof(buff), &piC, 10);
-    fprintf(fproof, "%s\n", buff);
-
-    fclose(fproof);
 
     for (int i = 0; i < n; i++)
     {
@@ -346,6 +332,32 @@ void generate_proof()
         mclBnFr_clear(&BsFr[i]);
         mclBnFr_clear(&CsFr[i]);
     }
+
+    return p;
+}
+
+void store_proof(proof p)
+{
+    char buff[2048];
+    FILE *fproof;
+    fproof = fopen("data/proof.params", "w");
+
+    for (int i = 0; i < nPublic; i++)
+    {
+        mpz_out_str(fproof, 10, p.uwProof[i]);
+        fprintf(fproof, "\n");
+    }
+
+    mclBnG1_getStr(buff, sizeof(buff), &p.piA, 10);
+    fprintf(fproof, "%s\n", buff);
+
+    mclBnG2_getStr(buff, sizeof(buff), &p.piB2, 10);
+    fprintf(fproof, "%s\n", buff);
+
+    mclBnG1_getStr(buff, sizeof(buff), &p.piC, 10);
+    fprintf(fproof, "%s\n", buff);
+
+    fclose(fproof);
 }
 
 void init_verifier()
@@ -376,39 +388,44 @@ void init_verifier()
     fclose(fvk);
 }
 
-int verify_proof()
+proof read_proof()
 {
-    mpz_t u[nPublic]; // public statement
-    mclBnG1 piA, piC; 
-    mclBnG2 piB2;
+    proof p;
 
     char buff[2048];
     FILE *fproof;
     fproof = fopen("data/proof.params", "r");
 
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
+
     for (int i = 0; i < nPublic; i++)
     {
-        fgets(buff,sizeof buff, fproof);
-        mpz_init(u[i]);
-        mpz_set_str(u[i], buff, 10);
+        fgets(buff, sizeof buff, fproof);
+        mpz_init(p.uwProof[i]);
+        mpz_set_str(p.uwProof[i], buff, 10);
     }
 
     fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&piA, buff, strlen(buff), 10);
+    mclBnG1_setStr(&p.piA, buff, strlen(buff), 10);
 
     fgets(buff, sizeof buff, fproof);
-    mclBnG2_setStr(&piB2, buff, strlen(buff), 10);
+    mclBnG2_setStr(&p.piB2, buff, strlen(buff), 10);
 
     fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&piC, buff, strlen(buff), 10);
+    mclBnG1_setStr(&p.piC, buff, strlen(buff), 10);
 
     fclose(fproof);
 
+    return p;
+}
+
+int verify_proof(proof p)
+{
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    int verified = verify(&piA, &piB2, &piC, u);
+    int verified = verify(&p.piA, &p.piB2, &p.piC, p.uwProof);
 
     if (verified)
     {
@@ -421,11 +438,6 @@ int verify_proof()
     else
     {
         log_success("Proof cannot be verified\n", 0);
-    }
-
-    for (int i = 0; i < nPublic; i++)
-    {
-        mpz_clear(u[i]);
     }
 
     return verified;

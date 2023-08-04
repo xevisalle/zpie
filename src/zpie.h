@@ -50,6 +50,13 @@ typedef struct Context
     mclBnG1 H;
 } context;
 
+typedef struct Proof
+{
+    mpz_t *uwProof;
+    mclBnG1 piA, piC;
+    mclBnG2 piB2;
+} proof;
+
 #include "gro16.h"
 
 void bulletproof_prove(unsigned char *si[]);
@@ -62,9 +69,9 @@ static inline void bulletproof_user_gammas(int val);
 void init_setup();
 void perform_setup();
 void init_prover();
-void generate_proof();
+proof generate_proof();
 void init_verifier();
-int verify_proof();
+int verify_proof(proof p);
 
 #include "zpie.c"
 #include "bulletproofs.c"

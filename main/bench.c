@@ -70,16 +70,20 @@ int main(int argc, char *argv[])
     printf("  |--- Elliptic curve: BLS12_381\n");
     #endif
 
+    proof p;
+
     if (strcmp(argv[1], "-s") == 0) perform_setup();
     else if (strcmp(argv[1], "-p") == 0)
     {
         init_prover();
-        generate_proof();
+        p = generate_proof();
+        store_proof(p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
         init_verifier();
-        verify_proof();
+        p = read_proof();
+        verify_proof(p);
     }
     else if (strcmp(argv[1], "-pbp") == 0)
     {
