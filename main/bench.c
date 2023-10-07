@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
 
     if ((strcmp(argv[1], "-s") == 0) || (strcmp(argv[1], "-p") == 0) || (strcmp(argv[1], "-v") == 0))
     {
-        init_setup();
         printf("--- Starting ZPiE - Groth'16...\n");
         printf("  |--- # of constraints: %d\n", N);
         printf("  |--- # of variables: %d\n", M);
@@ -70,20 +69,23 @@ int main(int argc, char *argv[])
     printf("  |--- Elliptic curve: BLS12_381\n");
     #endif
 
-    proof p;
 
-    if (strcmp(argv[1], "-s") == 0) perform_setup();
+    if (strcmp(argv[1], "-s") == 0)
+    {
+        setupKeys keys = perform_setup();
+        store_setup(keys);
+    }
     else if (strcmp(argv[1], "-p") == 0)
     {
-        init_prover();
-        p = generate_proof();
+        setupKeys keys = read_setup();
+        proof p = generate_proof(keys.pk);
         store_proof(p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
-        init_verifier();
-        p = read_proof();
-        verify_proof(p);
+        setupKeys keys = read_setup();
+        proof p = read_proof();
+        verify_proof(p, keys.vk);
     }
     else if (strcmp(argv[1], "-pbp") == 0)
     {

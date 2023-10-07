@@ -2,6 +2,122 @@ double elapsedSort;
 double elapsedBosCoster;
 char *transcript;
 
+struct Sigma1 s1;
+struct Sigma2 s2;
+mclBnGT alphabetaT;
+
+void log_state(int type)
+{
+    if (logs)
+    {
+        if (type == 0) printf(" \033[1;31m[ERROR]\033[0m\n");
+        if (type == 1) printf(" \033[1;32m[OK]\033[0m\n");
+    }
+}
+
+void log_message(char msg[])
+{
+    if (logs)
+    {
+        printf("\033[1;34m[log] :\033[0m %s", msg);
+    }   
+}
+
+void log_success(char msg[], int type)
+{
+    if (type == 1 && bench) printf("\033[1;32m[SUCCESS] :\033[0m %s", msg);
+    if (type == 0 && bench) printf("\033[1;31m[FAIL] :\033[0m %s", msg);
+}
+
+void init_setup()
+{
+    M = 0;
+    N = 0;
+    nPublic = 0;
+
+    mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
+
+    setParams = 1;
+    init_circuit();
+    setParams = 0;
+
+    M+=100; // experimental
+
+    uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
+
+    for (int i = 0; i < M; i++)
+    {
+        mpz_init2(uw[i], BITS);
+    }
+}
+
+void init_prover(provingKey pk)
+{
+    init_setup();
+
+    struct timespec begin, end;
+    double elapsed;
+    clock_gettime(CLOCK_MONOTONIC, &begin);
+
+    AsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    BsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    CsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+
+    if (bench) printf("  |--- Mode: Prove\n");
+
+    mpz_init(pPrime);
+    mpz_set_str(pPrime, PRIMESTR, 10);
+    if (bench) printf("  |--- FFT constraints size : %d\n", n);
+
+    rsigma = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
+    rsigmaInv = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
+
+    mpz_t randNum;
+    mpz_init(randNum);
+    mpz_t factor;
+    mpz_init_set_ui(factor, n);
+    mpz_invert(factor, factor, pPrime);
+    mpz_init(shift);
+
+    mclBnFr rand;
+    mclBnFr_setByCSPRNG(&rand);
+    fr_to_mpz(&randNum, &rand);
+    mpz_set(shift, randNum);
+
+    mpz_init2(rsigma[0], BITS);
+    mpz_init2(rsigmaInv[0], BITS);
+    mpz_set_ui(rsigma[0], 1);
+    mpz_invert(rsigmaInv[0], rsigma[0], pPrime);
+
+    mclBnFr frFactor;
+    mpz_to_fr(&frFactor, &rsigmaInv[0]);
+    mclBnG1_mul(&pk.xt1[0], &pk.xt1[0], &frFactor);
+    mpz_mul(rsigma[0], rsigma[0], factor);
+    mpz_mod(rsigma[0], rsigma[0], pPrime);
+
+    for (int i = 1; i < n; i++)
+    {
+        mclBnFr frFactorMulti;
+        mpz_init2(rsigma[i], BITS);
+        mpz_init2(rsigmaInv[i], BITS);
+        mpz_powm_ui(rsigma[i], shift, i, pPrime);
+        mpz_invert(rsigmaInv[i], rsigma[i], pPrime);
+
+        mpz_to_fr(&frFactorMulti, &rsigmaInv[i]);
+        mclBnG1_mul(&pk.xt1[i], &pk.xt1[i], &frFactorMulti);
+
+        mpz_mul(rsigma[i], rsigma[i], factor);
+        mpz_mod(rsigma[i], rsigma[i], pPrime);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    elapsed = (end.tv_sec - begin.tv_sec);
+    elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
+
+    log_success("ZPiE started successfully in ", 1);
+    if (bench) printf("%fs\n\n", elapsed);
+}
+
 void bos_coster_bp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsize)
 {
     mpz_t *exp[heapsize];
@@ -213,27 +329,4 @@ void fr_to_mpz(mpz_t *convert, mclBnFr *frFactor)
     mclBnFr_getStr(buff, sizeof(buff), frFactor, 10);
     mpz_init(*convert);
     mpz_set_str(*convert, buff, 10);
-}
-
-void log_state(int type)
-{
-    if (logs)
-    {
-        if (type == 0) printf(" \033[1;31m[ERROR]\033[0m\n");
-        if (type == 1) printf(" \033[1;32m[OK]\033[0m\n");
-    }
-}
-
-void log_message(char msg[])
-{
-    if (logs)
-    {
-        printf("\033[1;34m[log] :\033[0m %s", msg);
-    }   
-}
-
-void log_success(char msg[], int type)
-{
-    if (type == 1 && bench) printf("\033[1;32m[SUCCESS] :\033[0m %s", msg);
-    if (type == 0 && bench) printf("\033[1;31m[FAIL] :\033[0m %s", msg);
 }

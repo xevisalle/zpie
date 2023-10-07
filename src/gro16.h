@@ -94,11 +94,18 @@ struct Sigma2
 
 typedef struct ProvingKey
 {
+    mpz_t Ne;
+    mclBnFr *wMFr;
+
+    int qapSize;
+    int *LRO;
+
     mclBnG1 alpha1;
     mclBnG1 beta1;
     mclBnG2 beta2;
     mclBnG1 delta1;
     mclBnG2 delta2;
+
     mclBnG1 *A1;
     mclBnG1 *B1;
     mclBnG2 *B2;
@@ -123,8 +130,11 @@ typedef struct VerifyingKey
     mclBnG1 *vk1;
 } verifyingKey;
 
-provingKey pk;
-verifyingKey vk;
+typedef struct SetupKeys
+{
+    provingKey pk;
+    verifyingKey vk;
+} setupKeys;
 
 #include "utils.c"
 #include "qap.c"

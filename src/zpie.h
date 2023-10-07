@@ -67,11 +67,10 @@ static inline void bulletproof_init(int Nb_set, int Mc_set);
 static inline void bulletproof_get_context(context *ctx);
 static inline void bulletproof_user_gammas(int val);
 void init_setup();
-void perform_setup();
+setupKeys perform_setup();
 void init_prover();
 proof generate_proof();
-void init_verifier();
-int verify_proof(proof p);
+int verify_proof(proof p, verifyingKey vk);
 
 #include "zpie.c"
 #include "bulletproofs.c"

@@ -72,16 +72,17 @@ void circuit()
 
 int main()
 {
-	// we perform the setup (../data/provingkey.params and ../data/verifyingkey.params)
-    init_setup();
-	perform_setup();   
+	// we perform the setup
+	setupKeys keys = perform_setup();  
+
+    // we store and read the setup (../data/provingkey.params and ../data/verifyingkey.params)
+    store_setup(keys);
+    keys = read_setup();
 
 	// we generate a proof
-    init_prover();
-    proof p = generate_proof();
+    proof p = generate_proof(keys.pk);
 
     // we verify the proof
-    init_verifier();
-    if (verify_proof(p)) printf("Proof verified.\n");
+    if (verify_proof(p, keys.vk)) printf("Proof verified.\n");
     else printf("Proof cannot be verified.\n");
 }

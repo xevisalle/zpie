@@ -1,6 +1,6 @@
 mpz_t *uwProof;
 
-void h_coefficients()
+void h_coefficients(provingKey pk)
 {
     mclBnFr uwFr[M];
 
@@ -10,13 +10,13 @@ void h_coefficients()
         mpz_to_fr(&uwFr[j], &uw[j]);
     }
 
-    for (int j = 0; j < qapSize; j+=3)
+    for (int j = 0; j < pk.qapSize; j+=3)
     {
-        switch (LRO[j])
+        switch (pk.LRO[j])
         {
-            case 1: mclBnFr_add(&AsFr[LRO[j+1]], &AsFr[LRO[j+1]], &uwFr[LRO[j+2]]); break;
-            case 2: mclBnFr_add(&BsFr[LRO[j+1]], &BsFr[LRO[j+1]], &uwFr[LRO[j+2]]); break;
-            case 3: mclBnFr_add(&CsFr[LRO[j+1]], &CsFr[LRO[j+1]], &uwFr[LRO[j+2]]); break;
+            case 1: mclBnFr_add(&AsFr[pk.LRO[j+1]], &AsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
+            case 2: mclBnFr_add(&BsFr[pk.LRO[j+1]], &BsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
+            case 3: mclBnFr_add(&CsFr[pk.LRO[j+1]], &CsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
         }
     }
 
@@ -24,13 +24,13 @@ void h_coefficients()
     {
         switch (get_thread())
         {
-            case 0: ifft_t(n, wMFr, AsFr); break;
-            case 1: ifft_t(n, wMFr, BsFr); break;
-            case 2: ifft_t(n, wMFr, CsFr); break;
+            case 0: ifft_t(n, pk.wMFr, AsFr); break;
+            case 1: ifft_t(n, pk.wMFr, BsFr); break;
+            case 2: ifft_t(n, pk.wMFr, CsFr); break;
             case 99:
-                ifft_t(n, wMFr, AsFr);
-                ifft_t(n, wMFr, BsFr);
-                ifft_t(n, wMFr, CsFr);
+                ifft_t(n, pk.wMFr, AsFr);
+                ifft_t(n, pk.wMFr, BsFr);
+                ifft_t(n, pk.wMFr, CsFr);
                 break;
         }
     }
@@ -42,10 +42,10 @@ void h_coefficients()
         mclBnFr_sub(&AsFr[i], &AsFr[i], &CsFr[i]);
     }
 
-    ifft(n, wMFr, AsFr);
+    ifft(n, pk.wMFr, AsFr);
 }
 
-void mul_exp(struct mulExpResult *result)
+void mul_exp(struct mulExpResult *result, provingKey pk)
 {
     int totTh = 16;
     uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
@@ -197,7 +197,7 @@ void mul_exp(struct mulExpResult *result)
     #endif
 }
 
-void mcl_mul_exp(struct mulExpResult *result)
+void mcl_mul_exp(struct mulExpResult *result, provingKey pk)
 {
     mclBnFr uwFactor[M];
     mclBnFr uwFactorPublic[M-nPublic];
@@ -230,14 +230,14 @@ void mcl_mul_exp(struct mulExpResult *result)
                 mclBnG1_mulVec(&result->uwA1, pk.A1, uwFactor, M);
                 mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M);
                 mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M);
-                mclBnG1_mulVec(&result->uwC1, pk.pk1+nPublic, uwFactorPublic, M-nPublic);
+                mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic);
                 mclBnG1_mulVec(&result->htdelta, pk.xt1, AsFr, n);
                 break;
         }
     }
 }
 
-void naive_mul_exp(struct mulExpResult *result)
+void naive_mul_exp(struct mulExpResult *result, provingKey pk)
 {
     mclBnFr frFactor[M];
 
@@ -290,7 +290,7 @@ void naive_mul_exp(struct mulExpResult *result)
     }   
 }
 
-void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC)
+void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, provingKey pk)
 {
     prover = 1;
 
@@ -307,7 +307,7 @@ void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC)
 
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    h_coefficients();
+    h_coefficients(pk);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -320,13 +320,13 @@ void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC)
     
     #ifdef AUTO_MULEXP
         if(M > 1000) mul_exp(&result);
-        else mcl_mul_exp(&result);
+        else mcl_mul_exp(&result, pk);
     #elif BOSCOSTER_MULEXP
         mul_exp(&result);
     #elif NAIVE_MULEXP
         naive_mul_exp(&result);
     #elif MCL_MULEXP
-        mcl_mul_exp(&result);
+        mcl_mul_exp(&result, pk);
     #endif
 
     clock_gettime(CLOCK_MONOTONIC, &end);
