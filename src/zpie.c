@@ -5,7 +5,11 @@ setupKeys perform_setup()
     
     struct Trapdoor t; // to be destroyed
 
-    mpz_t kmul, factor, two, Ne;
+    struct Sigma1 s1;
+    struct Sigma2 s2;
+    mclBnGT alphabetaT;
+
+    mpz_t kmul, factor, two;
     mpz_inits(kmul, Ne, factor, NULL);
 
     mpz_init(pPrime);
@@ -310,6 +314,8 @@ proof generate_proof(provingKey pk)
     {
         mpz_init(uw[i]);
     }
+
+    wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     
     proof p;
 

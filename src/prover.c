@@ -192,7 +192,7 @@ void mul_exp(struct mulExpResult *result, provingKey pk)
     mclBnG1_mulVec(&result->uwA1, pk.A1, uwFactor, M);
     mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M);
     mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M);
-    mclBnG1_mulVec(&result->uwC1, pk.pk1+nPublic, uwFactorPublic, M-nPublic);
+    mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic);
     // <------ to be replaced
     #endif
 }
@@ -260,7 +260,7 @@ void naive_mul_exp(struct mulExpResult *result, provingKey pk)
         // B2uw = B2uw + u[i] * s2.B[i];
         mclBnG2_mul(&pk.B2[i], &pk.B2[i], &frFactor[i]);
         // Cw = Cw + w[i] * s1.pk[i];
-        if(i >= nPublic) mclBnG1_mul(&pk.pk1[i], &pk.pk1[i], &frFactor[i]);
+        if(i < M-nPublic) mclBnG1_mul(&pk.pk1[i], &pk.pk1[i], &frFactor[i]);
     }
 
     mclBnG1_clear(&result->uwA1);
@@ -273,7 +273,7 @@ void naive_mul_exp(struct mulExpResult *result, provingKey pk)
         mclBnG1_add(&result->uwA1, &result->uwA1, &pk.A1[i]);
         mclBnG1_add(&result->uwB1, &result->uwB1, &pk.B1[i]);
         mclBnG2_add(&result->uwB2, &result->uwB2, &pk.B2[i]);
-        if(i >= nPublic) mclBnG1_add(&result->uwC1, &result->uwC1, &pk.pk1[i]);
+        if(i < M-nPublic) mclBnG1_add(&result->uwC1, &result->uwC1, &pk.pk1[i]);
     }
 
     #pragma omp parallel for
@@ -319,12 +319,12 @@ void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, provingKey pk)
     struct mulExpResult result;
     
     #ifdef AUTO_MULEXP
-        if(M > 1000) mul_exp(&result);
+        if(M > 1000) mul_exp(&result, pk);
         else mcl_mul_exp(&result, pk);
     #elif BOSCOSTER_MULEXP
-        mul_exp(&result);
+        mul_exp(&result, pk);
     #elif NAIVE_MULEXP
-        naive_mul_exp(&result);
+        naive_mul_exp(&result, pk);
     #elif MCL_MULEXP
         mcl_mul_exp(&result, pk);
     #endif

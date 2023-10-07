@@ -6,7 +6,7 @@ CARM = arm-linux-gnueabihf-gcc
 COMMON = main/$(MAIN).c -o $(OUT) -std=gnu99 -Ofast -Wno-unused-result
 MCLPATH = ../mcl
 GMPPATH = /usr/local
-LIB = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I $(MCLPATH)/include -lgmp -lm -lstdc++
+LIB = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I $(MCLPATH)/include -lgmp -lcunit -lm -lstdc++
 LIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -I $(MCLPATH)/include -lm -lstdc++
 LIBCROSS = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a $(GMPPATH)/lib/libgmp.a -I $(MCLPATH)/include -I $(GMPPATH)/include -lstdc++
 SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/main/*.c $(shell pwd)/src/*.h

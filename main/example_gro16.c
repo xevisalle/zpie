@@ -3,28 +3,22 @@
 #include "../circuits/mimc.c"
 #include "../circuits/eddsa.c"
 
-// do x multiplications
-void test1(int mulsize)
+void test_single_constraint()
 {
     element out;
     init_public(&out);
 
-    element arr[mulsize];
-    init_array(arr, mulsize);
+    element a, b;
+    init(&a);
+    init(&b);
 
-    input(&arr[0], "213");
-    input(&arr[1], "1122");
+    input(&a, "1234");
+    input(&b, "5678");
 
-    for (int i = 2; i < mulsize; i++)
-    {
-        mul(&arr[i], &arr[1], &arr[i-1]);
-    }
-
-    mul(&out, &arr[0], &arr[mulsize-1]);
+    mul(&out, &a, &b);
 }
 
-// verify an EdDSA signature
-void test2()
+void test_eddsa_verification()
 {
     char *B1 = "5299619240641551281634865583518297030282874472190772894086521144482721001553";
     char *B2 = "16950150798460657717958625567821834550301663161624707787222815936182638968203";
@@ -40,8 +34,7 @@ void test2()
     verify_eddsa(B1, B2, R1, R2, A1, A2, msg, signature);
 }
 
-// compute a MiMC hash
-void test3()
+void test_mimc_hash()
 {
     element h, x_in, k;
 
@@ -57,32 +50,52 @@ void test3()
 
 void circuit()
 {
-    element out;
-    init_public(&out);
+    switch (circuit_selector)
+    {
+        case 0: test_single_constraint(); break;
+        case 1: test_eddsa_verification(); break;
+        case 2: test_mimc_hash(); break;
+    }
+}
 
-    element arr0, arr1;
-    init(&arr0);
-    init(&arr1);
+int execute_proof_system()
+{
+    // we perform the setup
+    setupKeys keys = perform_setup();  
 
-    input(&arr0, "213");
-    input(&arr1, "1122");
+    // we generate a proof
+    proof p = generate_proof(keys.pk);
 
-    mul(&out, &arr0, &arr1);
+    // we verify the proof
+    return verify_proof(p, keys.vk);
+}
+
+void test_full_circuits(void)
+{
+    circuit_selector = 0;
+    CU_ASSERT(execute_proof_system() == 1);
+
+    circuit_selector = 1;
+    CU_ASSERT(execute_proof_system() == 1);
+
+    circuit_selector = 2;
+    CU_ASSERT(execute_proof_system() == 1);
 }
 
 int main()
 {
-	// we perform the setup
-	setupKeys keys = perform_setup();  
+    CU_pSuite suite = NULL;
+    if (CUE_SUCCESS != CU_initialize_registry()) return CU_get_error();
+    suite = CU_add_suite("Test Suite", init_suite, clean_suite);
 
-    // we store and read the setup (../data/provingkey.params and ../data/verifyingkey.params)
-    store_setup(keys);
-    keys = read_setup();
+    if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nFull Circuits Testing\n\n", test_full_circuits)))
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
 
-	// we generate a proof
-    proof p = generate_proof(keys.pk);
+    CU_basic_run_tests();
 
-    // we verify the proof
-    if (verify_proof(p, keys.vk)) printf("Proof verified.\n");
-    else printf("Proof cannot be verified.\n");
+    CU_cleanup_registry();
+    return CU_get_error();
 }

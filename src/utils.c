@@ -2,10 +2,6 @@ double elapsedSort;
 double elapsedBosCoster;
 char *transcript;
 
-struct Sigma1 s1;
-struct Sigma2 s2;
-mclBnGT alphabetaT;
-
 void log_state(int type)
 {
     if (logs)
@@ -42,6 +38,7 @@ void init_setup()
     setParams = 0;
 
     M+=100; // experimental
+    N+=400; // experimental
 
     uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
 

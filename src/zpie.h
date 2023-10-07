@@ -1,5 +1,7 @@
 #include <mcl/bn_c384_256.h>
 
+int circuit_selector = 0;
+
 #ifdef BN128
     #define USEDCURVE MCL_BN_SNARK1
     #define BITS 254
@@ -30,6 +32,10 @@
 #include <omp.h>
 #include <math.h> 
 #include "sha256.c" 
+#include "CUnit/Basic.h"
+
+int init_suite(void) { return 0; }
+int clean_suite(void) { return 0; }
 
 int logN;
 int Nb;

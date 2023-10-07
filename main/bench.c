@@ -2,23 +2,17 @@
 
 void circuit()
 {
-    int mulsize = 1000;
-    
     element out;
     init_public(&out);
 
-    element arr[mulsize];
-    init_array(arr, mulsize);
+    element a, b;
+    init(&a);
+    init(&b);
 
-    input(&arr[0], "213");
-    input(&arr[1], "1122");
+    input(&a, "1234");
+    input(&b, "5678");
 
-    for (int i = 2; i < mulsize; i++)
-    {
-        mul(&arr[i], &arr[1], &arr[i-1]);
-    }
-
-    mul(&out, &arr[0], &arr[mulsize-1]);
+    mul(&out, &a, &b);
 }
 
 int main(int argc, char *argv[])
@@ -46,6 +40,8 @@ int main(int argc, char *argv[])
 
     if ((strcmp(argv[1], "-s") == 0) || (strcmp(argv[1], "-p") == 0) || (strcmp(argv[1], "-v") == 0))
     {
+        init_setup();
+
         printf("--- Starting ZPiE - Groth'16...\n");
         printf("  |--- # of constraints: %d\n", N);
         printf("  |--- # of variables: %d\n", M);
