@@ -55,7 +55,7 @@ static mpz_t shift;
 static mpz_t Ne;
 static mpz_t *wM;
 
-#include "fourier.c"
+#include "../common/fourier.c"
 
 int prover;
 int cn = 0;
@@ -136,7 +136,7 @@ typedef struct SetupKeys
     verifyingKey vk;
 } setupKeys;
 
-#include "utils.c"
+#include "../common/utils.c"
 #include "qap.c"
 #include "setup.c"
 #include "prover.c"

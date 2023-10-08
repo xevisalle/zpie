@@ -1,4 +1,4 @@
-#include "../src/zpie.h"
+#include "zpie.h"
 
 void circuit()
 {

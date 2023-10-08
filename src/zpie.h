@@ -31,7 +31,7 @@ int circuit_selector = 0;
 #include <time.h>
 #include <omp.h>
 #include <math.h> 
-#include "sha256.c" 
+#include "common/sha256.c" 
 #include "CUnit/Basic.h"
 
 int init_suite(void) { return 0; }
@@ -63,7 +63,7 @@ typedef struct Proof
     mclBnG2 piB2;
 } proof;
 
-#include "gro16.h"
+#include "gro16/gro16.h"
 
 void bulletproof_prove(unsigned char *si[]);
 int bulletproof_verify();
@@ -79,4 +79,4 @@ proof generate_proof();
 int verify_proof(proof p, verifyingKey vk);
 
 #include "zpie.c"
-#include "bulletproofs.c"
+#include "bulletproofs/bulletproofs.c"
