@@ -306,7 +306,7 @@ void log_polynomial(mpz_t P[], int size, char letter[], int idx)
 
 int get_thread()
 {
-    #ifdef MULTI
+    #ifdef MULTI_SET
         return omp_get_thread_num();
     #else
         return 99;

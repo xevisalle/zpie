@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
         printf("  |--- # of bits : %s\n", argv[2]);
         printf("  |--- # of aggregated proofs: %s\n", argv[3]);       
     }
-    #ifdef MULTI
+    #ifdef MULTI_SET
     printf("  |--- Multi-core execution: ON\n");
     #else
     printf("  |--- Multi-core execution: OFF\n");

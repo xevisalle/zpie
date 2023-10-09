@@ -56,7 +56,7 @@ void mul_exp(struct mulExpResult *result, provingKey pk)
         mpz_set(uwProof[i], uw[i]);
     }
 
-    #ifdef MULTI
+    #ifdef MULTI_SET
     mclBnG1 htdeltaTh[totTh];
 
     #pragma omp parallel num_threads(totTh)
