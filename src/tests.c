@@ -54,15 +54,15 @@ void test_mimc_hash()
 
 void test_full_circuits(void)
 {
-    setupKeys keys_sc = perform_setup(&test_single_constraint); 
+    setup_keys keys_sc = perform_setup(&test_single_constraint); 
     proof p_sc = generate_proof(&test_single_constraint, keys_sc.pk);
     CU_ASSERT(verify_proof(&test_single_constraint, p_sc, keys_sc.vk) == 1);
 
-    setupKeys keys_ev = perform_setup(&test_eddsa_verification); 
+    setup_keys keys_ev = perform_setup(&test_eddsa_verification); 
     proof p_ev = generate_proof(&test_eddsa_verification, keys_ev.pk);
     CU_ASSERT(verify_proof(&test_eddsa_verification, p_ev, keys_ev.vk) == 1);
     
-    setupKeys keys_mh = perform_setup(&test_mimc_hash);  
+    setup_keys keys_mh = perform_setup(&test_mimc_hash);  
     proof p_mh = generate_proof(&test_mimc_hash, keys_mh.pk);
     CU_ASSERT(verify_proof(&test_mimc_hash, p_mh, keys_mh.vk) == 1);
 }

@@ -1,5 +1,5 @@
 
-setupKeys perform_setup(void *circuit)
+setup_keys perform_setup(void *circuit)
 {
     init_setup(circuit);
     
@@ -34,7 +34,7 @@ setupKeys perform_setup(void *circuit)
 
     n = mpz_get_ui(Ne);
 
-    setupKeys provk;
+    setup_keys provk;
     mpz_init_set(provk.pk.Ne, Ne);
 
     provk.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
@@ -125,7 +125,7 @@ setupKeys perform_setup(void *circuit)
     return provk;
 }
 
-void store_setup(setupKeys keys)
+void store_setup(setup_keys keys)
 {
     struct stat st = {0};
     if (stat("data", &st) == -1) mkdir("data", 0700);
@@ -203,7 +203,7 @@ void store_setup(setupKeys keys)
     fclose(fvk);
 }
 
-setupKeys read_setup(void *circuit)
+setup_keys read_setup(void *circuit)
 {
     init_setup(circuit);
 
@@ -213,7 +213,7 @@ setupKeys read_setup(void *circuit)
     fpk = fopen("data/provingkey.params", "r");
     fvk = fopen("data/verifyingkey.params", "r");
 
-    setupKeys keys;
+    setup_keys keys;
 
     fgets(buff, sizeof buff, fpk);
     mpz_init_set_str(keys.pk.Ne, buff, 16);
@@ -305,7 +305,7 @@ setupKeys read_setup(void *circuit)
     return keys;
 }
 
-proof generate_proof(void *circuit, provingKey pk)
+proof generate_proof(void *circuit, proving_key pk)
 {
     init_prover(circuit, pk);
 
@@ -406,7 +406,7 @@ proof read_proof()
     return p;
 }
 
-int verify_proof(void *circuit, proof p, verifyingKey vk)
+int verify_proof(void *circuit, proof p, verifying_key vk)
 {
     init_setup(circuit);
 

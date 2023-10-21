@@ -48,7 +48,7 @@ void init_setup(void *circuit)
     }
 }
 
-void init_prover(void *circuit, provingKey pk)
+void init_prover(void *circuit, proving_key pk)
 {
     init_setup(circuit);
 
@@ -238,7 +238,7 @@ void sort_list(mpz_t *exp[], int heapsize)
     elapsedSort += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
 }
 
-void bos_coster(mpz_t *exp[], int heapsize, int baseNum, struct ProvingKey *pk)
+void bos_coster(mpz_t *exp[], int heapsize, int baseNum, proving_key *pk)
 {
     sort_list(exp, heapsize);
     while (mpz_cmp_ui(*exp[2], 0) != 0)

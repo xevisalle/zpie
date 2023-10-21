@@ -1,6 +1,6 @@
 mpz_t *uwProof;
 
-void h_coefficients(provingKey pk)
+void h_coefficients(proving_key pk)
 {
     mclBnFr uwFr[M];
 
@@ -45,7 +45,7 @@ void h_coefficients(provingKey pk)
     ifft(n, pk.wMFr, AsFr);
 }
 
-void mul_exp(struct mulExpResult *result, provingKey pk)
+void mul_exp(struct mulExpResult *result, proving_key pk)
 {
     int totTh = 16;
     uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
@@ -140,7 +140,7 @@ void mul_exp(struct mulExpResult *result, provingKey pk)
     #else
     mpz_t *exp[n];
     mclBnFr frFactor;
-    provingKey bpk;
+    proving_key bpk;
     bpk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
     for (int i = 0; i < n; i++)
@@ -197,7 +197,7 @@ void mul_exp(struct mulExpResult *result, provingKey pk)
     #endif
 }
 
-void mcl_mul_exp(struct mulExpResult *result, provingKey pk)
+void mcl_mul_exp(struct mulExpResult *result, proving_key pk)
 {
     mclBnFr uwFactor[M];
     mclBnFr uwFactorPublic[M-nPublic];
@@ -237,7 +237,7 @@ void mcl_mul_exp(struct mulExpResult *result, provingKey pk)
     }
 }
 
-void naive_mul_exp(struct mulExpResult *result, provingKey pk)
+void naive_mul_exp(struct mulExpResult *result, proving_key pk)
 {
     mclBnFr frFactor[M];
 
@@ -290,7 +290,7 @@ void naive_mul_exp(struct mulExpResult *result, provingKey pk)
     }   
 }
 
-void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, provingKey pk)
+void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, proving_key pk)
 {
     prover = 1;
 

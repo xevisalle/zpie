@@ -92,7 +92,7 @@ struct Sigma2
     mclBnG2 *B;
 };
 
-typedef struct ProvingKey
+typedef struct
 {
     mpz_t Ne;
     mclBnFr *wMFr;
@@ -111,7 +111,7 @@ typedef struct ProvingKey
     mclBnG2 *B2;
     mclBnG1 *pk1;
     mclBnG1 *xt1;
-} provingKey;
+} proving_key;
 
 struct mulExpResult
 {
@@ -122,19 +122,19 @@ struct mulExpResult
     mclBnG1 uwC1;
 };
 
-typedef struct VerifyingKey
+typedef struct
 {
     mclBnGT alphabetaT;
     mclBnG2 gamma2;
     mclBnG2 delta2;
     mclBnG1 *vk1;
-} verifyingKey;
+} verifying_key;
 
-typedef struct SetupKeys
+typedef struct
 {
-    provingKey pk;
-    verifyingKey vk;
-} setupKeys;
+    proving_key pk;
+    verifying_key vk;
+} setup_keys;
 
 #include "../common/utils.c"
 #include "qap.c"

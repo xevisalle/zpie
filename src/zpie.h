@@ -46,7 +46,7 @@ int setParams;
 
 mpz_t *uw;
 
-typedef struct Context
+typedef struct
 {
     mclBnFr *gammas;
     mclBnG1 *V;
@@ -54,7 +54,7 @@ typedef struct Context
     mclBnG1 H;
 } context;
 
-typedef struct Proof
+typedef struct
 {
     mpz_t *uwProof;
     mclBnG1 piA, piC;
@@ -71,10 +71,10 @@ static inline void bulletproof_init(int Nb_set, int Mc_set);
 static inline void bulletproof_get_context(context *ctx);
 static inline void bulletproof_user_gammas(int val);
 void init_setup(void *circuit);
-setupKeys perform_setup(void *circuit);
-void init_prover(void *circuit, provingKey pk);
-proof generate_proof(void *circuit, provingKey pk);
-int verify_proof(void *circuit, proof p, verifyingKey vk);
+setup_keys perform_setup(void *circuit);
+void init_prover(void *circuit, proving_key pk);
+proof generate_proof(void *circuit, proving_key pk);
+int verify_proof(void *circuit, proof p, verifying_key vk);
 
 #include "zpie.c"
 #include "bulletproofs/bulletproofs.c"
