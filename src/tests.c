@@ -52,38 +52,19 @@ void test_mimc_hash()
     mimc7(&h, &x_in, &k);
 }
 
-void circuit()
-{
-    switch (circuit_selector)
-    {
-        case 0: test_single_constraint(); break;
-        case 1: test_eddsa_verification(); break;
-        case 2: test_mimc_hash(); break;
-    }
-}
-
-int execute_proof_system()
-{
-    // we perform the setup
-    setupKeys keys = perform_setup();  
-
-    // we generate a proof
-    proof p = generate_proof(keys.pk);
-
-    // we verify the proof
-    return verify_proof(p, keys.vk);
-}
-
 void test_full_circuits(void)
 {
-    circuit_selector = 0;
-    CU_ASSERT(execute_proof_system() == 1);
+    setupKeys keys_sc = perform_setup(&test_single_constraint); 
+    proof p_sc = generate_proof(&test_single_constraint, keys_sc.pk);
+    CU_ASSERT(verify_proof(&test_single_constraint, p_sc, keys_sc.vk) == 1);
 
-    circuit_selector = 1;
-    CU_ASSERT(execute_proof_system() == 1);
-
-    circuit_selector = 2;
-    CU_ASSERT(execute_proof_system() == 1);
+    setupKeys keys_ev = perform_setup(&test_eddsa_verification); 
+    proof p_ev = generate_proof(&test_eddsa_verification, keys_ev.pk);
+    CU_ASSERT(verify_proof(&test_eddsa_verification, p_ev, keys_ev.vk) == 1);
+    
+    setupKeys keys_mh = perform_setup(&test_mimc_hash);  
+    proof p_mh = generate_proof(&test_mimc_hash, keys_mh.pk);
+    CU_ASSERT(verify_proof(&test_mimc_hash, p_mh, keys_mh.vk) == 1);
 }
 
 //TODO: fix this

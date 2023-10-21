@@ -1,6 +1,6 @@
 mpz_t *u;
 
-void generateqap(mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
+void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
 {
     #pragma omp parallel for
     for (int i = 0; i < M; i++)
@@ -22,7 +22,7 @@ void generateqap(mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
     }
 
     log_message("Computing R1CS...");
-    init_circuit(); 
+    init_circuit(circuit); 
     log_state(1);
 
     if (logs)

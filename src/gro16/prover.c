@@ -290,7 +290,7 @@ void naive_mul_exp(struct mulExpResult *result, provingKey pk)
     }   
 }
 
-void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, provingKey pk)
+void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, provingKey pk)
 {
     prover = 1;
 
@@ -298,7 +298,7 @@ void prove(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, provingKey pk)
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    init_circuit();
+    init_circuit(circuit);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);

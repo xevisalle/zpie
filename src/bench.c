@@ -1,6 +1,6 @@
 #include "zpie.h"
 
-void circuit()
+void bench_circuit()
 {
     element out;
     init_public(&out);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
     if ((strcmp(argv[1], "-s") == 0) || (strcmp(argv[1], "-p") == 0) || (strcmp(argv[1], "-v") == 0))
     {
-        init_setup();
+        init_setup(&bench_circuit);
 
         printf("--- Starting ZPiE - Groth'16...\n");
         printf("  |--- # of constraints: %d\n", N);
@@ -68,20 +68,20 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "-s") == 0)
     {
-        setupKeys keys = perform_setup();
+        setupKeys keys = perform_setup(&bench_circuit);
         store_setup(keys);
     }
     else if (strcmp(argv[1], "-p") == 0)
     {
-        setupKeys keys = read_setup();
-        proof p = generate_proof(keys.pk);
+        setupKeys keys = read_setup(&bench_circuit);
+        proof p = generate_proof(&bench_circuit, keys.pk);
         store_proof(p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
-        setupKeys keys = read_setup();
+        setupKeys keys = read_setup(&bench_circuit);
         proof p = read_proof();
-        verify_proof(p, keys.vk);
+        verify_proof(&bench_circuit, p, keys.vk);
     }
     else if (strcmp(argv[1], "-pbp") == 0)
     {

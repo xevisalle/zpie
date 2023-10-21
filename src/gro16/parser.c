@@ -147,7 +147,7 @@ void init(element *toAdd)
 	}
 }
 
-void init_circuit()
+void init_circuit(void *circuit)
 {
 	init_public(&one);
 	init_public(&oneNeg);
@@ -155,5 +155,5 @@ void init_circuit()
 	input(&one, "1");
 	input(&oneNeg, "-1");
 
-	circuit();
+	((void(*)(void))circuit)();
 }

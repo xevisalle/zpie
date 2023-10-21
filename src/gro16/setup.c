@@ -1,4 +1,4 @@
-void setup(struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *alphabetaT)
+void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *alphabetaT)
 {
     mpz_t *A = (mpz_t*) malloc((M) * sizeof(mpz_t));
     mpz_t *B = (mpz_t*) malloc((M) * sizeof(mpz_t));
@@ -28,7 +28,7 @@ void setup(struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *al
     mclBnFr_setByCSPRNG(&rand);
     fr_to_mpz(&t->x, &rand);
 
-    generateqap(A, B, C, *t);
+    generateqap(circuit, A, B, C, *t);
 
     mpz_t factor, T;
     mpz_inits(factor, T, NULL);

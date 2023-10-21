@@ -1,7 +1,7 @@
 
-setupKeys perform_setup()
+setupKeys perform_setup(void *circuit)
 {
-    init_setup();
+    init_setup(circuit);
     
     struct Trapdoor t; // to be destroyed
 
@@ -59,7 +59,7 @@ setupKeys perform_setup()
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    setup(&t, &s1, &s2, &alphabetaT);
+    setup(circuit, &t, &s1, &s2, &alphabetaT);
 
     provk.pk.qapSize = qapSize;
     provk.pk.LRO = (int*) malloc((qapSize) * sizeof(int));
@@ -203,9 +203,9 @@ void store_setup(setupKeys keys)
     fclose(fvk);
 }
 
-setupKeys read_setup()
+setupKeys read_setup(void *circuit)
 {
-    init_setup();
+    init_setup(circuit);
 
     char buff[2048];
     FILE *fpk, *fvk;
@@ -305,9 +305,9 @@ setupKeys read_setup()
     return keys;
 }
 
-proof generate_proof(provingKey pk)
+proof generate_proof(void *circuit, provingKey pk)
 {
-    init_prover(pk);
+    init_prover(circuit, pk);
 
     uwn = 0;
     for (int i = 0; i < M; i++)
@@ -324,7 +324,7 @@ proof generate_proof(provingKey pk)
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    prove(&p.piA, &p.piB2, &p.piC, pk);
+    prove(circuit, &p.piA, &p.piB2, &p.piC, pk);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -406,9 +406,9 @@ proof read_proof()
     return p;
 }
 
-int verify_proof(proof p, verifyingKey vk)
+int verify_proof(void *circuit, proof p, verifyingKey vk)
 {
-    init_setup();
+    init_setup(circuit);
 
     struct timespec begin, end;
     double elapsed;

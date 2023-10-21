@@ -25,7 +25,7 @@ void log_success(char msg[], int type)
     if (type == 0 && bench) printf("\033[1;31m[FAIL] :\033[0m %s", msg);
 }
 
-void init_setup()
+void init_setup(void *circuit)
 {
     M = 0;
     N = 0;
@@ -34,7 +34,7 @@ void init_setup()
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 
     setParams = 1;
-    init_circuit();
+    init_circuit(circuit);
     setParams = 0;
 
     M+=100; // experimental
@@ -48,9 +48,9 @@ void init_setup()
     }
 }
 
-void init_prover(provingKey pk)
+void init_prover(void *circuit, provingKey pk)
 {
-    init_setup();
+    init_setup(circuit);
 
     struct timespec begin, end;
     double elapsed;

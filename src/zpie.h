@@ -1,7 +1,5 @@
 #include <mcl/bn_c384_256.h>
 
-int circuit_selector = 0;
-
 #ifdef BN128
     #define USEDCURVE MCL_BN_SNARK1
     #define BITS 254
@@ -72,11 +70,11 @@ void bulletproof_read();
 static inline void bulletproof_init(int Nb_set, int Mc_set);
 static inline void bulletproof_get_context(context *ctx);
 static inline void bulletproof_user_gammas(int val);
-void init_setup();
-setupKeys perform_setup();
-void init_prover();
-proof generate_proof();
-int verify_proof(proof p, verifyingKey vk);
+void init_setup(void *circuit);
+setupKeys perform_setup(void *circuit);
+void init_prover(void *circuit, provingKey pk);
+proof generate_proof(void *circuit, provingKey pk);
+int verify_proof(void *circuit, proof p, verifyingKey vk);
 
 #include "zpie.c"
 #include "bulletproofs/bulletproofs.c"
