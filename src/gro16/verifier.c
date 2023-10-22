@@ -58,6 +58,8 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic], verifyin
     
     int verified = mclBnGT_isEqual(&pairing1, &factorGT);
 
+    if (mclBnGT_isOne(&pairing2)) verified = 0;
+    
     if (verified) log_state(1);
     else log_state(0);
     
