@@ -32,18 +32,12 @@ void sort_list(mpz_t *exp[], int heapsize);
 void binarymaxheap(mpz_t *exp[], int i, int heapsize);
 
 static mpz_t pPrime;
-
-static int n;
 static gmp_randstate_t state;
 
 char **L;
 char **R;
 char **O;
 
-int qapSize;
-int *LRO;
-
-static mclBnFr *wMFr;
 static mclBnFr *AsFr;
 static mclBnFr *BsFr;
 static mclBnFr *CsFr;
@@ -52,14 +46,13 @@ static mpz_t *rsigma;
 static mpz_t *rsigmaInv;
 static mpz_t shift;
 
-static mpz_t Ne;
 static mpz_t *wM;
 
 #include "../common/fourier.c"
 
 int prover;
-int cn = 0;
-int uwn = 0;
+int cn;
+int uwn;
 
 #include "parser.c"
 
@@ -97,7 +90,7 @@ typedef struct
     mpz_t Ne;
     mclBnFr *wMFr;
 
-    int qapSize;
+    int qap_size;
     int *LRO;
 
     mclBnG1 alpha1;
@@ -111,6 +104,7 @@ typedef struct
     mclBnG2 *B2;
     mclBnG1 *pk1;
     mclBnG1 *xt1;
+    mclBnG1 *xt1_rand;
 } proving_key;
 
 struct mulExpResult

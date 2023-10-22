@@ -56,6 +56,8 @@ void init_prover(void *circuit, proving_key pk)
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
+    int n = mpz_get_ui(pk.Ne);
+
     AsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     BsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     CsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
@@ -88,7 +90,7 @@ void init_prover(void *circuit, proving_key pk)
 
     mclBnFr frFactor;
     mpz_to_fr(&frFactor, &rsigmaInv[0]);
-    mclBnG1_mul(&pk.xt1[0], &pk.xt1[0], &frFactor);
+    mclBnG1_mul(&pk.xt1_rand[0], &pk.xt1[0], &frFactor);
     mpz_mul(rsigma[0], rsigma[0], factor);
     mpz_mod(rsigma[0], rsigma[0], pPrime);
 
@@ -101,7 +103,7 @@ void init_prover(void *circuit, proving_key pk)
         mpz_invert(rsigmaInv[i], rsigma[i], pPrime);
 
         mpz_to_fr(&frFactorMulti, &rsigmaInv[i]);
-        mclBnG1_mul(&pk.xt1[i], &pk.xt1[i], &frFactorMulti);
+        mclBnG1_mul(&pk.xt1_rand[i], &pk.xt1[i], &frFactorMulti);
 
         mpz_mul(rsigma[i], rsigma[i], factor);
         mpz_mod(rsigma[i], rsigma[i], pPrime);
@@ -247,7 +249,7 @@ void bos_coster(mpz_t *exp[], int heapsize, int baseNum, proving_key *pk)
         clock_gettime(CLOCK_MONOTONIC, &begin);
         mpz_sub(*exp[0], *exp[0], *exp[2]); 
 
-        if (baseNum) mclBnG1_add(&pk->xt1[exp[2]-wM], &pk->xt1[exp[0]-wM], &pk->xt1[exp[2]-wM]);
+        if (baseNum) mclBnG1_add(&pk->xt1_rand[exp[2]-wM], &pk->xt1_rand[exp[0]-wM], &pk->xt1_rand[exp[2]-wM]);
         else
         {
             mclBnG1_add(&pk->A1[exp[2]-uw], &pk->A1[exp[0]-uw], &pk->A1[exp[2]-uw]);

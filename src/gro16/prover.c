@@ -1,7 +1,7 @@
-mpz_t *uwProof;
 
 void h_coefficients(proving_key pk)
 {
+    int n = mpz_get_ui(pk.Ne);
     mclBnFr uwFr[M];
 
     #pragma omp parallel for
@@ -10,7 +10,7 @@ void h_coefficients(proving_key pk)
         mpz_to_fr(&uwFr[j], &uw[j]);
     }
 
-    for (int j = 0; j < pk.qapSize; j+=3)
+    for (int j = 0; j < pk.qap_size; j+=3)
     {
         switch (pk.LRO[j])
         {
@@ -42,17 +42,17 @@ void h_coefficients(proving_key pk)
         mclBnFr_sub(&AsFr[i], &AsFr[i], &CsFr[i]);
     }
 
-    ifft(n, pk.wMFr, AsFr);
+    ifft(n, pk.wMFr, AsFr, &pk.Ne);
 }
 
-void mul_exp(struct mulExpResult *result, proving_key pk)
+void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 {
+    int n = mpz_get_ui(pk.Ne);
+
     int totTh = 16;
-    uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
 
     for (int i = 0; i < nPublic; i++)
     {
-        mpz_init(uwProof[i]);
         mpz_set(uwProof[i], uw[i]);
     }
 
@@ -73,7 +73,7 @@ void mul_exp(struct mulExpResult *result, proving_key pk)
 
         bos_coster(exp, n/totTh, 1, &pk); 
         mpz_to_fr(&frFactor, exp[0]);
-        mclBnG1_mul(&htdeltaTh[th], &pk.xt1[exp[0]-wM], &frFactor); 
+        mclBnG1_mul(&htdeltaTh[th], &pk.xt1_rand[exp[0]-wM], &frFactor); 
     }
 
     mclBnG1_add(&result->htdelta, &htdeltaTh[0], &htdeltaTh[1]);
@@ -147,7 +147,7 @@ void mul_exp(struct mulExpResult *result, proving_key pk)
     {
         fr_to_mpz(&wM[i], &AsFr[i]);
         exp[i] = &wM[i];
-        mclBnG1_add(&bpk.xt1[i], &bpk.xt1[i], &pk.xt1[i]);
+        mclBnG1_add(&bpk.xt1[i], &bpk.xt1[i], &pk.xt1_rand[i]);
     }
 
     bos_coster(exp, n, 1, &bpk);
@@ -197,16 +197,15 @@ void mul_exp(struct mulExpResult *result, proving_key pk)
     #endif
 }
 
-void mcl_mul_exp(struct mulExpResult *result, proving_key pk)
+void mcl_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 {
+    int n = mpz_get_ui(pk.Ne);
+
     mclBnFr uwFactor[M];
     mclBnFr uwFactorPublic[M-nPublic];
 
-    uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
-
     for (int i = 0; i < nPublic; i++)
     {
-        mpz_init(uwProof[i]);
         mpz_set(uwProof[i], uw[i]);
     }
 
@@ -225,27 +224,25 @@ void mcl_mul_exp(struct mulExpResult *result, proving_key pk)
             case 1: mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M); break; 
             case 2: mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M); break;
             case 3: mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic); break;
-            case 4: mclBnG1_mulVec(&result->htdelta, pk.xt1, AsFr, n); break;
+            case 4: mclBnG1_mulVec(&result->htdelta, pk.xt1_rand, AsFr, n); break;
             case 99:
                 mclBnG1_mulVec(&result->uwA1, pk.A1, uwFactor, M);
                 mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M);
                 mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M);
                 mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic);
-                mclBnG1_mulVec(&result->htdelta, pk.xt1, AsFr, n);
+                mclBnG1_mulVec(&result->htdelta, pk.xt1_rand, AsFr, n);
                 break;
         }
     }
 }
 
-void naive_mul_exp(struct mulExpResult *result, proving_key pk)
+void naive_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 {
+    int n = mpz_get_ui(pk.Ne);
+
     mclBnFr frFactor[M];
-
-    uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
-
     for (int i = 0; i < nPublic; i++)
     {
-        mpz_init(uwProof[i]);
         mpz_set(uwProof[i], uw[i]);
     }
 
@@ -279,18 +276,18 @@ void naive_mul_exp(struct mulExpResult *result, proving_key pk)
     #pragma omp parallel for
     for (int i = 0; i < n; i++)
     {
-        mclBnG1_mul(&pk.xt1[i], &pk.xt1[i], &AsFr[i]);
+        mclBnG1_mul(&pk.xt1_rand[i], &pk.xt1_rand[i], &AsFr[i]);
     }
 
     mclBnG1_clear(&result->htdelta);
 
     for (int i = n; i--;)
     {
-        mclBnG1_add(&result->htdelta, &result->htdelta, &pk.xt1[i]);
+        mclBnG1_add(&result->htdelta, &result->htdelta, &pk.xt1_rand[i]);
     }   
 }
 
-void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, proving_key pk)
+void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwProof, proving_key pk)
 {
     prover = 1;
 
@@ -319,14 +316,14 @@ void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, proving_key 
     struct mulExpResult result;
     
     #ifdef AUTO_MULEXP
-        if(M > 1000) mul_exp(&result, pk);
-        else mcl_mul_exp(&result, pk);
+        if(M > 1000) mul_exp(&result, uwProof, pk);
+        else mcl_mul_exp(&result, uwProof, pk);
     #elif BOSCOSTER_MULEXP
-        mul_exp(&result, pk);
+        mul_exp(&result, uwProof, pk);
     #elif NAIVE_MULEXP
-        naive_mul_exp(&result, pk);
+        naive_mul_exp(&result, uwProof, pk);
     #elif MCL_MULEXP
-        mcl_mul_exp(&result, pk);
+        mcl_mul_exp(&result, uwProof, pk);
     #endif
 
     clock_gettime(CLOCK_MONOTONIC, &end);

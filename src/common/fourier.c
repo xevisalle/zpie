@@ -28,7 +28,7 @@ void fft(size_t arr, mclBnFr domain[], mclBnFr *o)
     }
 }
 
-void ifft(size_t arr, mclBnFr domain[], mclBnFr *o)
+void ifft(size_t arr, mclBnFr domain[], mclBnFr *o, mpz_t *Ne)
 {
     fft(arr, domain, o);
 
@@ -42,7 +42,7 @@ void ifft(size_t arr, mclBnFr domain[], mclBnFr *o)
     }
 
     mpz_init(factor2);
-    mpz_powm(factor2, shift, Ne, pPrime);
+    mpz_powm(factor2, shift, *Ne, pPrime);
     mpz_sub_ui(factor2, factor2, 1);
     mpz_invert(factor2, factor2, pPrime);
 

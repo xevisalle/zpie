@@ -9,7 +9,7 @@ setup_keys perform_setup(void *circuit)
     struct Sigma2 s2;
     mclBnGT alphabetaT;
 
-    mpz_t kmul, factor, two;
+    mpz_t kmul, factor, two, Ne;
     mpz_inits(kmul, Ne, factor, NULL);
 
     mpz_init(pPrime);
@@ -32,7 +32,7 @@ setup_keys perform_setup(void *circuit)
     mpz_init_set_ui(base, GROUPGEN); // multiplicative group generator  
     mpz_powm(w, base, kmul, pPrime);
 
-    n = mpz_get_ui(Ne);
+    int n = mpz_get_ui(Ne);
 
     setup_keys provk;
     mpz_init_set(provk.pk.Ne, Ne);
@@ -59,10 +59,9 @@ setup_keys perform_setup(void *circuit)
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    setup(circuit, &t, &s1, &s2, &alphabetaT);
+    setup(circuit, &t, &s1, &s2, &alphabetaT, &provk.pk.qap_size, &provk.pk.Ne);
 
-    provk.pk.qapSize = qapSize;
-    provk.pk.LRO = (int*) malloc((qapSize) * sizeof(int));
+    provk.pk.LRO = (int*) malloc((provk.pk.qap_size) * sizeof(int));
 
     int it = 0;
 
@@ -104,6 +103,7 @@ setup_keys perform_setup(void *circuit)
     provk.pk.B2 = s2.B;
     provk.pk.pk1 = s1.pk;
     provk.pk.xt1 = s1.xt;
+    provk.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
     provk.vk.alphabetaT = alphabetaT;
     provk.vk.gamma2 = s2.gamma;
@@ -137,6 +137,8 @@ void store_setup(setup_keys keys)
     mpz_out_str(fpk, 16, keys.pk.Ne);
     fprintf(fpk, "\n");
 
+    int n = mpz_get_ui(keys.pk.Ne);
+
     char buff[2048];
     for (int i = 0; i < n; i++)
     {
@@ -144,9 +146,9 @@ void store_setup(setup_keys keys)
         fprintf(fpk, "%s\n", buff);
     }
 
-    fprintf(fpk, "%d\n", keys.pk.qapSize);
+    fprintf(fpk, "%d\n", keys.pk.qap_size);
 
-    for (int i = 0; i < keys.pk.qapSize; i++)
+    for (int i = 0; i < keys.pk.qap_size; i++)
     {
         fprintf(fpk, "%d\n", keys.pk.LRO[i]);
     }
@@ -218,8 +220,7 @@ setup_keys read_setup(void *circuit)
     fgets(buff, sizeof buff, fpk);
     mpz_init_set_str(keys.pk.Ne, buff, 16);
 
-    mpz_init_set(Ne, keys.pk.Ne);
-    n = mpz_get_ui(keys.pk.Ne);
+    int n = mpz_get_ui(keys.pk.Ne);
     
     keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     keys.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
@@ -237,11 +238,11 @@ setup_keys read_setup(void *circuit)
     }
 
     fgets(buff, sizeof buff, fpk);
-    keys.pk.qapSize = atoi(buff);
+    keys.pk.qap_size = atoi(buff);
 
-    keys.pk.LRO = (int*) malloc((keys.pk.qapSize) * sizeof(int)); 
+    keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int)); 
 
-    for (int i = 0; i < keys.pk.qapSize; i++)
+    for (int i = 0; i < keys.pk.qap_size; i++)
     {
         fgets(buff, sizeof buff, fpk);
         keys.pk.LRO[i] = atoi(buff);
@@ -273,8 +274,6 @@ setup_keys read_setup(void *circuit)
         fgets(buff,sizeof buff, fpk);
         mclBnG1_setStr(&keys.pk.pk1[i], buff, strlen(buff), 16);
     }
-
-    keys.pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
     for (int i = 0; i < n; i++)
     {
@@ -315,16 +314,24 @@ proof generate_proof(void *circuit, proving_key pk)
         mpz_init(uw[i]);
     }
 
+    int n = mpz_get_ui(pk.Ne);
     wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     
     proof p;
+
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
+
+    for (int i = 0; i < nPublic; i++)
+    {
+        mpz_init(p.uwProof[i]);
+    }
 
     if (bench) printf("--- Computing proof...\n");
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    prove(circuit, &p.piA, &p.piB2, &p.piC, pk);
+    prove(circuit, &p.piA, &p.piB2, &p.piC, p.uwProof, pk);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -333,20 +340,23 @@ proof generate_proof(void *circuit, proving_key pk)
     log_success("Proof generated successfully in ", 1);
     if (bench) printf("%fs\n", elapsed);
 
-    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
-
-    for (int i = 0; i < nPublic; i++)
-    {
-        mpz_init(p.uwProof[i]);
-        mpz_set(p.uwProof[i], uwProof[i]);
-    }
-
     for (int i = 0; i < n; i++)
     {
         mclBnFr_clear(&AsFr[i]);
         mclBnFr_clear(&BsFr[i]);
         mclBnFr_clear(&CsFr[i]);
+
+        mpz_clear(&wM[i]);
+        mpz_clear(&rsigma[i]);
+        mpz_clear(&rsigmaInv[i]);
     }
+
+    for (int i = 0; i < M; i++)
+    {
+        mpz_clear(&uw[i]);
+    }
+
+    mpz_clear(&shift);
 
     return p;
 }
