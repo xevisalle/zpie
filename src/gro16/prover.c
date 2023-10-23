@@ -302,6 +302,8 @@ void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwPro
     elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
     if (bench) printf("  |--- Circuit evaluation:  [%fs]\n", elapsed);
 
+    prover = 0;
+
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
     h_coefficients(pk);

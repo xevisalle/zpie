@@ -346,17 +346,16 @@ proof generate_proof(void *circuit, proving_key pk)
         mclBnFr_clear(&BsFr[i]);
         mclBnFr_clear(&CsFr[i]);
 
-        mpz_clear(&wM[i]);
-        mpz_clear(&rsigma[i]);
-        mpz_clear(&rsigmaInv[i]);
+        mpz_clear(rsigma[i]);
+        mpz_clear(rsigmaInv[i]);
     }
 
     for (int i = 0; i < M; i++)
     {
-        mpz_clear(&uw[i]);
+        mpz_clear(uw[i]);
     }
 
-    mpz_clear(&shift);
+    mpz_clear(shift);
 
     return p;
 }
