@@ -3,7 +3,7 @@
 
 int bench;
 
-typedef struct Element
+typedef struct
 {
     int index;
 } element;

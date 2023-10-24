@@ -167,14 +167,14 @@ void to_bits(element *bits, element val, int size)
 	mul(&checkCnst, &check, &one);
 }
 
-typedef struct Point
+typedef struct
 {
     char *x; 
     char *y;
 } point;
 
-typedef struct EdDSASignature
+typedef struct
 {
     point R; 
     char *S;
-} eddsaSignature;
+} eddsa_signature;

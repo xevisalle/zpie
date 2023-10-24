@@ -3,7 +3,7 @@
 #include "mimc.c"
 #include "utils.c"
 
-void verify_eddsa(eddsaSignature edsig, point B, point A, char *msg)
+void verify_eddsa(eddsa_signature edsig, point B, point A, char *msg)
 {
 	element out[4];
 
