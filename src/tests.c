@@ -94,6 +94,12 @@ int main()
         return CU_get_error();
     }
 
+    if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nConstraint System Testing\n\n", test_constraint_system)))
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
     CU_basic_run_tests();
 
     CU_cleanup_registry();
