@@ -11,6 +11,7 @@ typedef struct
 element one, oneNeg;
 
 int logs;
+int test_no_rand;
 
 void element_log(char *text, element *oo);
 void init(element *toAdd);

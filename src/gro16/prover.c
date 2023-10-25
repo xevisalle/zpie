@@ -346,8 +346,8 @@ void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwPro
     mclBnG1 piB1;
     mclBnFr r, s;
 
-    mclBnFr_setByCSPRNG(&r);
-    mclBnFr_setByCSPRNG(&s);
+    generate_random_scalar(&r);
+    generate_random_scalar(&s);
 
     // piA = s1.alpha + Auw + r * s1.delta;
     mclBnG1_mul(piA, &pk.delta1, &r);

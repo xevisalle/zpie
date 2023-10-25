@@ -17,15 +17,15 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
 
     mclBnFr rand;
 
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->alpha, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->beta, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->gamma, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->delta, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->x, &rand);
 
     generateqap(circuit, A, B, C, *t, qap_size, Ne);

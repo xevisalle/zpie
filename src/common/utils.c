@@ -2,6 +2,12 @@ double elapsedSort;
 double elapsedBosCoster;
 char *transcript;
 
+void generate_random_scalar(mclBnFr *value)
+{
+    if (test_no_rand) mclBnFr_setInt(value, 123456);
+    else mclBnFr_setByCSPRNG(value);
+}
+
 void log_state(int type)
 {
     if (logs)
@@ -76,7 +82,7 @@ void init_prover(void *circuit, proving_key pk)
     mpz_init(shift);
 
     mclBnFr rand;
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&randNum, &rand);
     mpz_set(shift, randNum);
 
