@@ -247,7 +247,7 @@ void bos_coster(mpz_t *exp[], int heapsize, int baseNum, proving_key *pk)
         clock_gettime(CLOCK_MONOTONIC, &begin);
         mpz_sub(*exp[0], *exp[0], *exp[2]); 
 
-        if (baseNum) mclBnG1_add(&pk->xt1_rand[exp[2]-wM], &pk->xt1_rand[exp[0]-wM], &pk->xt1_rand[exp[2]-wM]);
+        if (baseNum) mclBnG1_add(&pk->xt1[exp[2]-wM], &pk->xt1[exp[0]-wM], &pk->xt1[exp[2]-wM]);
         else
         {
             mclBnG1_add(&pk->A1[exp[2]-uw], &pk->A1[exp[0]-uw], &pk->A1[exp[2]-uw]);
