@@ -10,6 +10,14 @@ void h_coefficients(proving_key pk)
         mpz_to_fr(&uwFr[j], &uw[j]);
     }
 
+    #pragma omp parallel for
+    for (int j = 0; j < n; j++)
+    {
+        mclBnFr_clear(&AsFr[j]);
+        mclBnFr_clear(&BsFr[j]);
+        mclBnFr_clear(&CsFr[j]);
+    }
+
     for (int j = 0; j < pk.qap_size; j+=3)
     {
         switch (pk.LRO[j])

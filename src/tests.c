@@ -52,6 +52,31 @@ void test_mimc_hash()
     mimc7(&h, &x_in, &k);
 }
 
+void test_prover(void)
+{
+    test_no_rand = 1;
+
+    setup_keys keys = perform_setup(&test_single_constraint); 
+    proof p = generate_proof(&test_single_constraint, keys.pk);
+
+    const char *piAstr = "1 13398732126763033363928255770670403609664455533535809960659793057603927642327 14567332642717250669329472598965177550050834309459245026995104363234319745805";
+    const char *piB2str = "1 9513526328373247288214002967710658327692956864193416721895179753121227228903 17320346092699268035923233491595138958007151833266586455159840335219170425243 8079768110185479532548096263199181437927983909022782182442306192699700743609 19381997603489315175356927627025590277145986935796790438444340629346184509934";
+    const char *piCstr = "1 6751941069502688487334371509286578067074020223942252322110100779175835131489 10460091663676025417104943726359531715081933829156881875323036992094404259688";
+
+    mclBnG1 piA, piC;
+    mclBnG2 piB2;
+
+    mclBnG1_setStr(&piA, piAstr, strlen(piAstr), 10);
+    mclBnG2_setStr(&piB2, piB2str, strlen(piB2str), 10);
+    mclBnG1_setStr(&piC, piCstr, strlen(piCstr), 10);
+
+    CU_ASSERT(mclBnG1_isEqual(&piA, &p.piA));
+    CU_ASSERT(mclBnG2_isEqual(&piB2, &p.piB2));
+    CU_ASSERT(mclBnG1_isEqual(&piC, &p.piC));
+
+    test_no_rand = 0;
+}
+
 void test_full_circuits(void)
 {
     setup_keys keys_sc = perform_setup(&test_single_constraint); 
@@ -95,6 +120,12 @@ int main()
     }
 
     if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nConstraint System Testing\n\n", test_constraint_system)))
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nProver Testing\n\n", test_prover)))
     {
         CU_cleanup_registry();
         return CU_get_error();
