@@ -4,7 +4,7 @@ A portable and efficient C library for developing Zero-Knowledge applications fo
 
 **DISCLAIMER**: this library is currently **unstable**. Furthermore, **it has not gone through an exhaustive security analysis**, so it is not intended to be used in a production environment, only for academic purposes.
 
-A paper with all the details about ZPiE has been published in the special issue *Recent Advances in Security, Privacy, and Applied Cryptography* of the journal *Mathematics* (2021) and can be found [here](https://doi.org/10.3390/math9202569).
+An academic paper about ZPiE has been published in the special issue *Recent Advances in Security, Privacy, and Applied Cryptography* of the journal *Mathematics* (2021) and can be found [here](https://doi.org/10.3390/math9202569).
 
 ## Overview
 
@@ -19,47 +19,36 @@ In order to compute the circuit inputs for the above described circuits, you can
 
 
 ## Install dependencies
-ZPiE needs [GMP](https://gmplib.org/) and [MCL](https://github.com/herumi/mcl). To install them, simply run:
+ZPiE needs [GMP](https://gmplib.org/) and [MCL](https://github.com/herumi/mcl). To install them, and some other required dependencies, simply run:
 
 ```
-sudo apt install libgmp-dev
+sudo apt install libgmp-dev libcunit1-dev
 git clone https://github.com/herumi/mcl
 cd mcl
 make -j4
 ```
 
-## Compile
-By default, a benchmarking application is compiled and executed as follows:
+## Test
+ZPiE can be tested as follows:
 
 ```
 git clone https://github.com/xevisalle/zpie
 cd zpie
-make
-./zpie
+make test
 ```
 
-The last command will prompt you with a set of available options to benchmark all the features of ZPiE. Otherwise, you can compile your program as follows (which must be placed into `/main`):
+You can also compile a benchmarking application by running the following command, which will also prompt you with a set of available options to benchmark all the features of ZPiE:
 
 ```
-make MAIN=example
+make bench
 ```
 
 ### Compiling options
 
-Optionally, following compiling targets can be specified (if not specified, 'single' target will be used):
+We can specify the multi-exponentiation algorithm to be used (by default 'bos-coster' is used):
 
 ```
-make [target]
-
-Where [target] can be:
-single: single-threaded
-multi: multi-threaded
-```
-
-We can also specify the multi-exponentiation algorithm to be used (by default 'bos-coster' is used):
-
-```
-make MULEXP=[OPTION]
+make bench MULEXP=[OPTION]
 
 Where [OPTION] can be:
 BOSCOSTER_MULEXP: the Bos-Coster algorithm will be used.
@@ -70,65 +59,66 @@ MCL_MULEXP: the multi-exponentiation algorithm provided by the MCL library will 
 We can also specify the elliptic curve to be used:
 
 ```
-make CURVE=[OPTION]
+make bench CURVE=[OPTION]
 
 Where [OPTION] can be:
 BN128 (default)
 BLS12_381
 ```
 
-
 ## zk-SNARKs for arithmetic circuits
 
-### Circuit
-
-Circuits in ZPiE are .c files, integrated into the binary. You can edit the file `circuit.c` to do modifications to the current circuit. A tutorial with all circuit options will be provided soon. Meanwhile, examples are provided into the `/circuits` folder.
-
-### Setup, Prove, and Verify
-
-Here there is an example on how to use zk-SNARKs (`/main/example_gro16`):
+Here there is an example on how to use zk-SNARKs. Copy the following snippet into a file (e.g. called `/src/main.c`):
 
 ```c
-#include "../src/zpie.h"
+#include "zpie.h"
+
+void circuit()
+{
+    // set a public element
+    element out;
+    init_public(&out);
+
+    // set private elements
+    element a, b;
+    init(&a);
+    init(&b);
+
+    // input a value for the elements
+    input(&a, "1234");
+    input(&b, "5678");
+
+    // apply a constraint multiplying such elements
+    mul(&out, &a, &b);
+}
 
 int main()
 {
-    // we perform the setup (../data/provingkey.params and ../data/verifyingkey.params)
-    init_setup();
-    perform_setup();   
+    // we perform the setup
+    setup_keys keys = perform_setup(&circuit); 
 
     // we generate a proof (../data/proof.params)
-    init_prover();
-    generate_proof();
+    proof p = generate_proof(&circuit, keys.pk);
 
-    // we verify the proof (../data/proof.params)
-    init_verifier();
-    if (verify_proof()) printf("Proof verified.\n");
-    else printf("Proof cannot be verified.\n");
+    // we verify the proof 
+    if (verify_proof(&circuit, p, keys.vk)) 
+        printf("Proof verified.\n");
+    else 
+        printf("Proof cannot be verified.\n");
 }
 ```
+
+And compile and execute using:
+
+```
+make MAIN=main && ./zpie
+```
+
+More circuit examples can be found in the `/src/tests.c` file.
 
 ## Bulletproofs
 
-Here there is an example on how to use Bulletproofs (`/main/example_bp`):
-
-```c
-#include "../src/zpie.h"
-
-int main()
-{
-    // we init the bulletproofs module, for 2 aggregated proofs of 64 bits
-    bulletproof_init(64, 2);
-
-    // we set some values to prove knowledge of, and compute the proof (../data/bulletproof.params)
-    unsigned char *si[] = {"1234", "5678"};
-    bulletproof_prove(si);
-
-    // we verify the bulletproof (../data/bulletproof.params)
-    if(bulletproof_verify()) printf("Bulletproof verified.\n");
-    else printf("Bulletproof cannot be verified.\n");
-}
-```
+TBC.
 
 ## Cross-compile
 
@@ -156,7 +146,7 @@ make -j12 ARCH=x86_64
 We finally build ZPiE:
 
 ```
-make ARCH=x86_64
+make bench ARCH=x86_64
 ```
 
 ### Build for x86
@@ -183,7 +173,7 @@ make -j12 ARCH=x86
 We finally build ZPiE:
 
 ```
-make ARCH=x86
+make bench ARCH=x86
 ```
 
 ### Build for ARM 64-bits
@@ -210,7 +200,7 @@ make -j12 CXX=aarch64-linux-gnu-g++ ARCH=aarch64 MCL_USE_GMP=0
 We finally build ZPiE:
 
 ```
-make ARCH=aarch64
+make bench ARCH=aarch64
 ```
 
 ### Build for ARM 32-bits
@@ -237,5 +227,5 @@ make -j12 CXX=arm-linux-gnueabihf-g++ ARCH=armv6l CFLAGS_USER="-I /usr/local/inc
 We finally build ZPiE:
 
 ```
-make ARCH=arm
+make bench ARCH=arm
 ```

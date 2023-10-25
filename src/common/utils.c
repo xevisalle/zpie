@@ -37,9 +37,6 @@ void init_setup(void *circuit)
     init_circuit(circuit);
     setParams = 0;
 
-    M+=100; // experimental
-    N+=400; // experimental
-
     uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
 
     for (int i = 0; i < M; i++)

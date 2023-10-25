@@ -226,6 +226,7 @@ setup_keys read_setup(void *circuit)
     keys.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
 
     keys.pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
+    keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     keys.pk.A1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     keys.pk.B1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     keys.pk.pk1 = (mclBnG1*) malloc((M-nPublic) * sizeof(mclBnG1));
