@@ -172,7 +172,8 @@ void transcript_hash(mclBnFr *hash)
     SHA256_CTX ctx;
 
     sha256_init(&ctx);
-    sha256_update(&ctx, transcript, strlen(transcript));
+    //FIXME
+    //sha256_update(&ctx, transcript, strlen(transcript));
     sha256_final(&ctx, buff_hash_bytes);
 
     char *buff_hash = to_hex(buff_hash_bytes, sizeof buff_hash_bytes);
