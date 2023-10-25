@@ -22,7 +22,7 @@ void bench_circuit()
 int main(int argc, char *argv[])
 {   
     bench = 1; 
-    if (argc < 2)
+    if (argc < 3)
     {
         printf("******************* ZPiE v0.3 *******************\n");
         printf("USAGE: ./zpie [ACTIONS] [OPTIONS]\n\n");
@@ -30,8 +30,6 @@ int main(int argc, char *argv[])
         printf("-s <c>: Perform setup of 'c' constraints.\n");
         printf("-p <c>: Generate proof of 'c' constraints.\n");
         printf("-v <c>: Verify proof of 'c' constraints.\n");
-        printf("-pbp <Nb> <Mc> : Generate bulletproof where Nb is the bit size and Mc the number of aggregated proofs.\n");
-        printf("-vbp <Nb> <Mc> : Verify bulletproof where Nb is the bit size and Mc the number of aggregated proofs.\n\n");
         printf("[OPTIONS]\n");
         printf("-l : Activate logs.\n");
 
@@ -87,29 +85,6 @@ int main(int argc, char *argv[])
         setup_keys keys = read_setup(&bench_circuit);
         proof p = read_proof();
         verify_proof(&bench_circuit, p, keys.vk);
-    }
-    else if (strcmp(argv[1], "-pbp") == 0)
-    {
-        int Nbu = atoi(argv[2]);
-        int Mcu = atoi(argv[3]);
-
-        bulletproof_init(Nbu, Mcu);
-        unsigned char *si[Mcu];
-
-        for (int i = 0; i < Mcu; i++)
-        {
-            si[i] = "2";
-        }
-
-        bulletproof_prove(si);
-    }
-    else if (strcmp(argv[1], "-vbp") == 0)
-    {
-        int Nbu = atoi(argv[2]);
-        int Mcu = atoi(argv[3]);
-
-        bulletproof_init(Nbu, Mcu);
-        bulletproof_verify();
     }
 
     return 0;
