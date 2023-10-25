@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
     if ((argc == 4) && (strcmp(argv[3], "-l") == 0)) logs = 1;
 
-    printf("******************* ZPiE v0.2 *******************\n");
+    printf("******************* ZPiE v0.3 *******************\n");
 
     if ((strcmp(argv[1], "-s") == 0) || (strcmp(argv[1], "-p") == 0) || (strcmp(argv[1], "-v") == 0))
     {

@@ -45,18 +45,7 @@ make bench
 
 ### Compiling options
 
-We can specify the multi-exponentiation algorithm to be used (by default 'bos-coster' is used):
-
-```
-make bench MULEXP=[OPTION]
-
-Where [OPTION] can be:
-BOSCOSTER_MULEXP: the Bos-Coster algorithm will be used.
-NAIVE_MULEXP: serial multi-exponentiation will be performed.
-MCL_MULEXP: the multi-exponentiation algorithm provided by the MCL library will be used.
-```
-
-We can also specify the elliptic curve to be used:
+We can specify the elliptic curve to be used:
 
 ```
 make bench CURVE=[OPTION]
@@ -64,6 +53,24 @@ make bench CURVE=[OPTION]
 Where [OPTION] can be:
 BN128 (default)
 BLS12_381
+```
+
+We can specify to run the code in multi-thread mode:
+
+```
+make bench MULTI=on
+```
+
+We can specify the multi-exponentiation algorithm to be used:
+
+```
+make bench MULEXP=[OPTION]
+
+Where [OPTION] can be:
+AUTO_MULEXP (default): the most efficient algorithm will be used depending on the circuit size.
+BOSCOSTER_MULEXP: the Bos-Coster algorithm will be used.
+NAIVE_MULEXP: serial multi-exponentiation will be performed.
+MCL_MULEXP: the multi-exponentiation algorithm provided by the MCL library will be used.
 ```
 
 ## zk-SNARKs for arithmetic circuits

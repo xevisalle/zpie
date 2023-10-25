@@ -16,6 +16,10 @@ CURVE = BN128
 ARCH = None
 MULTI = off
 
+ifeq ($(MULTI), on)
+	MULTI_SET = -D MULTI_SET -fopenmp
+endif 
+
 zpie: $(SRC)
 ifeq ($(ARCH), x86)
 	$(CC) -m32 $(COMMON) $(LIBCROSS) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
@@ -36,26 +40,17 @@ else
 	$(CC) $(COMMON) $(LIB) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
 
 endif
-
 test: 
 ifneq ("$(wildcard zpie)","")
 	rm zpie
 endif
-ifeq ($(MULTI), on)
-	make MAIN=tests MULTI_SET="-D MULTI_SET -fopenmp"
-else 
 	make MAIN=tests
-endif
 	./zpie
 bench: 
 ifneq ("$(wildcard zpie)","")
 	rm zpie
 endif
-ifeq ($(MULTI), on)
-	make MAIN=bench MULTI_SET="-D MULTI_SET -fopenmp"
-else 
 	make MAIN=bench
-endif
 	./zpie
 clean:
 	rm -rf data
