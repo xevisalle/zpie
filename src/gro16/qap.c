@@ -18,6 +18,13 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         L[i] = (char*) malloc(M * sizeof(char));
         R[i] = (char*) malloc(M * sizeof(char));
         O[i] = (char*) malloc(M * sizeof(char));
+
+        for (int j = 0; j < M; j++)
+        {
+            L[i][j] = 0;
+            R[i][j] = 0;
+            O[i][j] = 0;
+        }
     }
 
     log_message("Computing R1CS...");
