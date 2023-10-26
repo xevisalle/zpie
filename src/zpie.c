@@ -241,8 +241,8 @@ void store_setup(setup_keys keys)
     char *pk_bytes = serialize_pk(&keys.pk);
     char *vk_bytes = serialize_vk(&keys.vk);
 
-    fprintf(fpk, "%s\n", pk_bytes);
-    fprintf(fvk, "%s\n", vk_bytes);
+    fprintf(fpk, "%s", pk_bytes);
+    fprintf(fvk, "%s", vk_bytes);
     
     fclose(fpk);
     fclose(fvk);

@@ -3,7 +3,7 @@ OUT = zpie
 CC = gcc
 CAARCH64 = aarch64-linux-gnu-gcc
 CARM = arm-linux-gnueabihf-gcc
-COMMON = src/$(MAIN).c -o $(OUT) -std=gnu99 -Ofast -Wno-unused-result
+COMMON = src/$(MAIN).c -o $(OUT) -std=gnu99 -Ofast -Wno-unused-result -Wno-pointer-sign
 MCLPATH = ../mcl
 GMPPATH = /usr/local
 LIB = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I $(MCLPATH)/include -lgmp -lcunit -lm -lstdc++

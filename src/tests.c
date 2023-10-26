@@ -52,6 +52,30 @@ void test_mimc_hash()
     mimc7(&h, &x_in, &k);
 }
 
+void test_setup(void)
+{
+    test_no_rand = 1;
+    setup_keys keys = perform_setup(&test_single_constraint); 
+
+    char* pk_bytes = serialize_pk(&keys.pk);
+    char* vk_bytes = serialize_vk(&keys.vk);
+
+    BYTE hash_bytes[SHA256_BLOCK_SIZE];
+    SHA256_CTX ctx;
+
+    sha256_init(&ctx);
+    sha256_update(&ctx, pk_bytes, strlen(pk_bytes));
+    sha256_final(&ctx, hash_bytes);
+
+    CU_ASSERT(!strcmp(to_hex(hash_bytes, sizeof hash_bytes), "b8a812b4c6576d343f0c269157a0020ca63e808244f2e0f75b9940797502d4fa"));
+
+    sha256_init(&ctx);
+    sha256_update(&ctx, vk_bytes, strlen(vk_bytes));
+    sha256_final(&ctx, hash_bytes);
+
+    CU_ASSERT(!strcmp(to_hex(hash_bytes, sizeof hash_bytes), "dac6dfe723f1874422a4235e38a6f4ac4bb1b18716c90babe3d4a97f189ac15e"));
+}
+
 void test_prover(void)
 {
     test_no_rand = 1;
@@ -126,6 +150,12 @@ int main()
     }
 
     if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nProver Testing\n\n", test_prover)))
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nSetup Testing\n\n", test_setup)))
     {
         CU_cleanup_registry();
         return CU_get_error();
