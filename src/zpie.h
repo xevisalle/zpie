@@ -39,7 +39,7 @@ int logN;
 int Nb;
 int Mc; 
 
-int M;
+static int M;
 int N;
 int nPublic;
 int setParams;

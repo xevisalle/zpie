@@ -74,12 +74,13 @@ void test_setup(void)
     sha256_final(&ctx, hash_bytes);
 
     CU_ASSERT(!strcmp(to_hex(hash_bytes, sizeof hash_bytes), "dac6dfe723f1874422a4235e38a6f4ac4bb1b18716c90babe3d4a97f189ac15e"));
+
+    test_no_rand = 0;
 }
 
 void test_prover(void)
 {
     test_no_rand = 1;
-
     setup_keys keys = perform_setup(&test_single_constraint); 
     proof p = generate_proof(&test_single_constraint, keys.pk);
 

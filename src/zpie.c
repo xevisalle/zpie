@@ -132,6 +132,11 @@ char* serialize_pk(proving_key *pk)
     char *pk_bytes;
     pk_bytes = (char *) malloc(1024 * n * sizeof(char));
 
+    for (int i = 0; i < 1024 * n * sizeof(char); i++)
+    {
+        pk_bytes[i] = 0;
+    }
+
     char buff[2048];
     mpz_get_str(buff, 16, pk->Ne);
     strcat(pk_bytes, buff);
@@ -205,6 +210,11 @@ char* serialize_vk(verifying_key *vk)
 {
     char *vk_bytes;
     vk_bytes = (char *) malloc(1024 * nPublic * sizeof(char));
+
+    for (int i = 0; i < 1024 * nPublic * sizeof(char); i++)
+    {
+        vk_bytes[i] = 0;
+    }
 
     char buff[2048];
     mclBnGT_getStr(buff, sizeof(buff), &vk->alphabetaT, 10);
