@@ -37,13 +37,15 @@ cd zpie
 make test
 ```
 
-You can also compile a benchmarking application by running the following command, which will also prompt you with a set of available options to benchmark all the features of ZPiE:
+## Benchmarks
+
+You can compile a benchmarking application by running the following command, which will also prompt you with a set of available options to benchmark all the features of ZPiE:
 
 ```
 make bench
 ```
 
-### Compiling options
+## Compiling options
 
 We can specify the elliptic curve to be used:
 
@@ -59,18 +61,6 @@ We can specify to run the code in multi-thread mode:
 
 ```
 make bench MULTI=on
-```
-
-We can specify the multi-exponentiation algorithm to be used:
-
-```
-make bench MULEXP=[OPTION]
-
-Where [OPTION] can be:
-AUTO_MULEXP (default): the most efficient algorithm will be used depending on the circuit size.
-BOSCOSTER_MULEXP: the Bos-Coster algorithm will be used.
-NAIVE_MULEXP: serial multi-exponentiation will be performed.
-MCL_MULEXP: the multi-exponentiation algorithm provided by the MCL library will be used.
 ```
 
 ## zk-SNARKs for arithmetic circuits
