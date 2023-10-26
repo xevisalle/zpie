@@ -125,6 +125,110 @@ setup_keys perform_setup(void *circuit)
     return provk;
 }
 
+char* serialize_pk(proving_key *pk)
+{
+    int n = mpz_get_ui(pk->Ne);
+
+    char *pk_bytes;
+    pk_bytes = (char *) malloc(1024 * n * sizeof(char));
+
+    char buff[2048];
+    mpz_get_str(buff, 16, pk->Ne);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        mclBnFr_getStr(buff, sizeof(buff), &pk->wMFr[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    sprintf(buff, "%d", pk->qap_size);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+
+    for (int i = 0; i < pk->qap_size; i++)
+    {
+        sprintf(buff, "%d", pk->LRO[i]);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    mclBnG1_getStr(buff, sizeof(buff), &pk->alpha1, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG1_getStr(buff, sizeof(buff), &pk->beta1, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG2_getStr(buff, sizeof(buff), &pk->beta2, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG1_getStr(buff, sizeof(buff), &pk->delta1, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG2_getStr(buff, sizeof(buff), &pk->delta2, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+
+    for (int i = 0; i < M; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &pk->A1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+        mclBnG1_getStr(buff, sizeof(buff), &pk->B1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+        mclBnG2_getStr(buff, sizeof(buff), &pk->B2[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    for (int i = 0; i < M-nPublic; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &pk->pk1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &pk->xt1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    return pk_bytes;
+}
+
+char* serialize_vk(verifying_key *vk)
+{
+    char *vk_bytes;
+    vk_bytes = (char *) malloc(1024 * nPublic * sizeof(char));
+
+    char buff[2048];
+    mclBnGT_getStr(buff, sizeof(buff), &vk->alphabetaT, 10);
+    strcat(vk_bytes, buff);
+    strcat(vk_bytes, "\n");
+
+    mclBnG2_getStr(buff, sizeof(buff), &vk->gamma2, 10);
+    strcat(vk_bytes, buff);
+    strcat(vk_bytes, "\n");
+
+    mclBnG2_getStr(buff, sizeof(buff), &vk->delta2, 10);
+    strcat(vk_bytes, buff);
+    strcat(vk_bytes, "\n");
+
+    for (int i = 0; i < nPublic; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &vk->vk1[i], 10);
+        strcat(vk_bytes, buff);
+        strcat(vk_bytes, "\n");
+    }
+
+    return vk_bytes;
+}
+
 void store_setup(setup_keys keys)
 {
     struct stat st = {0};
@@ -134,72 +238,11 @@ void store_setup(setup_keys keys)
     fpk = fopen("data/provingkey.params", "w");
     fvk = fopen("data/verifyingkey.params", "w");
 
-    mpz_out_str(fpk, 16, keys.pk.Ne);
-    fprintf(fpk, "\n");
+    char *pk_bytes = serialize_pk(&keys.pk);
+    char *vk_bytes = serialize_vk(&keys.vk);
 
-    int n = mpz_get_ui(keys.pk.Ne);
-
-    char buff[2048];
-    for (int i = 0; i < n; i++)
-    {
-        mclBnFr_getStr(buff, sizeof(buff), &keys.pk.wMFr[i], 16);
-        fprintf(fpk, "%s\n", buff);
-    }
-
-    fprintf(fpk, "%d\n", keys.pk.qap_size);
-
-    for (int i = 0; i < keys.pk.qap_size; i++)
-    {
-        fprintf(fpk, "%d\n", keys.pk.LRO[i]);
-    }
-
-    mclBnG1_getStr(buff, sizeof(buff), &keys.pk.alpha1, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG1_getStr(buff, sizeof(buff), &keys.pk.beta1, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG2_getStr(buff, sizeof(buff), &keys.pk.beta2, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG1_getStr(buff, sizeof(buff), &keys.pk.delta1, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG2_getStr(buff, sizeof(buff), &keys.pk.delta2, 16);
-    fprintf(fpk, "%s\n", buff);
-
-    for (int i = 0; i < M; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &keys.pk.A1[i], 16);
-        fprintf(fpk, "%s\n", buff);
-        mclBnG1_getStr(buff, sizeof(buff), &keys.pk.B1[i], 16);
-        fprintf(fpk, "%s\n", buff);
-        mclBnG2_getStr(buff, sizeof(buff), &keys.pk.B2[i], 16);
-        fprintf(fpk, "%s\n", buff);
-    }
-
-    mclBnGT_getStr(buff, sizeof(buff), &keys.vk.alphabetaT, 10);
-    fprintf(fvk, "%s\n", buff);
-
-    mclBnG2_getStr(buff, sizeof(buff), &keys.vk.gamma2, 10);
-    fprintf(fvk, "%s\n", buff);
-
-    mclBnG2_getStr(buff, sizeof(buff), &keys.vk.delta2, 10);
-    fprintf(fvk, "%s\n", buff);
-
-    for (int i = 0; i < M-nPublic; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &keys.pk.pk1[i], 16);
-        fprintf(fpk, "%s\n", buff);
-    }
-
-    for (int i = 0; i < nPublic; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &keys.vk.vk1[i], 10);
-        fprintf(fvk, "%s\n", buff);
-    }
-
-    for (int i = 0; i < n; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &keys.pk.xt1[i], 16);
-        fprintf(fpk, "%s\n", buff);
-    }
+    fprintf(fpk, "%s\n", pk_bytes);
+    fprintf(fvk, "%s\n", vk_bytes);
     
     fclose(fpk);
     fclose(fvk);
