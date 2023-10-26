@@ -1,4 +1,4 @@
-void setup(struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *alphabetaT)
+void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *alphabetaT, int *qap_size, mpz_t *Ne)
 {
     mpz_t *A = (mpz_t*) malloc((M) * sizeof(mpz_t));
     mpz_t *B = (mpz_t*) malloc((M) * sizeof(mpz_t));
@@ -17,24 +17,24 @@ void setup(struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *al
 
     mclBnFr rand;
 
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->alpha, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->beta, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->gamma, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->delta, &rand);
-    mclBnFr_setByCSPRNG(&rand);
+    generate_random_scalar(&rand);
     fr_to_mpz(&t->x, &rand);
 
-    generateqap(A, B, C, *t);
+    generateqap(circuit, A, B, C, *t, qap_size, Ne);
 
     mpz_t factor, T;
     mpz_inits(factor, T, NULL);
 
     mpz_set_ui(factor, 1);
-    mpz_powm(T, t->x, Ne, pPrime);
+    mpz_powm(T, t->x, *Ne, pPrime);
     mpz_sub(T, T, factor);
 
     // encrypt
@@ -100,6 +100,7 @@ void setup(struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *al
     mpz_mul(zod, T, invDelta);
     mpz_mod(zod, zod, pPrime);
 
+    int n = mpz_get_ui(*Ne);
     mclBnFr *frFactor2 = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
 
     mpz_to_fr(&frFactor2[0], &zod);

@@ -29,20 +29,24 @@
 #include <time.h>
 #include <omp.h>
 #include <math.h> 
-#include "sha256.c" 
+#include "common/sha256.c" 
+#include "CUnit/Basic.h"
+
+int init_suite(void) { return 0; }
+int clean_suite(void) { return 0; }
 
 int logN;
 int Nb;
 int Mc; 
 
-int M;
+static int M;
 int N;
-int nPublic = 0;
+int nPublic;
 int setParams;
 
 mpz_t *uw;
 
-typedef struct Context
+typedef struct
 {
     mclBnFr *gammas;
     mclBnG1 *V;
@@ -50,7 +54,14 @@ typedef struct Context
     mclBnG1 H;
 } context;
 
-#include "gro16.h"
+typedef struct
+{
+    mpz_t *uwProof;
+    mclBnG1 piA, piC;
+    mclBnG2 piB2;
+} proof;
+
+#include "gro16/gro16.h"
 
 void bulletproof_prove(unsigned char *si[]);
 int bulletproof_verify();
@@ -59,12 +70,11 @@ void bulletproof_read();
 static inline void bulletproof_init(int Nb_set, int Mc_set);
 static inline void bulletproof_get_context(context *ctx);
 static inline void bulletproof_user_gammas(int val);
-void init_setup();
-void perform_setup();
-void init_prover();
-void generate_proof();
-void init_verifier();
-int verify_proof();
+void init_setup(void *circuit);
+setup_keys perform_setup(void *circuit);
+void init_prover(void *circuit, proving_key pk);
+proof generate_proof(void *circuit, proving_key pk);
+int verify_proof(void *circuit, proof p, verifying_key vk);
 
 #include "zpie.c"
-#include "bulletproofs.c"
+#include "bulletproofs/bulletproofs.c"

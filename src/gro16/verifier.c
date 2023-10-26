@@ -1,10 +1,10 @@
-mclBnG1 Vu; 
 
-int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic])
+int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic], verifying_key vk)
 {
     mclBnG1 factorG1;
     mclBnFr frFactor;
     mclBnGT pairing1, pairing2, pairing3, factorGT;
+    mclBnG1 Vu;
 
     mclBnG1_clear(&Vu);
     for (int i = nPublic; i--;)
@@ -58,6 +58,8 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic])
     
     int verified = mclBnGT_isEqual(&pairing1, &factorGT);
 
+    if (mclBnGT_isOne(&pairing2)) verified = 0;
+    
     if (verified) log_state(1);
     else log_state(0);
     

@@ -3,7 +3,7 @@
 
 int bench;
 
-typedef struct Element
+typedef struct
 {
     int index;
 } element;
@@ -11,15 +11,17 @@ typedef struct Element
 element one, oneNeg;
 
 int logs;
+int test_no_rand;
 
 void element_log(char *text, element *oo);
 void init(element *toAdd);
+void circuit();
 void init_array(element *toAdd, int size);
 void init_public(element *toAdd);
 void setPublic(element *set);
 void input(element *var, char *val);
 void mul(element *oo, element *lo, element *ro);
-void assertEqual(element *lo, element *ro);
+void assert_equal(element *lo, element *ro);
 void addmul(element *oo, element *lo1, element *lo2, element *ro);
 void submul(element *oo, element *lo1, element *lo2, element *ro);
 void add3mul(element *oo, element *lo1, element *lo2, element *lo3, element *ro);
@@ -31,20 +33,12 @@ void sort_list(mpz_t *exp[], int heapsize);
 void binarymaxheap(mpz_t *exp[], int i, int heapsize);
 
 static mpz_t pPrime;
-
-#include "../main/circuit.c"
-
-static int n;
 static gmp_randstate_t state;
 
 char **L;
 char **R;
 char **O;
 
-int qapSize;
-int *LRO;
-
-static mclBnFr *wMFr;
 static mclBnFr *AsFr;
 static mclBnFr *BsFr;
 static mclBnFr *CsFr;
@@ -53,10 +47,14 @@ static mpz_t *rsigma;
 static mpz_t *rsigmaInv;
 static mpz_t shift;
 
-static mpz_t Ne;
 static mpz_t *wM;
 
-#include "fourier.c"
+#include "../common/fourier.c"
+
+int prover;
+int cn;
+int uwn;
+
 #include "parser.c"
 
 struct Trapdoor
@@ -88,19 +86,27 @@ struct Sigma2
     mclBnG2 *B;
 };
 
-typedef struct ProvingKey
+typedef struct
 {
+    mpz_t Ne;
+    mclBnFr *wMFr;
+
+    int qap_size;
+    int *LRO;
+
     mclBnG1 alpha1;
     mclBnG1 beta1;
     mclBnG2 beta2;
     mclBnG1 delta1;
     mclBnG2 delta2;
+
     mclBnG1 *A1;
     mclBnG1 *B1;
     mclBnG2 *B2;
     mclBnG1 *pk1;
     mclBnG1 *xt1;
-} provingKey;
+    mclBnG1 *xt1_rand;
+} proving_key;
 
 struct mulExpResult
 {
@@ -111,18 +117,21 @@ struct mulExpResult
     mclBnG1 uwC1;
 };
 
-typedef struct VerifyingKey
+typedef struct
 {
     mclBnGT alphabetaT;
     mclBnG2 gamma2;
     mclBnG2 delta2;
     mclBnG1 *vk1;
-} verifyingKey;
+} verifying_key;
 
-provingKey pk;
-verifyingKey vk;
+typedef struct
+{
+    proving_key pk;
+    verifying_key vk;
+} setup_keys;
 
-#include "utils.c"
+#include "../common/utils.c"
 #include "qap.c"
 #include "setup.c"
 #include "prover.c"

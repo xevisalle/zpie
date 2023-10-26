@@ -1,6 +1,5 @@
-mpz_t *u;
 
-void generateqap(mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
+void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t, int *qap_size, mpz_t *Ne)
 {
     #pragma omp parallel for
     for (int i = 0; i < M; i++)
@@ -19,10 +18,20 @@ void generateqap(mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
         L[i] = (char*) malloc(M * sizeof(char));
         R[i] = (char*) malloc(M * sizeof(char));
         O[i] = (char*) malloc(M * sizeof(char));
+
+        for (int j = 0; j < M; j++)
+        {
+            L[i][j] = 0;
+            R[i][j] = 0;
+            O[i][j] = 0;
+        }
     }
 
     log_message("Computing R1CS...");
-    init_circuit(); 
+
+    cn = 0;
+    uwn = 0;
+    init_circuit(circuit); 
     log_state(1);
 
     if (logs)
@@ -68,14 +77,14 @@ void generateqap(mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
     mpz_inits(factor, T, uL, NULL);
     mpz_init_set(tX, t.x);
 
-    mpz_powm(T, tX, Ne, pPrime);
+    mpz_powm(T, tX, *Ne, pPrime);
     mpz_sub_ui(T, T, 1); // Z^d - 1 = Zs
 
-    mpz_invert(uL, Ne, pPrime);
+    mpz_invert(uL, *Ne, pPrime);
     mpz_mul(uL, T, uL); // L1 = Zs / d
     mpz_mod(uL, uL, pPrime);
 
-    u = (mpz_t*) malloc((N) * sizeof(mpz_t));
+    mpz_t *u = (mpz_t*) malloc((N) * sizeof(mpz_t));
 
     for (int i = 0; i < N; i++)
     {
@@ -104,14 +113,14 @@ void generateqap(mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t)
         }
     }
     
-    qapSize = 0;
+    *qap_size = 0;
     for (int i = 0; i < M; i++)
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i]) qapSize += 3;
-            if(R[j][i]) qapSize += 3;
-            if(O[j][i]) qapSize += 3;
+            if(L[j][i]) *qap_size += 3;
+            if(R[j][i]) *qap_size += 3;
+            if(O[j][i]) *qap_size += 3;
         }
     }
 }

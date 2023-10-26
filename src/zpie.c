@@ -1,36 +1,15 @@
 
-void init_setup()
+setup_keys perform_setup(void *circuit)
 {
-    M = 0;
-    N = 0;
-    nPublic = 0;
-
-    mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
-
-    setParams = 1;
-    init_circuit();
-    setParams = 0;
-
-    M+=100; // experimental
-
-    uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
-
-    for (int i = 0; i < M; i++)
-    {
-        mpz_init2(uw[i], BITS);
-    }
-}
-
-void perform_setup()
-{
-    struct stat st = {0};
-    if (stat("data", &st) == -1) mkdir("data", 0700);
-
+    init_setup(circuit);
+    
     struct Trapdoor t; // to be destroyed
+
     struct Sigma1 s1;
     struct Sigma2 s2;
+    mclBnGT alphabetaT;
 
-    mpz_t kmul, factor, two;
+    mpz_t kmul, factor, two, Ne;
     mpz_inits(kmul, Ne, factor, NULL);
 
     mpz_init(pPrime);
@@ -53,14 +32,13 @@ void perform_setup()
     mpz_init_set_ui(base, GROUPGEN); // multiplicative group generator  
     mpz_powm(w, base, kmul, pPrime);
 
-    FILE *fpk, *fvk;
-    fpk = fopen("data/provingkey.params", "w");
-    fvk = fopen("data/verifyingkey.params", "w");
+    int n = mpz_get_ui(Ne);
 
-    mpz_out_str(fpk, 16, Ne);
-    fprintf(fpk, "\n");
+    setup_keys provk;
+    mpz_init_set(provk.pk.Ne, Ne);
 
-    n = mpz_get_ui(Ne);
+    provk.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    provk.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
 
     wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     s1.xt = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
@@ -74,77 +52,67 @@ void perform_setup()
     {
         mpz_init(wM[i]);
         mpz_powm_ui(wM[i], w, i, pPrime);
-        mpz_out_str(fpk, 16, wM[i]);
-        fprintf(fpk, "\n");
+        mpz_to_fr(&provk.pk.wMFr[i], &wM[i]);
     }
-
-    mclBnGT alphabetaT;
 
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    setup(&t, &s1, &s2, &alphabetaT);
+    setup(circuit, &t, &s1, &s2, &alphabetaT, &provk.pk.qap_size, &provk.pk.Ne);
 
-    fprintf(fpk, "%d\n", qapSize);
+    provk.pk.LRO = (int*) malloc((provk.pk.qap_size) * sizeof(int));
+
+    int it = 0;
 
     for (int i = 0; i < M; i++)
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i]) fprintf(fpk, "%d\n%d\n%d\n", 1, j, i);
-            if(R[j][i]) fprintf(fpk, "%d\n%d\n%d\n", 2, j, i);
-            if(O[j][i]) fprintf(fpk, "%d\n%d\n%d\n", 3, j, i);
+            if(L[j][i]) 
+            {
+                provk.pk.LRO[it] = 1;
+                provk.pk.LRO[it+1] = j;
+                provk.pk.LRO[it+2] = i;
+                it+=3;
+            }
+            if(R[j][i]) 
+            {
+                provk.pk.LRO[it] = 2;
+                provk.pk.LRO[it+1] = j;
+                provk.pk.LRO[it+2] = i;
+                it+=3;
+            }
+            if(O[j][i]) 
+            {
+                provk.pk.LRO[it] = 3;
+                provk.pk.LRO[it+1] = j;
+                provk.pk.LRO[it+2] = i;
+                it+=3;
+            }
         }
     }
 
-    char buff[2048];
-    mclBnG1_getStr(buff, sizeof(buff), &s1.alpha, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG1_getStr(buff, sizeof(buff), &s1.beta, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG2_getStr(buff, sizeof(buff), &s2.beta, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG1_getStr(buff, sizeof(buff), &s1.delta, 16);
-    fprintf(fpk, "%s\n", buff);
-    mclBnG2_getStr(buff, sizeof(buff), &s2.delta, 16);
-    fprintf(fpk, "%s\n", buff);
+    provk.pk.alpha1 = s1.alpha;
+    provk.pk.beta1 = s1.beta;
+    provk.pk.beta2 = s2.beta;
+    provk.pk.delta1 = s1.delta;
+    provk.pk.delta2 = s2.delta;
+    provk.pk.A1 = s1.A;
+    provk.pk.B1 = s1.B;
+    provk.pk.B2 = s2.B;
+    provk.pk.pk1 = s1.pk;
+    provk.pk.xt1 = s1.xt;
+    provk.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
-    for (int i = 0; i < M; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &s1.A[i], 16);
-        fprintf(fpk, "%s\n", buff);
-        mclBnG1_getStr(buff, sizeof(buff), &s1.B[i], 16);
-        fprintf(fpk, "%s\n", buff);
-        mclBnG2_getStr(buff, sizeof(buff), &s2.B[i], 16);
-        fprintf(fpk, "%s\n", buff);
-    }
+    provk.vk.alphabetaT = alphabetaT;
+    provk.vk.gamma2 = s2.gamma;
+    provk.vk.delta2 = s2.delta;
 
-    mclBnGT_getStr(buff, sizeof(buff), &alphabetaT, 10);
-    fprintf(fvk, "%s\n", buff);
-
-    mclBnG2_getStr(buff, sizeof(buff), &s2.gamma, 10);
-    fprintf(fvk, "%s\n", buff);
-
-    mclBnG2_getStr(buff, sizeof(buff), &s2.delta, 10);
-    fprintf(fvk, "%s\n", buff);
-
-    for (int i = 0; i < M-nPublic; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &s1.pk[i], 16);
-        fprintf(fpk, "%s\n", buff);
-    }
 
     for (int i = 0; i < nPublic; i++)
     {
-        mclBnG1_getStr(buff, sizeof(buff), &s1.vk[i], 10);
-        fprintf(fvk, "%s\n", buff);
-    }
-
-    for (int i = 0; i < n; i++)
-    {
-        mclBnG1_getStr(buff, sizeof(buff), &s1.xt[i], 16);
-        fprintf(fpk, "%s\n", buff);
+        provk.vk.vk1[i] = s1.vk[i];
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -153,164 +121,271 @@ void perform_setup()
 
     log_success("Setup generated successfully in", 1);
     if (bench) printf(" %fs\n", elapsed);
+
+    return provk;
+}
+
+char* serialize_pk(proving_key *pk)
+{
+    int n = mpz_get_ui(pk->Ne);
+
+    char *pk_bytes;
+    pk_bytes = (char *) malloc(1024 * n * sizeof(char));
+
+    for (int i = 0; i < 1024 * n * sizeof(char); i++)
+    {
+        pk_bytes[i] = 0;
+    }
+
+    char buff[2048];
+    mpz_get_str(buff, 16, pk->Ne);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        mclBnFr_getStr(buff, sizeof(buff), &pk->wMFr[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    sprintf(buff, "%d", pk->qap_size);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+
+    for (int i = 0; i < pk->qap_size; i++)
+    {
+        sprintf(buff, "%d", pk->LRO[i]);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    mclBnG1_getStr(buff, sizeof(buff), &pk->alpha1, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG1_getStr(buff, sizeof(buff), &pk->beta1, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG2_getStr(buff, sizeof(buff), &pk->beta2, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG1_getStr(buff, sizeof(buff), &pk->delta1, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+    mclBnG2_getStr(buff, sizeof(buff), &pk->delta2, 16);
+    strcat(pk_bytes, buff);
+    strcat(pk_bytes, "\n");
+
+    for (int i = 0; i < M; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &pk->A1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+        mclBnG1_getStr(buff, sizeof(buff), &pk->B1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+        mclBnG2_getStr(buff, sizeof(buff), &pk->B2[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    for (int i = 0; i < M-nPublic; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &pk->pk1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &pk->xt1[i], 16);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    return pk_bytes;
+}
+
+char* serialize_vk(verifying_key *vk)
+{
+    char *vk_bytes;
+    vk_bytes = (char *) malloc(1024 * nPublic * sizeof(char));
+
+    for (int i = 0; i < 1024 * nPublic * sizeof(char); i++)
+    {
+        vk_bytes[i] = 0;
+    }
+
+    char buff[2048];
+    mclBnGT_getStr(buff, sizeof(buff), &vk->alphabetaT, 10);
+    strcat(vk_bytes, buff);
+    strcat(vk_bytes, "\n");
+
+    mclBnG2_getStr(buff, sizeof(buff), &vk->gamma2, 10);
+    strcat(vk_bytes, buff);
+    strcat(vk_bytes, "\n");
+
+    mclBnG2_getStr(buff, sizeof(buff), &vk->delta2, 10);
+    strcat(vk_bytes, buff);
+    strcat(vk_bytes, "\n");
+
+    for (int i = 0; i < nPublic; i++)
+    {
+        mclBnG1_getStr(buff, sizeof(buff), &vk->vk1[i], 10);
+        strcat(vk_bytes, buff);
+        strcat(vk_bytes, "\n");
+    }
+
+    return vk_bytes;
+}
+
+void store_setup(setup_keys keys)
+{
+    struct stat st = {0};
+    if (stat("data", &st) == -1) mkdir("data", 0700);
+
+    FILE *fpk, *fvk;
+    fpk = fopen("data/provingkey.params", "w");
+    fvk = fopen("data/verifyingkey.params", "w");
+
+    char *pk_bytes = serialize_pk(&keys.pk);
+    char *vk_bytes = serialize_vk(&keys.vk);
+
+    fprintf(fpk, "%s", pk_bytes);
+    fprintf(fvk, "%s", vk_bytes);
     
     fclose(fpk);
     fclose(fvk);
 }
 
-void init_prover()
+setup_keys read_setup(void *circuit)
 {
-    init_setup();
-
-    struct timespec begin, end;
-    double elapsed;
-    clock_gettime(CLOCK_MONOTONIC, &begin);
-
-    pk.A1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
-    pk.B1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
-    pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
-    pk.pk1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
-
-    if (bench) printf("  |--- Mode: Prove\n");
+    init_setup(circuit);
 
     char buff[2048];
-    FILE *fpk;
+    FILE *fpk, *fvk;
+    
     fpk = fopen("data/provingkey.params", "r");
+    fvk = fopen("data/verifyingkey.params", "r");
 
-    mpz_init(pPrime);
-    mpz_set_str(pPrime, PRIMESTR, 10);
+    setup_keys keys;
+
     fgets(buff, sizeof buff, fpk);
-    mpz_init_set_str(Ne, buff, 16);
+    mpz_init_set_str(keys.pk.Ne, buff, 16);
 
-    n = mpz_get_ui(Ne);
-    if (bench) printf("  |--- FFT constraints size : %d\n", n);
+    int n = mpz_get_ui(keys.pk.Ne);
+    
+    keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    keys.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
 
-    wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
-    wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    AsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    BsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    CsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    keys.pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
+    keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
+    keys.pk.A1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
+    keys.pk.B1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
+    keys.pk.pk1 = (mclBnG1*) malloc((M-nPublic) * sizeof(mclBnG1));
+    keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
 
     for (int i = 0; i < n; i++)
     {
         fgets(buff, sizeof buff, fpk);
-        mclBnFr_setStr(&wMFr[i], buff, strlen(buff), 16);
+        mclBnFr_setStr(&keys.pk.wMFr[i], buff, strlen(buff), 16);
     }
 
     fgets(buff, sizeof buff, fpk);
-    qapSize = atoi(buff);
+    keys.pk.qap_size = atoi(buff);
 
-    LRO = (int*) malloc((qapSize) * sizeof(int)); 
+    keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int)); 
 
-    for (int i = 0; i < qapSize; i++)
+    for (int i = 0; i < keys.pk.qap_size; i++)
     {
         fgets(buff, sizeof buff, fpk);
-        LRO[i] = atoi(buff);
+        keys.pk.LRO[i] = atoi(buff);
     }
 
     fgets(buff, sizeof buff, fpk);
-    mclBnG1_setStr(&pk.alpha1, buff, strlen(buff), 16);
+    mclBnG1_setStr(&keys.pk.alpha1, buff, strlen(buff), 16);
     fgets(buff,sizeof buff, fpk);
-    mclBnG1_setStr(&pk.beta1, buff, strlen(buff), 16);
+    mclBnG1_setStr(&keys.pk.beta1, buff, strlen(buff), 16);
     fgets(buff,sizeof buff, fpk);
-    mclBnG2_setStr(&pk.beta2, buff, strlen(buff), 16);
+    mclBnG2_setStr(&keys.pk.beta2, buff, strlen(buff), 16);
     fgets(buff,sizeof buff, fpk);
-    mclBnG1_setStr(&pk.delta1, buff, strlen(buff), 16);
+    mclBnG1_setStr(&keys.pk.delta1, buff, strlen(buff), 16);
     fgets(buff,sizeof buff, fpk);
-    mclBnG2_setStr(&pk.delta2, buff, strlen(buff), 16);
+    mclBnG2_setStr(&keys.pk.delta2, buff, strlen(buff), 16);
 
     for (int i = 0; i < M; i++)
     {
         fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&pk.A1[i], buff, strlen(buff), 16);
+        mclBnG1_setStr(&keys.pk.A1[i], buff, strlen(buff), 16);
         fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&pk.B1[i], buff, strlen(buff), 16);
+        mclBnG1_setStr(&keys.pk.B1[i], buff, strlen(buff), 16);
         fgets(buff,sizeof buff, fpk);
-        mclBnG2_setStr(&pk.B2[i], buff, strlen(buff), 16);
+        mclBnG2_setStr(&keys.pk.B2[i], buff, strlen(buff), 16);
     }
 
-    for (int i = nPublic; i < M; i++)
+    for (int i = 0; i < M-nPublic; i++)
     {
         fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&pk.pk1[i], buff, strlen(buff), 16);
+        mclBnG1_setStr(&keys.pk.pk1[i], buff, strlen(buff), 16);
     }
-
-    pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
     for (int i = 0; i < n; i++)
     {
         fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&pk.xt1[i], buff, strlen(buff), 16);
+        mclBnG1_setStr(&keys.pk.xt1[i], buff, strlen(buff), 16);
     }
+    
+    fgets(buff, sizeof buff, fvk);
+    mclBnGT_setStr(&keys.vk.alphabetaT, buff, strlen(buff), 10);
 
-    fclose(fpk);   
+    fgets(buff, sizeof buff, fvk);
+    mclBnG2_setStr(&keys.vk.gamma2, buff, strlen(buff), 10);
 
-    rsigma = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
-    rsigmaInv = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
+    fgets(buff, sizeof buff, fvk);
+    mclBnG2_setStr(&keys.vk.delta2, buff, strlen(buff), 10);
 
-    mpz_t randNum;
-    mpz_init(randNum);
-    mpz_t factor;
-    mpz_init_set_ui(factor, n);
-    mpz_invert(factor, factor, pPrime);
-    mpz_init(shift);
+    keys.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
 
-    mclBnFr rand;
-    mclBnFr_setByCSPRNG(&rand);
-    fr_to_mpz(&randNum, &rand);
-    mpz_set(shift, randNum);
-
-    mpz_init2(rsigma[0], BITS);
-    mpz_init2(rsigmaInv[0], BITS);
-    mpz_set_ui(rsigma[0], 1);
-    mpz_invert(rsigmaInv[0], rsigma[0], pPrime);
-
-    mclBnFr frFactor;
-    mpz_to_fr(&frFactor, &rsigmaInv[0]);
-    mclBnG1_mul(&pk.xt1[0], &pk.xt1[0], &frFactor);
-    mpz_mul(rsigma[0], rsigma[0], factor);
-    mpz_mod(rsigma[0], rsigma[0], pPrime);
-
-    for (int i = 1; i < n; i++)
+    for (int i = 0; i < nPublic; i++)
     {
-        mclBnFr frFactorMulti;
-        mpz_init2(rsigma[i], BITS);
-        mpz_init2(rsigmaInv[i], BITS);
-        mpz_powm_ui(rsigma[i], shift, i, pPrime);
-        mpz_invert(rsigmaInv[i], rsigma[i], pPrime);
-
-        mpz_to_fr(&frFactorMulti, &rsigmaInv[i]);
-        mclBnG1_mul(&pk.xt1[i], &pk.xt1[i], &frFactorMulti);
-
-        mpz_mul(rsigma[i], rsigma[i], factor);
-        mpz_mod(rsigma[i], rsigma[i], pPrime);
+        fgets(buff, sizeof buff, fvk);
+        mclBnG1_setStr(&keys.vk.vk1[i], buff, strlen(buff), 10);
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    elapsed = (end.tv_sec - begin.tv_sec);
-    elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
+    fclose(fpk); 
+    fclose(fvk);
 
-    log_success("ZPiE started successfully in ", 1);
-    if (bench) printf("%fs\n\n", elapsed);
+    return keys;
 }
 
-void generate_proof()
+proof generate_proof(void *circuit, proving_key pk)
 {
+    init_prover(circuit, pk);
+
     uwn = 0;
     for (int i = 0; i < M; i++)
     {
         mpz_init(uw[i]);
     }
+
+    int n = mpz_get_ui(pk.Ne);
+    wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     
-    mclBnG1 piA, piC;
-    mclBnG2 piB2;
+    proof p;
+
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
+
+    for (int i = 0; i < nPublic; i++)
+    {
+        mpz_init(p.uwProof[i]);
+    }
 
     if (bench) printf("--- Computing proof...\n");
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    prove(&piA, &piB2, &piC);
+    prove(circuit, &p.piA, &p.piB2, &p.piC, p.uwProof, pk);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -319,96 +394,90 @@ void generate_proof()
     log_success("Proof generated successfully in ", 1);
     if (bench) printf("%fs\n", elapsed);
 
+    for (int i = 0; i < n; i++)
+    {
+        mclBnFr_clear(&AsFr[i]);
+        mclBnFr_clear(&BsFr[i]);
+        mclBnFr_clear(&CsFr[i]);
+
+        mpz_clear(rsigma[i]);
+        mpz_clear(rsigmaInv[i]);
+    }
+
+    for (int i = 0; i < M; i++)
+    {
+        mpz_clear(uw[i]);
+    }
+
+    mpz_clear(shift);
+
+    return p;
+}
+
+void store_proof(proof p)
+{
     char buff[2048];
     FILE *fproof;
     fproof = fopen("data/proof.params", "w");
 
     for (int i = 0; i < nPublic; i++)
     {
-        mpz_out_str(fproof, 10, uwProof[i]);
+        mpz_out_str(fproof, 10, p.uwProof[i]);
         fprintf(fproof, "\n");
     }
 
-    mclBnG1_getStr(buff, sizeof(buff), &piA, 10);
+    mclBnG1_getStr(buff, sizeof(buff), &p.piA, 10);
     fprintf(fproof, "%s\n", buff);
 
-    mclBnG2_getStr(buff, sizeof(buff), &piB2, 10);
+    mclBnG2_getStr(buff, sizeof(buff), &p.piB2, 10);
     fprintf(fproof, "%s\n", buff);
 
-    mclBnG1_getStr(buff, sizeof(buff), &piC, 10);
+    mclBnG1_getStr(buff, sizeof(buff), &p.piC, 10);
     fprintf(fproof, "%s\n", buff);
 
     fclose(fproof);
-
-    for (int i = 0; i < n; i++)
-    {
-        mclBnFr_clear(&AsFr[i]);
-        mclBnFr_clear(&BsFr[i]);
-        mclBnFr_clear(&CsFr[i]);
-    }
 }
 
-void init_verifier()
+proof read_proof()
 {
-    init_setup();
-    
-    char buff[2048];
-    FILE *fvk;
-    fvk = fopen("data/verifyingkey.params", "r");
-
-    fgets(buff, sizeof buff, fvk);
-    mclBnGT_setStr(&vk.alphabetaT, buff, strlen(buff), 10);
-
-    fgets(buff, sizeof buff, fvk);
-    mclBnG2_setStr(&vk.gamma2, buff, strlen(buff), 10);
-
-    fgets(buff, sizeof buff, fvk);
-    mclBnG2_setStr(&vk.delta2, buff, strlen(buff), 10);
-
-    vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
-
-    for (int i = 0; i < nPublic; i++)
-    {
-        fgets(buff, sizeof buff, fvk);
-        mclBnG1_setStr(&vk.vk1[i], buff, strlen(buff), 10);
-    }
-
-    fclose(fvk);
-}
-
-int verify_proof()
-{
-    mpz_t u[nPublic]; // public statement
-    mclBnG1 piA, piC; 
-    mclBnG2 piB2;
+    proof p;
 
     char buff[2048];
     FILE *fproof;
     fproof = fopen("data/proof.params", "r");
 
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
+
     for (int i = 0; i < nPublic; i++)
     {
-        fgets(buff,sizeof buff, fproof);
-        mpz_init(u[i]);
-        mpz_set_str(u[i], buff, 10);
+        fgets(buff, sizeof buff, fproof);
+        mpz_init(p.uwProof[i]);
+        mpz_set_str(p.uwProof[i], buff, 10);
     }
 
     fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&piA, buff, strlen(buff), 10);
+    mclBnG1_setStr(&p.piA, buff, strlen(buff), 10);
 
     fgets(buff, sizeof buff, fproof);
-    mclBnG2_setStr(&piB2, buff, strlen(buff), 10);
+    mclBnG2_setStr(&p.piB2, buff, strlen(buff), 10);
 
     fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&piC, buff, strlen(buff), 10);
+    mclBnG1_setStr(&p.piC, buff, strlen(buff), 10);
 
     fclose(fproof);
+
+    return p;
+}
+
+int verify_proof(void *circuit, proof p, verifying_key vk)
+{
+    init_setup(circuit);
 
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    int verified = verify(&piA, &piB2, &piC, u);
+    int verified = verify(&p.piA, &p.piB2, &p.piC, p.uwProof, vk);
 
     if (verified)
     {
@@ -421,11 +490,6 @@ int verify_proof()
     else
     {
         log_success("Proof cannot be verified\n", 0);
-    }
-
-    for (int i = 0; i < nPublic; i++)
-    {
-        mpz_clear(u[i]);
     }
 
     return verified;

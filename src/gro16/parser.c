@@ -1,6 +1,3 @@
-int prover;
-int cn = 0;
-int uwn = 0;
 
 void element_log(char *text, element *oo)
 {
@@ -111,7 +108,7 @@ void mul(element *oo, element *lo, element *ro)
 	}
 }
 
-void assertEqual(element *lo, element *ro)
+void assert_equal(element *lo, element *ro)
 {
 	element factor1, factor2;
 	init(&factor1);
@@ -150,7 +147,7 @@ void init(element *toAdd)
 	}
 }
 
-void init_circuit()
+void init_circuit(void *circuit)
 {
 	init_public(&one);
 	init_public(&oneNeg);
@@ -158,5 +155,46 @@ void init_circuit()
 	input(&one, "1");
 	input(&oneNeg, "-1");
 
-	circuit();
+	((void(*)(void))circuit)();
+}
+
+void test_full_api()
+{
+	element e_mul, e_addmul, e_add3mul, e_addmuladd;
+    init(&e_mul);
+	init(&e_addmul);
+	init(&e_add3mul);
+	init(&e_addmuladd);
+
+    element a, b;
+    init(&a);
+    init(&b);
+
+    input(&a, "5");
+    input(&b, "10");
+
+    mul(&e_mul, &a, &b);
+	addmul(&e_addmul, &a, &b, &b);
+	add3mul(&e_add3mul, &a, &a, &a, &b);
+	addmuladd(&e_addmuladd, &a, &a, &b, &b);
+}
+
+void test_constraint_system(void)
+{
+	uw = (mpz_t*) malloc((8) * sizeof(mpz_t));
+	uwn = 0;
+
+    for (int i = 0; i < 8; i++)
+    {
+        mpz_init2(uw[i], BITS);
+    }
+
+	prover = 1;
+	init_circuit(&test_full_api);
+	prover = 0;
+
+	CU_ASSERT(mpz_cmp_ui(uw[2], 50) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[3], 150) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[4], 150) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[5], 200) == 0);
 }

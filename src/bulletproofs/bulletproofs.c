@@ -48,7 +48,8 @@ void bulletproof_prove(unsigned char *si[])
 
     for (int j = 0; j < Mc; j++)
     {
-        mclBnFr_setStr(&v[j], si[j], strlen(si[j]), 10);
+        // FIXME
+        //mclBnFr_setStr(&v[j], si[j], strlen(si[j]), 10);
         mclBnFr_getStr(buff, sizeof(buff), &v[j], 2);
 
         for (int i = 0; i < strlen(buff); i++)
