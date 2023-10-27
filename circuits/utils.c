@@ -99,20 +99,20 @@ void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, elemen
 			add(doubledP1[i], doubledP2[i], doubledP1[i-1], doubledP2[i-1], doubledP1[i-1], doubledP2[i-1]);
 		}
 
-		element f1, f2, f3, f4, f5;
+		element f1, f2, f4, f5;
 		init(&f1);
 		init(&f2);
-		init(&f3);
 		init(&f4);
 		init(&f5);
 
 		mul(&f1, &accumulatedP1[i+1], &bits[i]);
 		mul(&f2, &accumulatedP2[i+1], &bits[i]);
 
-		addmul(&f3, &oneNeg, &bits[i], &oneNeg);
+		int one_alone = 1;
+		int one_neg = -1;
 
-		mul(&f4, &step1[i], &f3);
-		mul(&f5, &step2[i], &f3);
+		addmul_constants(&f4, &one_neg, &oneNeg, &one_neg, &bits[i], &one_alone, &step1[i]);
+		addmul_constants(&f5, &one_neg, &oneNeg, &one_neg, &bits[i], &one_alone, &step2[i]);
 
 		addmul(&step1[i+1], &f1, &f4, &one);
 		addmul(&step2[i+1], &f2, &f5, &one);

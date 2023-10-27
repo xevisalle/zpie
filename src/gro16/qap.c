@@ -104,9 +104,13 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         #pragma omp parallel for
         for (int i = 0; i < M; i++)
         {
-            mpz_addmul_ui(A[i], u[j], L[j][i]);
+            mpz_t factor;
+            mpz_init(factor);
+            mpz_mul_si(factor, u[j], L[j][i]);
+            mpz_add(A[i], A[i], factor);
             mpz_mod(A[i], A[i], pPrime);
-            mpz_addmul_ui(B[i], u[j], R[j][i]);
+            mpz_mul_si(factor, u[j], R[j][i]);
+            mpz_add(B[i], B[i], factor);
             mpz_mod(B[i], B[i], pPrime);
             mpz_addmul_ui(C[i], u[j], O[j][i]);
             mpz_mod(C[i], C[i], pPrime);
