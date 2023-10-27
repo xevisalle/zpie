@@ -69,19 +69,39 @@ setup_keys perform_setup(void *circuit)
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i]) 
+            if(L[j][i] != 0) 
             {
-                provk.pk.LRO[it] = 1;
                 provk.pk.LRO[it+1] = j;
                 provk.pk.LRO[it+2] = i;
-                it+=3;
+
+                if (L[j][i] != 1)
+                {
+                    provk.pk.LRO[it] = 10;
+                    provk.pk.LRO[it+3] = L[j][i];
+                    it+=4;
+                }
+                else
+                {
+                    provk.pk.LRO[it] = 1;
+                    it+=3;
+                }
             }
-            if(R[j][i]) 
+            if(R[j][i] != 0) 
             {
-                provk.pk.LRO[it] = 2;
                 provk.pk.LRO[it+1] = j;
                 provk.pk.LRO[it+2] = i;
-                it+=3;
+
+                if (R[j][i] != 1)
+                {
+                    provk.pk.LRO[it] = 20;
+                    provk.pk.LRO[it+3] = R[j][i];
+                    it+=4;
+                }
+                else 
+                {
+                    provk.pk.LRO[it] = 2;
+                    it+=3;
+                }
             }
             if(O[j][i]) 
             {

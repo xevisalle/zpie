@@ -118,9 +118,12 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i]) *qap_size += 3;
-            if(R[j][i]) *qap_size += 3;
-            if(O[j][i]) *qap_size += 3;
+            if (L[j][i] == 1) *qap_size += 3;
+            else if (L[j][i] != 0) *qap_size += 4;
+            if (R[j][i] == 1) *qap_size += 3;
+            else if (R[j][i] != 0) *qap_size += 4;
+            
+            if (O[j][i]) *qap_size += 3;
         }
     }
 }

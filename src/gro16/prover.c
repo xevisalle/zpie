@@ -25,6 +25,24 @@ void h_coefficients(proving_key pk)
             case 1: mclBnFr_add(&AsFr[pk.LRO[j+1]], &AsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
             case 2: mclBnFr_add(&BsFr[pk.LRO[j+1]], &BsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
             case 3: mclBnFr_add(&CsFr[pk.LRO[j+1]], &CsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
+            case 10:
+            {
+                mclBnFr factorFr;
+                mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
+                mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                mclBnFr_add(&AsFr[pk.LRO[j+1]], &AsFr[pk.LRO[j+1]], &factorFr); 
+                j+=1;
+                break;
+            }
+            case 20:
+            {
+                mclBnFr factorFr;
+                mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
+                mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                mclBnFr_add(&BsFr[pk.LRO[j+1]], &BsFr[pk.LRO[j+1]], &factorFr);
+                j+=1; 
+                break;
+            }
         }
     }
 

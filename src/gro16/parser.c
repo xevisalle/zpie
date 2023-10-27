@@ -108,6 +108,29 @@ void mul(element *oo, element *lo, element *ro)
 	}
 }
 
+void mul_constants(element *oo, int *lc, element *lo, int *rc, element *ro)
+{	
+	if (setParams) N++;
+	else if (prover)
+	{
+		mpz_t factor;
+		mpz_init(factor);
+		mpz_mul_si(factor, uw[lo->index], *lc);
+		mpz_mul_si(uw[oo->index], uw[ro->index], *rc);
+		mpz_mul(uw[oo->index], uw[oo->index], factor);
+		mpz_mod(uw[oo->index], uw[oo->index], pPrime);
+		mpz_clear(factor);
+	}
+	else
+	{
+		L[cn][lo->index] = *lc;
+		R[cn][ro->index] = *rc;
+		O[cn][oo->index] = 1;
+
+		cn++;
+	}
+}
+
 void assert_equal(element *lo, element *ro)
 {
 	element factor1, factor2;
