@@ -73,7 +73,7 @@ void test_setup(void)
     sha256_update(&ctx, vk_bytes, strlen(vk_bytes));
     sha256_final(&ctx, hash_bytes);
 
-    CU_ASSERT(!strcmp(to_hex(hash_bytes, sizeof hash_bytes), "dac6dfe723f1874422a4235e38a6f4ac4bb1b18716c90babe3d4a97f189ac15e"));
+    CU_ASSERT(!strcmp(to_hex(hash_bytes, sizeof hash_bytes), "c7959f83ac8c251afabb87c85b726016d5b32f2ad6d3201b6fa7d35528f98052"));
 
     test_no_rand = 0;
 }

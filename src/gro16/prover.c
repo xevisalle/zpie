@@ -77,9 +77,9 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 
     int totTh = 16;
 
-    for (int i = 0; i < nPublic + nConst; i++)
+    for (int i = nConst; i < nPublic + nConst; i++)
     {
-        mpz_set(uwProof[i], uw[i]);
+        mpz_set(uwProof[i-nConst], uw[i]);
     }
 
     #ifdef MULTI_SET
@@ -230,9 +230,9 @@ void mcl_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
     mclBnFr uwFactor[M];
     mclBnFr uwFactorPublic[M-(nPublic + nConst)];
 
-    for (int i = 0; i < (nPublic + nConst); i++)
+    for (int i = nConst; i < (nPublic + nConst); i++)
     {
-        mpz_set(uwProof[i], uw[i]);
+        mpz_set(uwProof[i-nConst], uw[i]);
     }
 
     #pragma omp parallel for
@@ -267,9 +267,9 @@ void naive_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
     int n = mpz_get_ui(pk.Ne);
 
     mclBnFr frFactor[M];
-    for (int i = 0; i < (nPublic + nConst); i++)
+    for (int i = nConst; i < (nPublic + nConst); i++)
     {
-        mpz_set(uwProof[i], uw[i]);
+        mpz_set(uwProof[i-nConst], uw[i]);
     }
 
     #pragma omp parallel for

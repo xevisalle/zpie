@@ -48,7 +48,7 @@ void init_setup(void *circuit)
 
     for (int i = 0; i < M; i++)
     {
-        mpz_init2(uw[i], BITS);
+       mpz_init2(uw[i], BITS);
     }
 }
 

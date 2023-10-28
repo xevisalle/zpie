@@ -129,6 +129,13 @@ setup_keys perform_setup(void *circuit)
     provk.vk.gamma2 = s2.gamma;
     provk.vk.delta2 = s2.delta;
 
+    provk.vk.constants = (mpz_t*) malloc((nConst) * sizeof(mpz_t));
+
+    for (int i = 0; i < (nConst); i++)
+    {
+        mpz_init(provk.vk.constants[i]);
+        mpz_set(provk.vk.constants[i], uw[i]);
+    }
 
     for (int i = 0; i < (nPublic + nConst); i++)
     {
@@ -237,6 +244,13 @@ char* serialize_vk(verifying_key *vk)
     }
 
     char buff[2048];
+    for (int i = 0; i < nConst; i++)
+    {
+        mpz_get_str(buff, 10, vk->constants[i]);
+        strcat(vk_bytes, buff);
+        strcat(vk_bytes, "\n");
+    }
+
     mclBnGT_getStr(buff, sizeof(buff), &vk->alphabetaT, 10);
     strcat(vk_bytes, buff);
     strcat(vk_bytes, "\n");
@@ -297,6 +311,7 @@ setup_keys read_setup(void *circuit)
     
     keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
+    keys.vk.constants = (mpz_t*) malloc(((nConst)) * sizeof(mpz_t));
 
     keys.pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
@@ -354,6 +369,12 @@ setup_keys read_setup(void *circuit)
         fgets(buff,sizeof buff, fpk);
         mclBnG1_setStr(&keys.pk.xt1[i], buff, strlen(buff), 16);
     }
+
+    for (int i = 0; i < nConst; i++)
+    {
+        fgets(buff,sizeof buff, fvk);
+        mpz_set_str(keys.vk.constants[i], buff, 10);
+    }
     
     fgets(buff, sizeof buff, fvk);
     mclBnGT_setStr(&keys.vk.alphabetaT, buff, strlen(buff), 10);
@@ -395,9 +416,9 @@ proof generate_proof(void *circuit, proving_key pk)
     
     proof p;
 
-    p.uwProof = (mpz_t*) malloc((nPublic+nConst) * sizeof(mpz_t));
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
 
-    for (int i = 0; i < (nPublic + nConst); i++)
+    for (int i = 0; i < (nPublic); i++)
     {
         mpz_init(p.uwProof[i]);
     }
@@ -442,7 +463,7 @@ void store_proof(proof p)
     FILE *fproof;
     fproof = fopen("data/proof.params", "w");
 
-    for (int i = 0; i < (nPublic + nConst); i++)
+    for (int i = 0; i < (nPublic); i++)
     {
         mpz_out_str(fproof, 10, p.uwProof[i]);
         fprintf(fproof, "\n");
@@ -468,9 +489,9 @@ proof read_proof()
     FILE *fproof;
     fproof = fopen("data/proof.params", "r");
 
-    p.uwProof = (mpz_t*) malloc((nPublic+nConst) * sizeof(mpz_t));
+    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
 
-    for (int i = 0; i < (nPublic + nConst); i++)
+    for (int i = 0; i < (nPublic); i++)
     {
         fgets(buff, sizeof buff, fproof);
         mpz_init(p.uwProof[i]);

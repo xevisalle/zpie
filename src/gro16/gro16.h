@@ -121,6 +121,7 @@ struct mulExpResult
 
 typedef struct
 {
+    mpz_t *constants;
     mclBnGT alphabetaT;
     mclBnG2 gamma2;
     mclBnG2 delta2;
