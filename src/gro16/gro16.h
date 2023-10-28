@@ -35,9 +35,9 @@ void binarymaxheap(mpz_t *exp[], int i, int heapsize);
 static mpz_t pPrime;
 static gmp_randstate_t state;
 
-char **L;
-char **R;
-char **O;
+int **L;
+int **R;
+int **O;
 
 static mclBnFr *AsFr;
 static mclBnFr *BsFr;

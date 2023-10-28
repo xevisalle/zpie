@@ -1,14 +1,6 @@
 void add(element uOut, element vOut, element u1, element v1, element u2, element v2)
 {
-	element a, d, dNeg;
-	init(&a);
-	init(&d);
-	init(&dNeg);
-	input(&a, "-168700");
-	input(&d, "168696");
-	input(&dNeg, "-168696");
-
-	element factor, factor1, factor2, factor3, factor4, factor5, factor6, factor7, factor8, factor9, factor10;
+	element factor, factor1, factor2, factor3, factor4, factor5, factor6, factor7, factor9, factor10;
 	init(&factor);
 	init(&factor1);
 	init(&factor2);
@@ -17,18 +9,17 @@ void add(element uOut, element vOut, element u1, element v1, element u2, element
 	init(&factor5);
 	init(&factor6);
 	init(&factor7);
-	init(&factor8);
 	init(&factor9);
 	init(&factor10);
 
 	// uOut = (u1*v2 + v1*u2) / (1 + d*u1*u2*v1*v2)
 	mul(&factor1, &u1, &v2);
-
 	mul(&factor2, &v1, &u2);
 
-	mul(&factor3, &factor1, &factor2);
-	mul(&factor, &factor3, &d);
+	int d = 168696;
+	int one_int = 1;
 
+	mul_constants(&factor, &one_int, &factor1, &d, &factor2);
 	addmul(&factor4, &factor, &one, &one);
 
 	mpz_t invFactor;
@@ -42,19 +33,20 @@ void add(element uOut, element vOut, element u1, element v1, element u2, element
 
 	// vOut = (v1*v2 - a*u1*u2) / (1 - d*u1*u2*v1*v2)
 	mul(&factor6, &v1, &v2);
-	mul(&factor7, &u1, &u2);
-	mul(&factor8, &factor7, &a);
+	
+	int a = -168700;
+	mul_constants(&factor7, &a, &u1, &one_int, &u2);
 
 	element factorNeg;
 	init(&factorNeg);
 
-	mul(&factorNeg, &factor3, &dNeg);
+	mul(&factorNeg, &factor, &oneNeg);
 	addmul(&factor9, &one, &factorNeg, &one);
 
 	if(!setParams) mpz_invert(invFactor, uw[factor9.index], pPrime);
   	mpz_get_str(buff, 10, invFactor);
   	input(&factor10, buff);
-  	addmul(&vOut, &factor6, &factor8, &factor10);
+  	addmul(&vOut, &factor6, &factor7, &factor10);
 }
 
 void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, element *bits, int size)

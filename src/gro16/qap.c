@@ -9,15 +9,15 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         mpz_init(C[i]);
     }
 
-    L = (char **)malloc(N * sizeof(char*));
-    R = (char **)malloc(N * sizeof(char*));
-    O = (char **)malloc(N * sizeof(char*));
+    L = (int **)malloc(N * sizeof(int*));
+    R = (int **)malloc(N * sizeof(int*));
+    O = (int **)malloc(N * sizeof(int*));
 
     for (int i = 0; i < N; i++)
     {
-        L[i] = (char*) malloc(M * sizeof(char));
-        R[i] = (char*) malloc(M * sizeof(char));
-        O[i] = (char*) malloc(M * sizeof(char));
+        L[i] = (int*) malloc(M * sizeof(int));
+        R[i] = (int*) malloc(M * sizeof(int));
+        O[i] = (int*) malloc(M * sizeof(int));
 
         for (int j = 0; j < M; j++)
         {
