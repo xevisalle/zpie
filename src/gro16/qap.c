@@ -30,8 +30,9 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     log_message("Computing R1CS...");
 
     cn = 0;
-    wn = nPublic;
-    un = 0;
+    wn = nPublic + nConst;
+    un = nConst;
+    constant_n = 0;
     init_circuit(circuit); 
     log_state(1);
 

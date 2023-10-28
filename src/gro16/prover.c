@@ -77,7 +77,7 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 
     int totTh = 16;
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < nPublic + nConst; i++)
     {
         mpz_set(uwProof[i], uw[i]);
     }
@@ -206,19 +206,19 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 
     // to be replaced ---->
     mclBnFr uwFactor[M];
-    mclBnFr uwFactorPublic[M-nPublic];
+    mclBnFr uwFactorPublic[M-(nPublic + nConst)];
 
     #pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
         mpz_to_fr(&uwFactor[i], &uw[i]);
-        if(i >= nPublic) mpz_to_fr(&uwFactorPublic[i-nPublic], &uw[i]);
+        if(i >= (nPublic + nConst)) mpz_to_fr(&uwFactorPublic[i-(nPublic + nConst)], &uw[i]);
     }
 
     mclBnG1_mulVec(&result->uwA1, pk.A1, uwFactor, M);
     mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M);
     mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M);
-    mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic);
+    mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-(nPublic + nConst));
     // <------ to be replaced
     #endif
 }
@@ -228,9 +228,9 @@ void mcl_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
     int n = mpz_get_ui(pk.Ne);
 
     mclBnFr uwFactor[M];
-    mclBnFr uwFactorPublic[M-nPublic];
+    mclBnFr uwFactorPublic[M-(nPublic + nConst)];
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic + nConst); i++)
     {
         mpz_set(uwProof[i], uw[i]);
     }
@@ -239,7 +239,7 @@ void mcl_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
     for (int i = 0; i < M; i++)
     {
         mpz_to_fr(&uwFactor[i], &uw[i]);
-        if(i >= nPublic) mpz_to_fr(&uwFactorPublic[i-nPublic], &uw[i]);
+        if(i >= (nPublic + nConst)) mpz_to_fr(&uwFactorPublic[i-(nPublic + nConst)], &uw[i]);
     }
 
     #pragma omp parallel num_threads(5)
@@ -249,13 +249,13 @@ void mcl_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
             case 0: mclBnG1_mulVec(&result->uwA1, pk.A1, uwFactor, M); break;
             case 1: mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M); break; 
             case 2: mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M); break;
-            case 3: mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic); break;
+            case 3: mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-(nPublic + nConst)); break;
             case 4: mclBnG1_mulVec(&result->htdelta, pk.xt1_rand, AsFr, n); break;
             case 99:
                 mclBnG1_mulVec(&result->uwA1, pk.A1, uwFactor, M);
                 mclBnG1_mulVec(&result->uwB1, pk.B1, uwFactor, M);
                 mclBnG2_mulVec(&result->uwB2, pk.B2, uwFactor, M);
-                mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-nPublic);
+                mclBnG1_mulVec(&result->uwC1, pk.pk1, uwFactorPublic, M-(nPublic + nConst));
                 mclBnG1_mulVec(&result->htdelta, pk.xt1_rand, AsFr, n);
                 break;
         }
@@ -267,7 +267,7 @@ void naive_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
     int n = mpz_get_ui(pk.Ne);
 
     mclBnFr frFactor[M];
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic + nConst); i++)
     {
         mpz_set(uwProof[i], uw[i]);
     }
@@ -283,7 +283,7 @@ void naive_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
         // B2uw = B2uw + u[i] * s2.B[i];
         mclBnG2_mul(&pk.B2[i], &pk.B2[i], &frFactor[i]);
         // Cw = Cw + w[i] * s1.pk[i];
-        if(i < M-nPublic) mclBnG1_mul(&pk.pk1[i], &pk.pk1[i], &frFactor[i]);
+        if(i < M-(nPublic + nConst)) mclBnG1_mul(&pk.pk1[i], &pk.pk1[i], &frFactor[i]);
     }
 
     mclBnG1_clear(&result->uwA1);
@@ -296,7 +296,7 @@ void naive_mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
         mclBnG1_add(&result->uwA1, &result->uwA1, &pk.A1[i]);
         mclBnG1_add(&result->uwB1, &result->uwB1, &pk.B1[i]);
         mclBnG2_add(&result->uwB2, &result->uwB2, &pk.B2[i]);
-        if(i < M-nPublic) mclBnG1_add(&result->uwC1, &result->uwC1, &pk.pk1[i]);
+        if(i < M-(nPublic + nConst)) mclBnG1_add(&result->uwC1, &result->uwC1, &pk.pk1[i]);
     }
 
     #pragma omp parallel for

@@ -42,6 +42,7 @@ int Mc;
 static int M;
 int N;
 int nPublic;
+int nConst;
 int setParams;
 
 mpz_t *uw;

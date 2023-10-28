@@ -201,6 +201,18 @@ void input(element *var, char *val)
 	if (!setParams) mpz_set_str(uw[var->index], val, 10);
 }
 
+void init_constant(element *toAdd, char *val)
+{
+	if (setParams) M++;
+	else
+	{
+		toAdd->index = constant_n;
+		constant_n++;
+		mpz_set_str(uw[toAdd->index], val, 10);
+	}
+	if (setParams) nConst++;
+}
+
 void init_public(element *toAdd)
 {
 	if (setParams) M++;
@@ -232,11 +244,8 @@ void init(element *toAdd)
 
 void init_circuit(void *circuit)
 {
-	init_public(&one);
-	init_public(&oneNeg);
-
-	input(&one, "1");
-	input(&oneNeg, "-1");
+	init_constant(&one, "1");
+	init_constant(&oneNeg, "-1");
 
 	((void(*)(void))circuit)();
 }
@@ -265,8 +274,9 @@ void test_full_api()
 void test_constraint_system(void)
 {
 	uw = (mpz_t*) malloc((8) * sizeof(mpz_t));
-	wn = nPublic;
-	un = 0;
+	wn = nPublic + nConst;
+	un = nConst;
+	constant_n = 0;
 
     for (int i = 0; i < 8; i++)
     {

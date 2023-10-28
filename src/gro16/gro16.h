@@ -55,6 +55,7 @@ int prover;
 int cn;
 int wn;
 int un;
+int constant_n;
 
 #include "parser.c"
 

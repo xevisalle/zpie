@@ -36,6 +36,7 @@ void init_setup(void *circuit)
     M = 0;
     N = 0;
     nPublic = 0;
+    nConst = 0;
 
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 
