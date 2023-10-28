@@ -382,7 +382,8 @@ proof generate_proof(void *circuit, proving_key pk)
 {
     init_prover(circuit, pk);
 
-    uwn = 0;
+    wn = nPublic;
+    un = 0;
     for (int i = 0; i < M; i++)
     {
         mpz_init(uw[i]);

@@ -53,7 +53,8 @@ static mpz_t *wM;
 
 int prover;
 int cn;
-int uwn;
+int wn;
+int un;
 
 #include "parser.c"
 

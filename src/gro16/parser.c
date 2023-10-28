@@ -203,7 +203,12 @@ void input(element *var, char *val)
 
 void init_public(element *toAdd)
 {
-	init(toAdd);
+	if (setParams) M++;
+	else
+	{
+		toAdd->index = un;
+		un++;
+	}
 	if (setParams) nPublic++;
 }
 
@@ -220,8 +225,8 @@ void init(element *toAdd)
 	if (setParams) M++;
 	else
 	{
-		toAdd->index = uwn;
-		uwn++;
+		toAdd->index = wn;
+		wn++;
 	}
 }
 
@@ -260,7 +265,8 @@ void test_full_api()
 void test_constraint_system(void)
 {
 	uw = (mpz_t*) malloc((8) * sizeof(mpz_t));
-	uwn = 0;
+	wn = nPublic;
+	un = 0;
 
     for (int i = 0; i < 8; i++)
     {
