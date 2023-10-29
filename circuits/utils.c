@@ -117,12 +117,17 @@ void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, elemen
 		mul_constants(&f4, &one_neg, &bits[i], &one_alone, &step1[i]);
 		mul_constants(&f5, &one_neg, &bits[i], &one_alone, &step2[i]);
 
-		add3mul(&step1[i+1], &f1, &f4, &step1[i], &one);
-		add3mul(&step2[i+1], &f2, &f5, &step2[i], &one);
+		if(i+1 != size)
+		{
+			add3mul(&step1[i+1], &f1, &f4, &step1[i], &one);
+			add3mul(&step2[i+1], &f2, &f5, &step2[i], &one);
+		}
+		else
+		{
+			add3mul(&mulOut1, &f1, &f4, &step1[i], &one);
+			add3mul(&mulOut2, &f2, &f5, &step2[i], &one);
+		}
 	}
-
-	mul(&mulOut1, &step1[size], &one);
-	mul(&mulOut2, &step2[size], &one);
 }
 
 void to_bits(element *bits, element val, int size)
