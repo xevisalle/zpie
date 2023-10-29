@@ -287,8 +287,8 @@ void test_constraint_system(void)
 	init_circuit(&test_full_api);
 	prover = 0;
 
-	CU_ASSERT(mpz_cmp_ui(uw[2], 50) == 0);
-	CU_ASSERT(mpz_cmp_ui(uw[3], 150) == 0);
-	CU_ASSERT(mpz_cmp_ui(uw[4], 150) == 0);
-	CU_ASSERT(mpz_cmp_ui(uw[5], 200) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[nConst], 50) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[1+nConst], 150) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[2+nConst], 150) == 0);
+	CU_ASSERT(mpz_cmp_ui(uw[3+nConst], 200) == 0);
 }

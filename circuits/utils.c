@@ -138,10 +138,9 @@ void to_bits(element *bits, element val, int size)
 	mpz_init(t3);
 	mpz_init(total);
 
-	element oneNeg;
-	init(&oneNeg);
-	input(&oneNeg, "-1");
 	mpz_set_str(t2, "1", 10);
+
+	element b[size], fa;
 
 	for (int i = 0; i < size; i++)
 	{
@@ -151,28 +150,30 @@ void to_bits(element *bits, element val, int size)
 			mpz_and(t3, t1, t2);
 		}
 
-		element b;
-		init(&b);
 		char buff[2048];
 		mpz_get_str(buff, 10, t3);
 		input(&bits[i], buff);
 
-		addmul(&b, &bits[i], &oneNeg, &bits[i]);
-		mpz_t pow;
-		mpz_init(pow);
-		mpz_ui_pow_ui(pow, 2, i);
-		mpz_mul(t3, t3, pow);
-		mpz_add(total, total, t3);
+		element power;
+		mpz_ui_pow_ui(total, 2, i);
+		mpz_get_str(buff, 10, total);
+		init_constant(&power, buff);
+
+		init(&fa);
+		mul(&fa, &bits[i], &power);
+		if (i == 0)
+		{
+			init(&b[i]);
+			mul(&b[i], &fa, &one);
+		}
+		else
+		{
+			init(&b[i]);
+			addmul(&b[i], &b[i-1], &fa, &one);
+		}
 	}
 
-	element check, checkCnst;
-	init(&check);
-	init(&checkCnst);
-	char buff[2048];
-	mpz_get_str(buff, 10, total);
-	input(&check, buff);
-
-	mul(&checkCnst, &check, &one);
+	assert_equal(&b[size-1], &val);
 }
 
 typedef struct
