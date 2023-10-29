@@ -1,6 +1,6 @@
 void add(element uOut, element vOut, element u1, element v1, element u2, element v2)
 {
-	element factor, factor1, factor2, factor3, factor4, factor5, factor6, factor7, factor9, factor10;
+	element factor, factor1, factor2, factor3, factor4, factor5, factor6, factor7;
 	init(&factor);
 	init(&factor1);
 	init(&factor2);
@@ -9,8 +9,6 @@ void add(element uOut, element vOut, element u1, element v1, element u2, element
 	init(&factor5);
 	init(&factor6);
 	init(&factor7);
-	init(&factor9);
-	init(&factor10);
 
 	// uOut = (u1*v2 + v1*u2) / (1 + d*u1*u2*v1*v2)
 	mul(&factor1, &u1, &v2);
@@ -20,33 +18,46 @@ void add(element uOut, element vOut, element u1, element v1, element u2, element
 	int one_int = 1;
 
 	mul_constants(&factor, &one_int, &factor1, &d, &factor2);
-	addmul(&factor4, &factor, &one, &one);
 
 	mpz_t invFactor;
 	mpz_init(invFactor);
-	if(!setParams) mpz_invert(invFactor, uw[factor4.index], pPrime);
+
+	if(!setParams)
+	{
+		mpz_t f_check;
+		mpz_init(f_check);
+		mpz_add(f_check, uw[one.index], uw[factor.index]);
+		mpz_invert(invFactor, f_check, pPrime);
+	}
 
 	char buff[2048];
   	mpz_get_str(buff, 10, invFactor);
-  	input(&factor5, buff);
-  	addmul(&uOut, &factor1, &factor2, &factor5);
+  	input(&factor4, buff);
+
+	addmul(&one, &factor, &one, &factor4); // verify x * 1/x = 1
+  	addmul(&uOut, &factor1, &factor2, &factor4);
 
 	// vOut = (v1*v2 - a*u1*u2) / (1 - d*u1*u2*v1*v2)
-	mul(&factor6, &v1, &v2);
+	mul(&factor5, &v1, &v2);
 	
 	int a = -168700;
-	mul_constants(&factor7, &a, &u1, &one_int, &u2);
+	int one_neg = -1;
 
-	element factorNeg;
-	init(&factorNeg);
+	mul_constants(&factor6, &a, &u1, &one_int, &u2);
 
-	mul(&factorNeg, &factor, &oneNeg);
-	addmul(&factor9, &one, &factorNeg, &one);
+	if(!setParams) 
+	{
+		mpz_t f_check;
+		mpz_init(f_check);
+		mpz_sub(f_check, uw[one.index], uw[factor.index]);
+		mpz_invert(invFactor, f_check, pPrime);
+	}
 
-	if(!setParams) mpz_invert(invFactor, uw[factor9.index], pPrime);
   	mpz_get_str(buff, 10, invFactor);
-  	input(&factor10, buff);
-  	addmul(&vOut, &factor6, &factor7, &factor10);
+  	input(&factor7, buff);
+
+	addmul_constants(&one, &one_int, &one, &one_neg, &factor, &one_int, &factor7); // verify x * 1/x = 1
+  	addmul(&vOut, &factor5, &factor6, &factor7);
 }
 
 void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, element *bits, int size)
@@ -103,11 +114,11 @@ void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, elemen
 		int one_alone = 1;
 		int one_neg = -1;
 
-		addmul_constants(&f4, &one_neg, &oneNeg, &one_neg, &bits[i], &one_alone, &step1[i]);
-		addmul_constants(&f5, &one_neg, &oneNeg, &one_neg, &bits[i], &one_alone, &step2[i]);
+		mul_constants(&f4, &one_neg, &bits[i], &one_alone, &step1[i]);
+		mul_constants(&f5, &one_neg, &bits[i], &one_alone, &step2[i]);
 
-		addmul(&step1[i+1], &f1, &f4, &one);
-		addmul(&step2[i+1], &f2, &f5, &one);
+		add3mul(&step1[i+1], &f1, &f4, &step1[i], &one);
+		add3mul(&step2[i+1], &f2, &f5, &step2[i], &one);
 	}
 
 	mul(&mulOut1, &step1[size], &one);
