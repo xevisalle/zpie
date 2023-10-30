@@ -159,8 +159,12 @@ void to_bits(element *bits, element val, int size)
 		mpz_get_str(buff, 10, total);
 		init_constant(&power, buff);
 
+		mpz_t one_mpz;
+		mpz_init_set_ui(one_mpz, 1);
+
 		init(&fa);
-		mul(&fa, &bits[i], &power);
+		mul_big_constants(&fa, &total, &bits[i], &one_mpz, &one);
+
 		if (i == 0)
 		{
 			init(&b[i]);

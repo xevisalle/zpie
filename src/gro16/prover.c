@@ -18,6 +18,9 @@ void h_coefficients(proving_key pk)
         mclBnFr_clear(&CsFr[j]);
     }
 
+    int l_it = 0;
+    int r_it = 1;
+
     for (int j = 0; j < pk.qap_size; j+=3)
     {
         switch (pk.LRO[j])
@@ -28,8 +31,17 @@ void h_coefficients(proving_key pk)
             case 10:
             {
                 mclBnFr factorFr;
-                mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
-                mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                if (pk.LRO[j+3] != INT_MAX)
+                {
+                    mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                }
+                else
+                {
+                    mpz_to_fr(&factorFr, &pk.LRO_constants[l_it]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                    l_it+=2;
+                }
                 mclBnFr_add(&AsFr[pk.LRO[j+1]], &AsFr[pk.LRO[j+1]], &factorFr); 
                 j+=1;
                 break;
@@ -37,8 +49,17 @@ void h_coefficients(proving_key pk)
             case 20:
             {
                 mclBnFr factorFr;
-                mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
-                mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                if (pk.LRO[j+3] != INT_MAX)
+                {
+                    mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                }
+                else
+                {
+                    mpz_to_fr(&factorFr, &pk.LRO_constants[r_it]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                    r_it+=2;
+                }
                 mclBnFr_add(&BsFr[pk.LRO[j+1]], &BsFr[pk.LRO[j+1]], &factorFr);
                 j+=1; 
                 break;

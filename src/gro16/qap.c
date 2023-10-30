@@ -30,6 +30,7 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     log_message("Computing R1CS...");
 
     cn = 0;
+    lro_constants_n = 0;
     wn = nPublic + nConst;
     un = nConst;
     constant_n = 0;
@@ -101,17 +102,30 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         mpz_mod(uL, uL, pPrime);
     }
 
-    for (int j = N; j--;)
+    int l_it = 0;
+    int r_it = 1;
+    
+    for (int i = 0; i < M; i++)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < M; i++)
+        for (int j = 0; j < N; j++)
         {
+        
             mpz_t factor;
             mpz_init(factor);
-            mpz_mul_si(factor, u[j], L[j][i]);
+            if (L[j][i] != INT_MAX) mpz_mul_si(factor, u[j], L[j][i]);
+            else 
+            {
+                mpz_mul(factor, u[j], LRO_constants[l_it]);
+                l_it+=2;
+            }
             mpz_add(A[i], A[i], factor);
             mpz_mod(A[i], A[i], pPrime);
-            mpz_mul_si(factor, u[j], R[j][i]);
+            if (R[j][i] != INT_MAX) mpz_mul_si(factor, u[j], R[j][i]);
+            else 
+            {
+                mpz_mul(factor, u[j], LRO_constants[r_it]);
+                r_it+=2;
+            }
             mpz_add(B[i], B[i], factor);
             mpz_mod(B[i], B[i], pPrime);
             mpz_addmul_ui(C[i], u[j], O[j][i]);

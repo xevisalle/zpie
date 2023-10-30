@@ -37,6 +37,7 @@ void init_setup(void *circuit)
     N = 0;
     nPublic = 0;
     nConst = 0;
+    lro_const_total = 0;
 
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 
@@ -45,6 +46,7 @@ void init_setup(void *circuit)
     setParams = 0;
 
     uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
 
     for (int i = 0; i < M; i++)
     {

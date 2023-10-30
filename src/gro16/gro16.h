@@ -39,6 +39,8 @@ int **L;
 int **R;
 int **O;
 
+mpz_t *LRO_constants;
+
 static mclBnFr *AsFr;
 static mclBnFr *BsFr;
 static mclBnFr *CsFr;
@@ -53,6 +55,8 @@ static mpz_t *wM;
 
 int prover;
 int cn;
+int lro_constants_n;
+int lro_const_total;
 int wn;
 int un;
 int constant_n;
@@ -95,6 +99,7 @@ typedef struct
 
     int qap_size;
     int *LRO;
+    mpz_t *LRO_constants;
 
     mclBnG1 alpha1;
     mclBnG1 beta1;

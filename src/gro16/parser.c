@@ -186,6 +186,36 @@ void mul_constants(element *oo, int *lc, element *lo, int *rc, element *ro)
 	}
 }
 
+void mul_big_constants(element *oo, mpz_t *lc, element *lo, mpz_t *rc, element *ro)
+{	
+	if (setParams) 
+	{
+		lro_const_total += 2;
+		N++;
+	}
+	else if (prover)
+	{
+		mpz_t factor;
+		mpz_init(factor);
+		mpz_mul(factor, uw[lo->index], *lc);
+		mpz_mul(uw[oo->index], uw[ro->index], *rc);
+		mpz_mul(uw[oo->index], uw[oo->index], factor);
+		mpz_mod(uw[oo->index], uw[oo->index], pPrime);
+		mpz_clear(factor);
+	}
+	else
+	{
+		L[cn][lo->index] = INT_MAX;
+		R[cn][ro->index] = INT_MAX;
+		O[cn][oo->index] = 1;
+
+		cn++;
+		mpz_init_set(LRO_constants[lro_constants_n], *lc);
+		mpz_init_set(LRO_constants[lro_constants_n + 1], *rc);
+		lro_constants_n += 2;
+	}
+}
+
 void assert_equal(element *lo, element *ro)
 {
 	element factor1, factor2;
@@ -277,6 +307,8 @@ void test_constraint_system(void)
 	wn = nPublic + nConst;
 	un = nConst;
 	constant_n = 0;
+	lro_constants_n = 0;
+	lro_const_total = 0;
 
     for (int i = 0; i < 8; i++)
     {

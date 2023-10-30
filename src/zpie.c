@@ -37,6 +37,7 @@ setup_keys perform_setup(void *circuit)
     setup_keys provk;
     mpz_init_set(provk.pk.Ne, Ne);
 
+    provk.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
     provk.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     provk.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
 
@@ -62,6 +63,12 @@ setup_keys perform_setup(void *circuit)
     setup(circuit, &t, &s1, &s2, &alphabetaT, &provk.pk.qap_size, &provk.pk.Ne);
 
     provk.pk.LRO = (int*) malloc((provk.pk.qap_size) * sizeof(int));
+
+    for (int i = 0; i < lro_const_total; i++)
+    {
+        mpz_init(provk.pk.LRO_constants[i]);
+        mpz_set(provk.pk.LRO_constants[i], LRO_constants[i]);
+    }
 
     int it = 0;
 
