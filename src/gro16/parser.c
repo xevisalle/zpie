@@ -65,6 +65,34 @@ void add3mul(element *oo, element *lo1, element *lo2, element *lo3, element *ro)
 	}	
 }
 
+void addsmul(element *oo, int *size, element *los, element *ro)
+{
+	if (setParams) N++;
+	else if (prover)
+	{
+		for (int i = 0; i < *size; i++)
+		{
+			mpz_add(uw[oo->index], uw[oo->index], uw[los[i].index]);
+			mpz_mod(uw[oo->index], uw[oo->index], pPrime);
+		}
+
+		mpz_mul(uw[oo->index], uw[oo->index], uw[ro->index]);
+		mpz_mod(uw[oo->index], uw[oo->index], pPrime);
+	}
+	else
+	{
+		for (int i = 0; i < *size; i++)
+		{
+			L[cn][los[i].index] = 1;
+		}
+
+		R[cn][ro->index] = 1;
+		O[cn][oo->index] = 1;
+
+		cn++;
+	}	
+}
+
 void add3muladd3(element *oo, element *lo1, element *lo2, element *lo3, element *ro1, element *ro2, element *ro3)
 {
 	if (setParams) N++;

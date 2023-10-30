@@ -140,7 +140,7 @@ void to_bits(element *bits, element val, int size)
 
 	mpz_set_str(t2, "1", 10);
 
-	element b[size], fa;
+	element b[size];
 
 	for (int i = 0; i < size; i++)
 	{
@@ -154,30 +154,20 @@ void to_bits(element *bits, element val, int size)
 		mpz_get_str(buff, 10, t3);
 		input(&bits[i], buff);
 
-		element power;
 		mpz_ui_pow_ui(total, 2, i);
-		mpz_get_str(buff, 10, total);
-		init_constant(&power, buff);
 
 		mpz_t one_mpz;
 		mpz_init_set_ui(one_mpz, 1);
 
-		init(&fa);
-		mul_big_constants(&fa, &total, &bits[i], &one_mpz, &one);
-
-		if (i == 0)
-		{
-			init(&b[i]);
-			mul(&b[i], &fa, &one);
-		}
-		else
-		{
-			init(&b[i]);
-			addmul(&b[i], &b[i-1], &fa, &one);
-		}
+		init(&b[i]);
+		mul_big_constants(&b[i], &total, &bits[i], &one_mpz, &one);
 	}
 
-	assert_equal(&b[size-1], &val);
+	element fa;
+	init(&fa);
+
+	addsmul(&fa, &size, b, &one);
+	assert_equal(&fa, &val);
 }
 
 typedef struct

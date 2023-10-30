@@ -66,8 +66,7 @@ setup_keys perform_setup(void *circuit)
 
     for (int i = 0; i < lro_const_total; i++)
     {
-        mpz_init(provk.pk.LRO_constants[i]);
-        mpz_set(provk.pk.LRO_constants[i], LRO_constants[i]);
+        mpz_init_set(provk.pk.LRO_constants[i], LRO_constants[i]);
     }
 
     int it = 0;
@@ -190,6 +189,13 @@ char* serialize_pk(proving_key *pk)
     for (int i = 0; i < pk->qap_size; i++)
     {
         sprintf(buff, "%d", pk->LRO[i]);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
+    for (int i = 0; i < lro_const_total; i++)
+    {
+        mpz_get_str(buff, 16, pk->LRO_constants[i]);
         strcat(pk_bytes, buff);
         strcat(pk_bytes, "\n");
     }
@@ -326,6 +332,7 @@ setup_keys read_setup(void *circuit)
     keys.pk.B1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     keys.pk.pk1 = (mclBnG1*) malloc((M-(nPublic + nConst)) * sizeof(mclBnG1));
     keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
+    keys.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
 
     for (int i = 0; i < n; i++)
     {
@@ -342,6 +349,12 @@ setup_keys read_setup(void *circuit)
     {
         fgets(buff, sizeof buff, fpk);
         keys.pk.LRO[i] = atoi(buff);
+    }
+
+    for (int i = 0; i < lro_const_total; i++)
+    {
+        fgets(buff, sizeof buff, fpk);
+        mpz_init_set_str(keys.pk.LRO_constants[i], buff, 16);
     }
 
     fgets(buff, sizeof buff, fpk);
