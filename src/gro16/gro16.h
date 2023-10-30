@@ -8,7 +8,7 @@ typedef struct
     int index;
 } element;
 
-element one, oneNeg;
+element one, oneNeg, c_mimc[91];
 
 int logs;
 int test_no_rand;

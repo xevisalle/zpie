@@ -305,6 +305,18 @@ void init_circuit(void *circuit)
 	init_constant(&one, "1");
 	init_constant(&oneNeg, "-1");
 
+	char buff[2048];
+	FILE *cnst;
+	cnst = fopen("circuits/constants.txt", "r");
+
+	for (int i = 0; i < 91; i++)
+	{
+		fgets(buff, sizeof buff, cnst);
+		init_constant(&c_mimc[i], buff);
+	}
+
+	fclose(cnst);
+
 	((void(*)(void))circuit)();
 }
 
@@ -331,7 +343,7 @@ void test_full_api()
 
 void test_constraint_system(void)
 {
-	uw = (mpz_t*) malloc((8) * sizeof(mpz_t));
+	uw = (mpz_t*) malloc((99) * sizeof(mpz_t));
 	wn = nPublic + nConst;
 	un = nConst;
 	constant_n = 0;
