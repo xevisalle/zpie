@@ -94,7 +94,7 @@ int main()
     // we perform the setup
     setup_keys keys = perform_setup(&circuit); 
 
-    // we generate a proof (../data/proof.params)
+    // we generate a proof
     proof p = generate_proof(&circuit, keys.pk);
 
     // we verify the proof 
