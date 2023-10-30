@@ -350,7 +350,7 @@ void test_constraint_system(void)
 	lro_constants_n = 0;
 	lro_const_total = 0;
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 99; i++)
     {
         mpz_init2(uw[i], BITS);
     }
