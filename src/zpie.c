@@ -34,12 +34,12 @@ setup_keys perform_setup(void *circuit)
 
     int n = mpz_get_ui(Ne);
 
-    setup_keys provk;
-    mpz_init_set(provk.pk.Ne, Ne);
+    setup_keys keys;
+    mpz_init_set(keys.pk.Ne, Ne);
 
-    provk.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
-    provk.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    provk.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
+    keys.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
+    keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
 
     wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     s1.xt = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
@@ -53,20 +53,20 @@ setup_keys perform_setup(void *circuit)
     {
         mpz_init(wM[i]);
         mpz_powm_ui(wM[i], w, i, pPrime);
-        mpz_to_fr(&provk.pk.wMFr[i], &wM[i]);
+        mpz_to_fr(&keys.pk.wMFr[i], &wM[i]);
     }
 
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    setup(circuit, &t, &s1, &s2, &alphabetaT, &provk.pk.qap_size, &provk.pk.Ne);
+    setup(circuit, &t, &s1, &s2, &alphabetaT, &keys.pk.qap_size, &keys.pk.Ne);
 
-    provk.pk.LRO = (int*) malloc((provk.pk.qap_size) * sizeof(int));
+    keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int));
 
     for (int i = 0; i < lro_const_total; i++)
     {
-        mpz_init_set(provk.pk.LRO_constants[i], LRO_constants[i]);
+        mpz_init_set(keys.pk.LRO_constants[i], LRO_constants[i]);
     }
 
     int it = 0;
@@ -77,75 +77,75 @@ setup_keys perform_setup(void *circuit)
         {
             if(L[j][i] != 0) 
             {
-                provk.pk.LRO[it+1] = j;
-                provk.pk.LRO[it+2] = i;
+                keys.pk.LRO[it+1] = j;
+                keys.pk.LRO[it+2] = i;
 
                 if (L[j][i] != 1)
                 {
-                    provk.pk.LRO[it] = 10;
-                    provk.pk.LRO[it+3] = L[j][i];
+                    keys.pk.LRO[it] = 10;
+                    keys.pk.LRO[it+3] = L[j][i];
                     it+=4;
                 }
                 else
                 {
-                    provk.pk.LRO[it] = 1;
+                    keys.pk.LRO[it] = 1;
                     it+=3;
                 }
             }
             if(R[j][i] != 0) 
             {
-                provk.pk.LRO[it+1] = j;
-                provk.pk.LRO[it+2] = i;
+                keys.pk.LRO[it+1] = j;
+                keys.pk.LRO[it+2] = i;
 
                 if (R[j][i] != 1)
                 {
-                    provk.pk.LRO[it] = 20;
-                    provk.pk.LRO[it+3] = R[j][i];
+                    keys.pk.LRO[it] = 20;
+                    keys.pk.LRO[it+3] = R[j][i];
                     it+=4;
                 }
                 else 
                 {
-                    provk.pk.LRO[it] = 2;
+                    keys.pk.LRO[it] = 2;
                     it+=3;
                 }
             }
             if(O[j][i]) 
             {
-                provk.pk.LRO[it] = 3;
-                provk.pk.LRO[it+1] = j;
-                provk.pk.LRO[it+2] = i;
+                keys.pk.LRO[it] = 3;
+                keys.pk.LRO[it+1] = j;
+                keys.pk.LRO[it+2] = i;
                 it+=3;
             }
         }
     }
 
-    provk.pk.alpha1 = s1.alpha;
-    provk.pk.beta1 = s1.beta;
-    provk.pk.beta2 = s2.beta;
-    provk.pk.delta1 = s1.delta;
-    provk.pk.delta2 = s2.delta;
-    provk.pk.A1 = s1.A;
-    provk.pk.B1 = s1.B;
-    provk.pk.B2 = s2.B;
-    provk.pk.pk1 = s1.pk;
-    provk.pk.xt1 = s1.xt;
-    provk.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
+    keys.pk.alpha1 = s1.alpha;
+    keys.pk.beta1 = s1.beta;
+    keys.pk.beta2 = s2.beta;
+    keys.pk.delta1 = s1.delta;
+    keys.pk.delta2 = s2.delta;
+    keys.pk.A1 = s1.A;
+    keys.pk.B1 = s1.B;
+    keys.pk.B2 = s2.B;
+    keys.pk.pk1 = s1.pk;
+    keys.pk.xt1 = s1.xt;
+    keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
-    provk.vk.alphabetaT = alphabetaT;
-    provk.vk.gamma2 = s2.gamma;
-    provk.vk.delta2 = s2.delta;
+    keys.vk.alphabetaT = alphabetaT;
+    keys.vk.gamma2 = s2.gamma;
+    keys.vk.delta2 = s2.delta;
 
-    provk.vk.constants = (mpz_t*) malloc((nConst) * sizeof(mpz_t));
+    keys.vk.constants = (mpz_t*) malloc((nConst) * sizeof(mpz_t));
 
     for (int i = 0; i < (nConst); i++)
     {
-        mpz_init(provk.vk.constants[i]);
-        mpz_set(provk.vk.constants[i], uw[i]);
+        mpz_init(keys.vk.constants[i]);
+        mpz_set(keys.vk.constants[i], uw[i]);
     }
 
     for (int i = 0; i < (nPublic + nConst); i++)
     {
-        provk.vk.vk1[i] = s1.vk[i];
+        keys.vk.vk1[i] = s1.vk[i];
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -155,7 +155,7 @@ setup_keys perform_setup(void *circuit)
     log_success("Setup generated successfully in", 1);
     if (bench) printf(" %fs\n", elapsed);
 
-    return provk;
+    return keys;
 }
 
 char* serialize_pk(proving_key *pk)
@@ -393,7 +393,7 @@ setup_keys read_setup(void *circuit)
     for (int i = 0; i < nConst; i++)
     {
         fgets(buff,sizeof buff, fvk);
-        mpz_set_str(keys.vk.constants[i], buff, 10);
+        mpz_init_set_str(keys.vk.constants[i], buff, 10);
     }
     
     fgets(buff, sizeof buff, fvk);
