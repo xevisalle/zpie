@@ -33,7 +33,7 @@ else ifeq ($(ARCH), arm)
 	$(CARM) $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(shell uname), Darwin)
-	$(CC) $(COMMON) $(LIBMAC)-D $(CURVE) $(MULTI_SET)
+	$(CC) $(COMMON) $(LIBMAC) -D $(CURVE) $(MULTI_SET) -D IS_MAC_OS
 
 else
 	$(CC) $(COMMON) $(LIB) -D $(CURVE) $(MULTI_SET)
