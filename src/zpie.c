@@ -485,19 +485,16 @@ void store_proof(proof p)
 
     for (int i = 0; i < (nPublic); i++)
     {
-        mpz_out_str(fproof, 10, p.uwProof[i]);
-        fprintf(fproof, "\n");
+        mpz_out_raw(fproof, p.uwProof[i]);
     }
 
-    mclBnG1_getStr(buff, sizeof(buff), &p.piA, 10);
-    fprintf(fproof, "%s\n", buff);
+    int size = 0;
 
-    mclBnG2_getStr(buff, sizeof(buff), &p.piB2, 10);
-    fprintf(fproof, "%s\n", buff);
+    size += mclBnG1_serialize(buff, 32, &p.piA);
+    size += mclBnG2_serialize(buff + size, 64, &p.piB2);
+    size += mclBnG1_serialize(buff + size, 32, &p.piC);
 
-    mclBnG1_getStr(buff, sizeof(buff), &p.piC, 10);
-    fprintf(fproof, "%s\n", buff);
-
+    fwrite(buff, 1, size, fproof);
     fclose(fproof);
 }
 
@@ -513,19 +510,16 @@ proof read_proof()
 
     for (int i = 0; i < (nPublic); i++)
     {
-        fgets(buff, sizeof buff, fproof);
         mpz_init(p.uwProof[i]);
-        mpz_set_str(p.uwProof[i], buff, 10);
+        mpz_inp_raw(p.uwProof[i], fproof);
     }
 
-    fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&p.piA, buff, strlen(buff), 10);
+    int size = 0;
 
-    fgets(buff, sizeof buff, fproof);
-    mclBnG2_setStr(&p.piB2, buff, strlen(buff), 10);
-
-    fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&p.piC, buff, strlen(buff), 10);
+    fread(buff, 1, 128, fproof);
+    size += mclBnG1_deserialize(&p.piA, buff, 32);
+    size += mclBnG2_deserialize(&p.piB2, buff + size, 64);
+    size += mclBnG1_deserialize(&p.piC, buff + size, 32);
 
     fclose(fproof);
 
