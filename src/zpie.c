@@ -490,9 +490,9 @@ void store_proof(proof p)
 
     int size = 0;
 
-    size += mclBnG1_serialize(buff, 32, &p.piA);
-    size += mclBnG2_serialize(buff + size, 64, &p.piB2);
-    size += mclBnG1_serialize(buff + size, 32, &p.piC);
+    size += mclBnG1_serialize(buff, SIZE_G1, &p.piA);
+    size += mclBnG2_serialize(buff + size, SIZE_G2, &p.piB2);
+    size += mclBnG1_serialize(buff + size, SIZE_G1, &p.piC);
 
     fwrite(buff, 1, size, fproof);
     fclose(fproof);
@@ -516,10 +516,10 @@ proof read_proof()
 
     int size = 0;
 
-    fread(buff, 1, 128, fproof);
-    size += mclBnG1_deserialize(&p.piA, buff, 32);
-    size += mclBnG2_deserialize(&p.piB2, buff + size, 64);
-    size += mclBnG1_deserialize(&p.piC, buff + size, 32);
+    fread(buff, 1, SIZE_G1 + SIZE_G2 + SIZE_G1, fproof);
+    size += mclBnG1_deserialize(&p.piA, buff, SIZE_G1);
+    size += mclBnG2_deserialize(&p.piB2, buff + size, SIZE_G2);
+    size += mclBnG1_deserialize(&p.piC, buff + size, SIZE_G1);
 
     fclose(fproof);
 
