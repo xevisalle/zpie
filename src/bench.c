@@ -72,13 +72,13 @@ int main(int argc, char *argv[])
     if (strcmp(argv[1], "-s") == 0)
     {
         setup_keys keys = perform_setup(&bench_circuit);
-        store_setup(keys);
+        store_setup(&keys);
     }
     else if (strcmp(argv[1], "-p") == 0)
     {
         setup_keys keys = read_setup(&bench_circuit);
         proof p = generate_proof(&bench_circuit, keys.pk);
-        store_proof(p);
+        store_proof(&p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
