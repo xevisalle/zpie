@@ -11,7 +11,6 @@ LIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /opt/h
 LIBCROSS = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a $(GMPPATH)/lib/libgmp.a -I $(MCLPATH)/include -I $(GMPPATH)/include -lstdc++
 SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/src/*.h
 
-MULEXP = MCL_MULEXP
 CURVE = BN128
 ARCH = None
 MULTI = off
@@ -22,22 +21,22 @@ endif
 
 zpie: $(SRC)
 ifeq ($(ARCH), x86)
-	$(CC) -m32 $(COMMON) $(LIBCROSS) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
+	$(CC) -m32 $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(ARCH), x86_64)
-	$(CC) -m64 $(COMMON) $(LIBCROSS) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
+	$(CC) -m64 $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(ARCH), aarch64)
-	$(CAARCH64) $(COMMON) $(LIBCROSS) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
+	$(CAARCH64) $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(ARCH), arm)
-	$(CARM) $(COMMON) $(LIBCROSS) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
+	$(CARM) $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(shell uname), Darwin)
-	$(CC) $(COMMON) $(LIBMAC) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
+	$(CC) $(COMMON) $(LIBMAC)-D $(CURVE) $(MULTI_SET)
 
 else
-	$(CC) $(COMMON) $(LIB) -D $(MULEXP) -D $(CURVE) $(MULTI_SET)
+	$(CC) $(COMMON) $(LIB) -D $(CURVE) $(MULTI_SET)
 
 endif
 test: 

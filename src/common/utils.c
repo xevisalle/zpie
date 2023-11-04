@@ -152,12 +152,7 @@ void bos_coster_bp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsi
 
 static inline void mult_exp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsize)
 {
-    #ifdef BOSCOSTER_MULEXP
-        if ((heapsize > 32) && ((heapsize != 0) && ((heapsize & (heapsize - 1)) == 0))) bos_coster_bp(chunk, points, scalars, heapsize);
-        else mclBnG1_mulVec(chunk, points, scalars, heapsize);
-    #elif MCL_MULEXP
-        mclBnG1_mulVec(chunk, points, scalars, heapsize);
-    #endif
+    mclBnG1_mulVec(chunk, points, scalars, heapsize);
 }
 
 char *to_hex(const unsigned char *array, size_t length)
