@@ -9,15 +9,15 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         mpz_init(C[i]);
     }
 
-    L = (char **)malloc(N * sizeof(char*));
-    R = (char **)malloc(N * sizeof(char*));
-    O = (char **)malloc(N * sizeof(char*));
+    L = (int **)malloc(N * sizeof(int*));
+    R = (int **)malloc(N * sizeof(int*));
+    O = (int **)malloc(N * sizeof(int*));
 
     for (int i = 0; i < N; i++)
     {
-        L[i] = (char*) malloc(M * sizeof(char));
-        R[i] = (char*) malloc(M * sizeof(char));
-        O[i] = (char*) malloc(M * sizeof(char));
+        L[i] = (int*) malloc(M * sizeof(int));
+        R[i] = (int*) malloc(M * sizeof(int));
+        O[i] = (int*) malloc(M * sizeof(int));
 
         for (int j = 0; j < M; j++)
         {
@@ -30,7 +30,10 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     log_message("Computing R1CS...");
 
     cn = 0;
-    uwn = 0;
+    lro_constants_n = 0;
+    wn = nPublic + nConst;
+    un = nConst;
+    constant_n = 0;
     init_circuit(circuit); 
     log_state(1);
 
@@ -99,14 +102,30 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         mpz_mod(uL, uL, pPrime);
     }
 
+    int l_it = lro_const_total-2;
+    int r_it = lro_const_total-1;
+    
     for (int j = N; j--;)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < M; i++)
+        for (int i = M; i--;)
         {
-            mpz_addmul_ui(A[i], u[j], L[j][i]);
+            mpz_t factor;
+            mpz_init(factor);
+            if (L[j][i] != INT_MAX) mpz_mul_si(factor, u[j], L[j][i]);
+            else 
+            {
+                mpz_mul(factor, u[j], LRO_constants[l_it]);
+                l_it-=2;
+            }
+            mpz_add(A[i], A[i], factor);
             mpz_mod(A[i], A[i], pPrime);
-            mpz_addmul_ui(B[i], u[j], R[j][i]);
+            if (R[j][i] != INT_MAX) mpz_mul_si(factor, u[j], R[j][i]);
+            else 
+            {
+                mpz_mul(factor, u[j], LRO_constants[r_it]);
+                r_it-=2;
+            }
+            mpz_add(B[i], B[i], factor);
             mpz_mod(B[i], B[i], pPrime);
             mpz_addmul_ui(C[i], u[j], O[j][i]);
             mpz_mod(C[i], C[i], pPrime);
@@ -118,9 +137,12 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i]) *qap_size += 3;
-            if(R[j][i]) *qap_size += 3;
-            if(O[j][i]) *qap_size += 3;
+            if (L[j][i] == 1) *qap_size += 3;
+            else if (L[j][i] != 0) *qap_size += 4;
+            if (R[j][i] == 1) *qap_size += 3;
+            else if (R[j][i] != 0) *qap_size += 4;
+            
+            if (O[j][i]) *qap_size += 3;
         }
     }
 }

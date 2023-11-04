@@ -8,7 +8,7 @@ typedef struct
     int index;
 } element;
 
-element one, oneNeg;
+element one, oneNeg, c_mimc[91];
 
 int logs;
 int test_no_rand;
@@ -35,9 +35,11 @@ void binarymaxheap(mpz_t *exp[], int i, int heapsize);
 static mpz_t pPrime;
 static gmp_randstate_t state;
 
-char **L;
-char **R;
-char **O;
+int **L;
+int **R;
+int **O;
+
+mpz_t *LRO_constants;
 
 static mclBnFr *AsFr;
 static mclBnFr *BsFr;
@@ -53,7 +55,11 @@ static mpz_t *wM;
 
 int prover;
 int cn;
-int uwn;
+int lro_constants_n;
+int lro_const_total;
+int wn;
+int un;
+int constant_n;
 
 #include "parser.c"
 
@@ -93,6 +99,7 @@ typedef struct
 
     int qap_size;
     int *LRO;
+    mpz_t *LRO_constants;
 
     mclBnG1 alpha1;
     mclBnG1 beta1;
@@ -119,6 +126,7 @@ struct mulExpResult
 
 typedef struct
 {
+    mpz_t *constants;
     mclBnGT alphabetaT;
     mclBnG2 gamma2;
     mclBnG2 delta2;

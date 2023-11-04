@@ -34,34 +34,40 @@ setup_keys perform_setup(void *circuit)
 
     int n = mpz_get_ui(Ne);
 
-    setup_keys provk;
-    mpz_init_set(provk.pk.Ne, Ne);
+    setup_keys keys;
+    mpz_init_set(keys.pk.Ne, Ne);
 
-    provk.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    provk.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
+    keys.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
+    keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
 
     wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     s1.xt = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     s1.A = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     s1.B = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
-    s1.vk = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
-    s1.pk = (mclBnG1*) malloc((M-nPublic) * sizeof(mclBnG1));
+    s1.vk = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
+    s1.pk = (mclBnG1*) malloc((M-(nPublic + nConst)) * sizeof(mclBnG1));
     s2.B = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
 
     for (int i = 0; i < n; i++)
     {
         mpz_init(wM[i]);
         mpz_powm_ui(wM[i], w, i, pPrime);
-        mpz_to_fr(&provk.pk.wMFr[i], &wM[i]);
+        mpz_to_fr(&keys.pk.wMFr[i], &wM[i]);
     }
 
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    setup(circuit, &t, &s1, &s2, &alphabetaT, &provk.pk.qap_size, &provk.pk.Ne);
+    setup(circuit, &t, &s1, &s2, &alphabetaT, &keys.pk.qap_size, &keys.pk.Ne);
 
-    provk.pk.LRO = (int*) malloc((provk.pk.qap_size) * sizeof(int));
+    keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int));
+
+    for (int i = 0; i < lro_const_total; i++)
+    {
+        mpz_init_set(keys.pk.LRO_constants[i], LRO_constants[i]);
+    }
 
     int it = 0;
 
@@ -69,50 +75,77 @@ setup_keys perform_setup(void *circuit)
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i]) 
+            if(L[j][i] != 0) 
             {
-                provk.pk.LRO[it] = 1;
-                provk.pk.LRO[it+1] = j;
-                provk.pk.LRO[it+2] = i;
-                it+=3;
+                keys.pk.LRO[it+1] = j;
+                keys.pk.LRO[it+2] = i;
+
+                if (L[j][i] != 1)
+                {
+                    keys.pk.LRO[it] = 10;
+                    keys.pk.LRO[it+3] = L[j][i];
+                    it+=4;
+                }
+                else
+                {
+                    keys.pk.LRO[it] = 1;
+                    it+=3;
+                }
             }
-            if(R[j][i]) 
+            if(R[j][i] != 0) 
             {
-                provk.pk.LRO[it] = 2;
-                provk.pk.LRO[it+1] = j;
-                provk.pk.LRO[it+2] = i;
-                it+=3;
+                keys.pk.LRO[it+1] = j;
+                keys.pk.LRO[it+2] = i;
+
+                if (R[j][i] != 1)
+                {
+                    keys.pk.LRO[it] = 20;
+                    keys.pk.LRO[it+3] = R[j][i];
+                    it+=4;
+                }
+                else 
+                {
+                    keys.pk.LRO[it] = 2;
+                    it+=3;
+                }
             }
             if(O[j][i]) 
             {
-                provk.pk.LRO[it] = 3;
-                provk.pk.LRO[it+1] = j;
-                provk.pk.LRO[it+2] = i;
+                keys.pk.LRO[it] = 3;
+                keys.pk.LRO[it+1] = j;
+                keys.pk.LRO[it+2] = i;
                 it+=3;
             }
         }
     }
 
-    provk.pk.alpha1 = s1.alpha;
-    provk.pk.beta1 = s1.beta;
-    provk.pk.beta2 = s2.beta;
-    provk.pk.delta1 = s1.delta;
-    provk.pk.delta2 = s2.delta;
-    provk.pk.A1 = s1.A;
-    provk.pk.B1 = s1.B;
-    provk.pk.B2 = s2.B;
-    provk.pk.pk1 = s1.pk;
-    provk.pk.xt1 = s1.xt;
-    provk.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
+    keys.pk.alpha1 = s1.alpha;
+    keys.pk.beta1 = s1.beta;
+    keys.pk.beta2 = s2.beta;
+    keys.pk.delta1 = s1.delta;
+    keys.pk.delta2 = s2.delta;
+    keys.pk.A1 = s1.A;
+    keys.pk.B1 = s1.B;
+    keys.pk.B2 = s2.B;
+    keys.pk.pk1 = s1.pk;
+    keys.pk.xt1 = s1.xt;
+    keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
 
-    provk.vk.alphabetaT = alphabetaT;
-    provk.vk.gamma2 = s2.gamma;
-    provk.vk.delta2 = s2.delta;
+    keys.vk.alphabetaT = alphabetaT;
+    keys.vk.gamma2 = s2.gamma;
+    keys.vk.delta2 = s2.delta;
 
+    keys.vk.constants = (mpz_t*) malloc((nConst) * sizeof(mpz_t));
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nConst); i++)
     {
-        provk.vk.vk1[i] = s1.vk[i];
+        mpz_init(keys.vk.constants[i]);
+        mpz_set(keys.vk.constants[i], uw[i]);
+    }
+
+    for (int i = 0; i < (nPublic + nConst); i++)
+    {
+        keys.vk.vk1[i] = s1.vk[i];
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -122,7 +155,7 @@ setup_keys perform_setup(void *circuit)
     log_success("Setup generated successfully in", 1);
     if (bench) printf(" %fs\n", elapsed);
 
-    return provk;
+    return keys;
 }
 
 char* serialize_pk(proving_key *pk)
@@ -160,6 +193,13 @@ char* serialize_pk(proving_key *pk)
         strcat(pk_bytes, "\n");
     }
 
+    for (int i = 0; i < lro_const_total; i++)
+    {
+        mpz_get_str(buff, 16, pk->LRO_constants[i]);
+        strcat(pk_bytes, buff);
+        strcat(pk_bytes, "\n");
+    }
+
     mclBnG1_getStr(buff, sizeof(buff), &pk->alpha1, 16);
     strcat(pk_bytes, buff);
     strcat(pk_bytes, "\n");
@@ -189,7 +229,7 @@ char* serialize_pk(proving_key *pk)
         strcat(pk_bytes, "\n");
     }
 
-    for (int i = 0; i < M-nPublic; i++)
+    for (int i = 0; i < M-(nPublic + nConst); i++)
     {
         mclBnG1_getStr(buff, sizeof(buff), &pk->pk1[i], 16);
         strcat(pk_bytes, buff);
@@ -209,14 +249,21 @@ char* serialize_pk(proving_key *pk)
 char* serialize_vk(verifying_key *vk)
 {
     char *vk_bytes;
-    vk_bytes = (char *) malloc(1024 * nPublic * sizeof(char));
+    vk_bytes = (char *) malloc(1024 * (nPublic + nConst) * sizeof(char));
 
-    for (int i = 0; i < 1024 * nPublic * sizeof(char); i++)
+    for (int i = 0; i < 1024 * (nPublic + nConst) * sizeof(char); i++)
     {
         vk_bytes[i] = 0;
     }
 
     char buff[2048];
+    for (int i = 0; i < nConst; i++)
+    {
+        mpz_get_str(buff, 10, vk->constants[i]);
+        strcat(vk_bytes, buff);
+        strcat(vk_bytes, "\n");
+    }
+
     mclBnGT_getStr(buff, sizeof(buff), &vk->alphabetaT, 10);
     strcat(vk_bytes, buff);
     strcat(vk_bytes, "\n");
@@ -229,7 +276,7 @@ char* serialize_vk(verifying_key *vk)
     strcat(vk_bytes, buff);
     strcat(vk_bytes, "\n");
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic + nConst); i++)
     {
         mclBnG1_getStr(buff, sizeof(buff), &vk->vk1[i], 10);
         strcat(vk_bytes, buff);
@@ -276,14 +323,16 @@ setup_keys read_setup(void *circuit)
     int n = mpz_get_ui(keys.pk.Ne);
     
     keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    keys.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
+    keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
+    keys.vk.constants = (mpz_t*) malloc(((nConst)) * sizeof(mpz_t));
 
     keys.pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     keys.pk.A1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     keys.pk.B1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
-    keys.pk.pk1 = (mclBnG1*) malloc((M-nPublic) * sizeof(mclBnG1));
+    keys.pk.pk1 = (mclBnG1*) malloc((M-(nPublic + nConst)) * sizeof(mclBnG1));
     keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
+    keys.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
 
     for (int i = 0; i < n; i++)
     {
@@ -300,6 +349,12 @@ setup_keys read_setup(void *circuit)
     {
         fgets(buff, sizeof buff, fpk);
         keys.pk.LRO[i] = atoi(buff);
+    }
+
+    for (int i = 0; i < lro_const_total; i++)
+    {
+        fgets(buff, sizeof buff, fpk);
+        mpz_init_set_str(keys.pk.LRO_constants[i], buff, 16);
     }
 
     fgets(buff, sizeof buff, fpk);
@@ -323,7 +378,7 @@ setup_keys read_setup(void *circuit)
         mclBnG2_setStr(&keys.pk.B2[i], buff, strlen(buff), 16);
     }
 
-    for (int i = 0; i < M-nPublic; i++)
+    for (int i = 0; i < M-(nPublic + nConst); i++)
     {
         fgets(buff,sizeof buff, fpk);
         mclBnG1_setStr(&keys.pk.pk1[i], buff, strlen(buff), 16);
@@ -333,6 +388,12 @@ setup_keys read_setup(void *circuit)
     {
         fgets(buff,sizeof buff, fpk);
         mclBnG1_setStr(&keys.pk.xt1[i], buff, strlen(buff), 16);
+    }
+
+    for (int i = 0; i < nConst; i++)
+    {
+        fgets(buff,sizeof buff, fvk);
+        mpz_init_set_str(keys.vk.constants[i], buff, 10);
     }
     
     fgets(buff, sizeof buff, fvk);
@@ -344,9 +405,9 @@ setup_keys read_setup(void *circuit)
     fgets(buff, sizeof buff, fvk);
     mclBnG2_setStr(&keys.vk.delta2, buff, strlen(buff), 10);
 
-    keys.vk.vk1 = (mclBnG1*) malloc((nPublic) * sizeof(mclBnG1));
+    keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic + nConst); i++)
     {
         fgets(buff, sizeof buff, fvk);
         mclBnG1_setStr(&keys.vk.vk1[i], buff, strlen(buff), 10);
@@ -362,7 +423,9 @@ proof generate_proof(void *circuit, proving_key pk)
 {
     init_prover(circuit, pk);
 
-    uwn = 0;
+    wn = nPublic + nConst;
+    un = nConst;
+    constant_n = 0;
     for (int i = 0; i < M; i++)
     {
         mpz_init(uw[i]);
@@ -375,7 +438,7 @@ proof generate_proof(void *circuit, proving_key pk)
 
     p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic); i++)
     {
         mpz_init(p.uwProof[i]);
     }
@@ -420,7 +483,7 @@ void store_proof(proof p)
     FILE *fproof;
     fproof = fopen("data/proof.params", "w");
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic); i++)
     {
         mpz_out_str(fproof, 10, p.uwProof[i]);
         fprintf(fproof, "\n");
@@ -448,7 +511,7 @@ proof read_proof()
 
     p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
 
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic); i++)
     {
         fgets(buff, sizeof buff, fproof);
         mpz_init(p.uwProof[i]);

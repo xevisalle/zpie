@@ -25,8 +25,10 @@ ZPiE needs [GMP](https://gmplib.org/) and [MCL](https://github.com/herumi/mcl). 
 sudo apt install libgmp-dev libcunit1-dev
 git clone https://github.com/herumi/mcl
 cd mcl
-make -j4
+make -j8
 ```
+
+If willing to use the multi-thread execution, compile MCL using `make -j8 MCL_USE_OMP=1`.
 
 ## Test
 ZPiE can be tested as follows:
@@ -57,7 +59,7 @@ BN128 (default)
 BLS12_381
 ```
 
-We can specify to run the code in multi-thread mode:
+We can specify to run the code in multi-thread mode (if MCL was compiled accordingly):
 
 ```
 make bench MULTI=on
@@ -94,7 +96,7 @@ int main()
     // we perform the setup
     setup_keys keys = perform_setup(&circuit); 
 
-    // we generate a proof (../data/proof.params)
+    // we generate a proof
     proof p = generate_proof(&circuit, keys.pk);
 
     // we verify the proof 

@@ -5,26 +5,9 @@
 
 void mimc7(element *h, element *x_in, element *k)
 {
-	char buff[2048];
-	FILE *cnst;
-	cnst = fopen("circuits/constants.txt", "r");
-
-	element c[91];
-	init_array(c, 91);
-
-	for (int i = 0; i < 91; i++)
-	{
-		fgets(buff, sizeof buff, cnst);
-		input(&c[i], buff);
-	}
-
-	fclose(cnst);
-
-	element t[NROUNDS];
 	element r[NROUNDS];
 	element f[NROUNDS*3];
 
-	init_array(t, NROUNDS);
 	init_array(r, NROUNDS);
 	init_array(f, NROUNDS*3);
 
@@ -32,13 +15,13 @@ void mimc7(element *h, element *x_in, element *k)
 
 	for (int i = 0; i < NROUNDS; i++)
 	{
-		if (i == 0) addmul(&t[i], k, x_in, &one);
-		else add3mul(&t[i], k, &r[i-1], &c[i], &one);
+		if (i == 0) addmuladd(&f[it], k, x_in, k, x_in);
+		else add3muladd3(&f[it], k, &r[i-1], &c_mimc[i], k, &r[i-1], &c_mimc[i]);
 
-		mul(&f[it], &t[i], &t[i]);
 		mul(&f[it+1], &f[it], &f[it]);
 		mul(&f[it+2], &f[it+1], &f[it]);
-		mul(&r[i], &f[it+2], &t[i]);
+		if (i == 0) addmul(&r[i], k, x_in, &f[it+2]);
+		else add3mul(&r[i], k, &r[i-1], &c_mimc[i], &f[it+2]);
 
 		it = it + 3;
 	}

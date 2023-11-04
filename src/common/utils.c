@@ -36,6 +36,8 @@ void init_setup(void *circuit)
     M = 0;
     N = 0;
     nPublic = 0;
+    nConst = 0;
+    lro_const_total = 0;
 
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 
@@ -44,10 +46,11 @@ void init_setup(void *circuit)
     setParams = 0;
 
     uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
 
     for (int i = 0; i < M; i++)
     {
-        mpz_init2(uw[i], BITS);
+       mpz_init2(uw[i], BITS);
     }
 }
 
@@ -149,12 +152,7 @@ void bos_coster_bp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsi
 
 static inline void mult_exp(mclBnG1 *chunk, mclBnG1 *points, mclBnFr *scalars, int heapsize)
 {
-    #ifdef BOSCOSTER_MULEXP
-        if ((heapsize > 32) && ((heapsize != 0) && ((heapsize & (heapsize - 1)) == 0))) bos_coster_bp(chunk, points, scalars, heapsize);
-        else mclBnG1_mulVec(chunk, points, scalars, heapsize);
-    #elif MCL_MULEXP
-        mclBnG1_mulVec(chunk, points, scalars, heapsize);
-    #endif
+    mclBnG1_mulVec(chunk, points, scalars, heapsize);
 }
 
 char *to_hex(const unsigned char *array, size_t length)

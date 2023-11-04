@@ -61,7 +61,7 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     }
 
     #pragma omp parallel for
-    for (int i = 0; i < nPublic; i++)
+    for (int i = 0; i < (nPublic + nConst); i++)
     {
         mpz_t f;
         mpz_init(f);
@@ -79,16 +79,16 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     }
 
     #pragma omp parallel for
-    for (int i = 0; i < M-nPublic; i++)
+    for (int i = 0; i < M-(nPublic + nConst); i++)
     {
         mpz_t f;
         mpz_init(f);
         // (t->beta * A[i] + t->alpha * B[i] + C[i]) * invDelta
-        mpz_mul(f, t->beta, A[i+nPublic]);
+        mpz_mul(f, t->beta, A[i+(nPublic + nConst)]);
         mpz_mod(f, f, pPrime);
-        mpz_addmul(f, t->alpha, B[i+nPublic]);
+        mpz_addmul(f, t->alpha, B[i+(nPublic + nConst)]);
         mpz_mod(f, f, pPrime);
-        mpz_add(f, f, C[i+nPublic]);
+        mpz_add(f, f, C[i+(nPublic + nConst)]);
         mpz_mul(f, f, invDelta);
         mpz_mod(f, f, pPrime);
         mpz_to_fr(&frFactor[i], &f);

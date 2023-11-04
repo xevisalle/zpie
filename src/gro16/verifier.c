@@ -1,5 +1,5 @@
 
-int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic], verifying_key vk)
+int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[(nPublic + nConst)], verifying_key vk)
 {
     mclBnG1 factorG1;
     mclBnFr frFactor;
@@ -7,10 +7,18 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[nPublic], verifyin
     mclBnG1 Vu;
 
     mclBnG1_clear(&Vu);
-    for (int i = nPublic; i--;)
+    for (int i = (nPublic); i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
         mpz_to_fr(&frFactor, &u[i]);
+        mclBnG1_mul(&factorG1, &vk.vk1[i+nConst], &frFactor);
+        mclBnG1_add(&Vu, &Vu, &factorG1);
+    }
+
+    for (int i = (nConst); i--;)
+    {
+        // Vu = Vu + u[i] * s1.vk[i]
+        mpz_to_fr(&frFactor, &vk.constants[i]);
         mclBnG1_mul(&factorG1, &vk.vk1[i], &frFactor);
         mclBnG1_add(&Vu, &Vu, &factorG1);
     }
