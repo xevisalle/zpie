@@ -115,7 +115,7 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
 
     mclBnG1_mulVecMT(&result->uwA1, pk.A1, uwFactor, M, num_threads);
     mclBnG1_mulVecMT(&result->uwB1, pk.B1, uwFactor, M, num_threads);
-    mclBnG2_mulVecMT(&result->uwB2, pk.B2, uwFactor, M, num_threads);
+    mclBnG2_mulVecMT(&result->uwB2, pk.B2, uwFactor, 4, num_threads);
     mclBnG1_mulVecMT(&result->uwC1, pk.pk1, uwFactorPublic, M-(nPublic + nConst), num_threads);
     mclBnG1_mulVecMT(&result->htdelta, pk.xt1_rand, AsFr, n, num_threads);
 }
