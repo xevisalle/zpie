@@ -1,4 +1,4 @@
-MAIN = test
+MAIN = tests
 OUT = zpie
 CC = gcc
 CAARCH64 = aarch64-linux-gnu-gcc
