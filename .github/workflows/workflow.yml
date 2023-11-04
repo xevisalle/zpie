@@ -1,0 +1,18 @@
+name: test
+
+on: [ push ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: cd ..
+    - run: git clone https://github.com/herumi/mcl
+    - run: cd mcl
+    - run: make -j8
+    - run: cd ..
+    - run: cd zpie 
+    - run: make test
