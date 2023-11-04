@@ -163,6 +163,7 @@ int main()
     }
 
     CU_basic_run_tests();
+    if(CU_get_number_of_failures()) abort();
 
     CU_cleanup_registry();
     return CU_get_error();

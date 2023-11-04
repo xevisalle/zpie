@@ -1,5 +1,8 @@
 # ZPiE: Zero-knowledge Proofs in Embedded systems
 
+![Build Status](https://github.com/xevisalle/zpie/workflows/tests/badge.svg)
+[![Repository](https://img.shields.io/badge/github-zpie-blueviolet?logo=github)](https://github.com/xevisalle/zpie)
+
 A portable and efficient C library for developing Zero-Knowledge applications for embedded systems. 
 
 **DISCLAIMER**: this library is currently **unstable**. Furthermore, **it has not gone through an exhaustive security analysis**, so it is not intended to be used in a production environment, only for academic purposes.

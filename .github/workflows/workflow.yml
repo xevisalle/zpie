@@ -1,0 +1,14 @@
+name: tests
+
+on: [ push ]
+
+jobs:
+  build:
+    name: tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: sudo apt install libcunit1-dev
+    - run: cd .. && git clone https://github.com/herumi/mcl && cd mcl && make -j8
+    - run: make test
