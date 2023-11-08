@@ -111,7 +111,11 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
         if(i >= (nPublic + nConst)) mpz_to_fr(&uwFactorPublic[i-(nPublic + nConst)], &uw[i]);
     }
 
-    int num_threads = get_nprocs();
+    #ifdef IS_MAC_OS
+        int num_threads = 8;
+    #else
+        int num_threads = get_nprocs();
+    #endif
 
     mclBnG1_mulVecMT(&result->uwA1, pk.A1, uwFactor, M, num_threads);
     mclBnG1_mulVecMT(&result->uwB1, pk.B1, uwFactor, M, num_threads);

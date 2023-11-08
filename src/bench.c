@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     bench = 1; 
     if (argc < 3)
     {
-        printf("******************* ZPiE v0.4 *******************\n");
+        printf("******************* ZPiE v0.5 *******************\n");
         printf("USAGE: ./zpie [ACTIONS] [OPTIONS]\n\n");
         printf("[ACTIONS]:\n");
         printf("-s <c>: Perform setup of 'c' constraints.\n");
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     if ((argc == 4) && (strcmp(argv[3], "-l") == 0)) logs = 1;
 
-    printf("******************* ZPiE v0.4 *******************\n");
+    printf("******************* ZPiE v0.5 *******************\n");
 
     if ((strcmp(argv[1], "-s") == 0) || (strcmp(argv[1], "-p") == 0) || (strcmp(argv[1], "-v") == 0))
     {
@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 
         printf("--- Starting ZPiE - Groth'16...\n");
         printf("  |--- # of constraints: %d\n", N);
-        printf("  |--- # of variables: %d\n", M);
-        printf("  |--- # of public outputs: %d\n", nPublic);
+        printf("  |--- # of elements: %d\n", M);
+        printf("  |--- # of public elements: %d\n", nPublic);
     }
     else
     {
@@ -72,13 +72,13 @@ int main(int argc, char *argv[])
     if (strcmp(argv[1], "-s") == 0)
     {
         setup_keys keys = perform_setup(&bench_circuit);
-        store_setup(keys);
+        store_setup(&keys);
     }
     else if (strcmp(argv[1], "-p") == 0)
     {
         setup_keys keys = read_setup(&bench_circuit);
         proof p = generate_proof(&bench_circuit, keys.pk);
-        store_proof(p);
+        store_proof(&p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {

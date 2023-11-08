@@ -158,158 +158,109 @@ setup_keys perform_setup(void *circuit)
     return keys;
 }
 
-char* serialize_pk(proving_key *pk)
+void serialize_pk(proving_key *pk)
 {
+    FILE *fpk;
+    fpk = fopen("data/provingkey.params", "w");
+
     int n = mpz_get_ui(pk->Ne);
 
-    char *pk_bytes;
-    pk_bytes = (char *) malloc(1024 * n * sizeof(char));
+    int buff_pk_size = SIZE_FR * n + SIZE_G2 * (2 + M) + SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
+    char buff_pk[buff_pk_size];
 
-    for (int i = 0; i < 1024 * n * sizeof(char); i++)
-    {
-        pk_bytes[i] = 0;
-    }
+    mpz_out_raw(fpk, pk->Ne);
 
-    char buff[2048];
-    mpz_get_str(buff, 16, pk->Ne);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
-
-    for (int i = 0; i < n; i++)
-    {
-        mclBnFr_getStr(buff, sizeof(buff), &pk->wMFr[i], 16);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
-    }
-
-    sprintf(buff, "%d", pk->qap_size);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
+    mpz_t factor;
+    mpz_init(factor);
+    mpz_set_si(factor, pk->qap_size);
+    mpz_out_raw(fpk, factor);
 
     for (int i = 0; i < pk->qap_size; i++)
     {
-        sprintf(buff, "%d", pk->LRO[i]);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
+        mpz_set_si(factor, pk->LRO[i]);
+        mpz_out_raw(fpk, factor);
     }
 
     for (int i = 0; i < lro_const_total; i++)
     {
-        mpz_get_str(buff, 16, pk->LRO_constants[i]);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
+        mpz_out_raw(fpk, pk->LRO_constants[i]);
     }
 
-    mclBnG1_getStr(buff, sizeof(buff), &pk->alpha1, 16);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
-    mclBnG1_getStr(buff, sizeof(buff), &pk->beta1, 16);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
-    mclBnG2_getStr(buff, sizeof(buff), &pk->beta2, 16);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
-    mclBnG1_getStr(buff, sizeof(buff), &pk->delta1, 16);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
-    mclBnG2_getStr(buff, sizeof(buff), &pk->delta2, 16);
-    strcat(pk_bytes, buff);
-    strcat(pk_bytes, "\n");
+    int size = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        size += mclBnFr_serialize(buff_pk + size, SIZE_FR, &pk->wMFr[i]);
+    }
+
+    size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->alpha1);
+    size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->beta1);
+    size += mclBnG2_serialize(buff_pk + size, SIZE_G2, &pk->beta2);
+    size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->delta1);
+    size += mclBnG2_serialize(buff_pk + size, SIZE_G2, &pk->delta2);
 
     for (int i = 0; i < M; i++)
     {
-        mclBnG1_getStr(buff, sizeof(buff), &pk->A1[i], 16);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
-        mclBnG1_getStr(buff, sizeof(buff), &pk->B1[i], 16);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
-        mclBnG2_getStr(buff, sizeof(buff), &pk->B2[i], 16);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
+        size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->A1[i]);
+        size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->B1[i]);
+        size += mclBnG2_serialize(buff_pk + size, SIZE_G2, &pk->B2[i]);
     }
 
     for (int i = 0; i < M-(nPublic + nConst); i++)
     {
-        mclBnG1_getStr(buff, sizeof(buff), &pk->pk1[i], 16);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
+        size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->pk1[i]);
     }
 
     for (int i = 0; i < n; i++)
     {
-        mclBnG1_getStr(buff, sizeof(buff), &pk->xt1[i], 16);
-        strcat(pk_bytes, buff);
-        strcat(pk_bytes, "\n");
+        size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->xt1[i]);
     }
 
-    return pk_bytes;
+    fwrite(buff_pk, 1, size, fpk);
+    fclose(fpk);
 }
 
-char* serialize_vk(verifying_key *vk)
+void serialize_vk(verifying_key *vk)
 {
-    char *vk_bytes;
-    vk_bytes = (char *) malloc(1024 * (nPublic + nConst) * sizeof(char));
+    FILE *fvk;
+    fvk = fopen("data/verifyingkey.params", "w");
 
-    for (int i = 0; i < 1024 * (nPublic + nConst) * sizeof(char); i++)
-    {
-        vk_bytes[i] = 0;
-    }
+    int buff_vk_size = SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst);
+    char buff_vk[buff_vk_size];
 
-    char buff[2048];
     for (int i = 0; i < nConst; i++)
     {
-        mpz_get_str(buff, 10, vk->constants[i]);
-        strcat(vk_bytes, buff);
-        strcat(vk_bytes, "\n");
+        mpz_out_raw(fvk, vk->constants[i]);
     }
 
-    mclBnGT_getStr(buff, sizeof(buff), &vk->alphabetaT, 10);
-    strcat(vk_bytes, buff);
-    strcat(vk_bytes, "\n");
+    int size = 0;
 
-    mclBnG2_getStr(buff, sizeof(buff), &vk->gamma2, 10);
-    strcat(vk_bytes, buff);
-    strcat(vk_bytes, "\n");
-
-    mclBnG2_getStr(buff, sizeof(buff), &vk->delta2, 10);
-    strcat(vk_bytes, buff);
-    strcat(vk_bytes, "\n");
+    size += mclBnGT_serialize(buff_vk, SIZE_GT, &vk->alphabetaT);
+    size += mclBnG2_serialize(buff_vk + size, SIZE_G2, &vk->gamma2);
+    size += mclBnG2_serialize(buff_vk + size, SIZE_G2, &vk->delta2);
 
     for (int i = 0; i < (nPublic + nConst); i++)
     {
-        mclBnG1_getStr(buff, sizeof(buff), &vk->vk1[i], 10);
-        strcat(vk_bytes, buff);
-        strcat(vk_bytes, "\n");
+        size += mclBnG1_serialize(buff_vk + size, SIZE_G1, &vk->vk1[i]);
     }
 
-    return vk_bytes;
+    fwrite(buff_vk, 1, size, fvk);
+    fclose(fvk);
 }
 
-void store_setup(setup_keys keys)
+void store_setup(setup_keys *keys)
 {
     struct stat st = {0};
     if (stat("data", &st) == -1) mkdir("data", 0700);
 
-    FILE *fpk, *fvk;
-    fpk = fopen("data/provingkey.params", "w");
-    fvk = fopen("data/verifyingkey.params", "w");
-
-    char *pk_bytes = serialize_pk(&keys.pk);
-    char *vk_bytes = serialize_vk(&keys.vk);
-
-    fprintf(fpk, "%s", pk_bytes);
-    fprintf(fvk, "%s", vk_bytes);
-    
-    fclose(fpk);
-    fclose(fvk);
+    serialize_pk(&keys->pk);
+    serialize_vk(&keys->vk);
 }
 
 setup_keys read_setup(void *circuit)
 {
     init_setup(circuit);
 
-    char buff[2048];
     FILE *fpk, *fvk;
     
     fpk = fopen("data/provingkey.params", "r");
@@ -317,10 +268,13 @@ setup_keys read_setup(void *circuit)
 
     setup_keys keys;
 
-    fgets(buff, sizeof buff, fpk);
-    mpz_init_set_str(keys.pk.Ne, buff, 16);
+    mpz_init(keys.pk.Ne);
+    mpz_inp_raw(keys.pk.Ne, fpk);
 
     int n = mpz_get_ui(keys.pk.Ne);
+
+    int buff_pk_size = SIZE_FR * n + SIZE_G2 * (2 + M) + SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
+    char buff_pk[buff_pk_size];
     
     keys.pk.wMFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
@@ -334,83 +288,75 @@ setup_keys read_setup(void *circuit)
     keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
     keys.pk.LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
 
-    for (int i = 0; i < n; i++)
-    {
-        fgets(buff, sizeof buff, fpk);
-        mclBnFr_setStr(&keys.pk.wMFr[i], buff, strlen(buff), 16);
-    }
+    mpz_t factor;
+    mpz_init(factor);
+    mpz_inp_raw(factor, fpk);
 
-    fgets(buff, sizeof buff, fpk);
-    keys.pk.qap_size = atoi(buff);
-
+    keys.pk.qap_size = mpz_get_si(factor);
     keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int)); 
 
     for (int i = 0; i < keys.pk.qap_size; i++)
     {
-        fgets(buff, sizeof buff, fpk);
-        keys.pk.LRO[i] = atoi(buff);
+        mpz_inp_raw(factor, fpk);
+        keys.pk.LRO[i] = mpz_get_si(factor);
     }
 
     for (int i = 0; i < lro_const_total; i++)
     {
-        fgets(buff, sizeof buff, fpk);
-        mpz_init_set_str(keys.pk.LRO_constants[i], buff, 16);
+        mpz_init(keys.pk.LRO_constants[i]);
+        mpz_inp_raw(keys.pk.LRO_constants[i], fpk);
     }
 
-    fgets(buff, sizeof buff, fpk);
-    mclBnG1_setStr(&keys.pk.alpha1, buff, strlen(buff), 16);
-    fgets(buff,sizeof buff, fpk);
-    mclBnG1_setStr(&keys.pk.beta1, buff, strlen(buff), 16);
-    fgets(buff,sizeof buff, fpk);
-    mclBnG2_setStr(&keys.pk.beta2, buff, strlen(buff), 16);
-    fgets(buff,sizeof buff, fpk);
-    mclBnG1_setStr(&keys.pk.delta1, buff, strlen(buff), 16);
-    fgets(buff,sizeof buff, fpk);
-    mclBnG2_setStr(&keys.pk.delta2, buff, strlen(buff), 16);
+    int size = 0;
+    fread(buff_pk, 1, buff_pk_size, fpk);
+
+    for (int i = 0; i < n; i++)
+    {
+        size += mclBnFr_deserialize(&keys.pk.wMFr[i], buff_pk + size, SIZE_FR);
+    }
+        
+    size += mclBnG1_deserialize(&keys.pk.alpha1, buff_pk + size, SIZE_G1);
+    size += mclBnG1_deserialize(&keys.pk.beta1, buff_pk + size, SIZE_G1);
+    size += mclBnG2_deserialize(&keys.pk.beta2, buff_pk + size, SIZE_G2);
+    size += mclBnG1_deserialize(&keys.pk.delta1, buff_pk + size, SIZE_G1);
+    size += mclBnG2_deserialize(&keys.pk.delta2, buff_pk + size, SIZE_G2);
 
     for (int i = 0; i < M; i++)
     {
-        fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&keys.pk.A1[i], buff, strlen(buff), 16);
-        fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&keys.pk.B1[i], buff, strlen(buff), 16);
-        fgets(buff,sizeof buff, fpk);
-        mclBnG2_setStr(&keys.pk.B2[i], buff, strlen(buff), 16);
+        size += mclBnG1_deserialize(&keys.pk.A1[i], buff_pk + size, SIZE_G1);
+        size += mclBnG1_deserialize(&keys.pk.B1[i], buff_pk + size, SIZE_G1);
+        size += mclBnG2_deserialize(&keys.pk.B2[i], buff_pk + size, SIZE_G2);
     }
 
     for (int i = 0; i < M-(nPublic + nConst); i++)
     {
-        fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&keys.pk.pk1[i], buff, strlen(buff), 16);
+        size += mclBnG1_deserialize(&keys.pk.pk1[i], buff_pk + size, SIZE_G1);
     }
 
     for (int i = 0; i < n; i++)
     {
-        fgets(buff,sizeof buff, fpk);
-        mclBnG1_setStr(&keys.pk.xt1[i], buff, strlen(buff), 16);
+        size += mclBnG1_deserialize(&keys.pk.xt1[i], buff_pk + size, SIZE_G1);
     }
 
     for (int i = 0; i < nConst; i++)
     {
-        fgets(buff,sizeof buff, fvk);
-        mpz_init_set_str(keys.vk.constants[i], buff, 10);
+        mpz_init(keys.vk.constants[i]);
+        mpz_inp_raw(keys.vk.constants[i], fvk);
     }
     
-    fgets(buff, sizeof buff, fvk);
-    mclBnGT_setStr(&keys.vk.alphabetaT, buff, strlen(buff), 10);
+    char buff_vk[SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst)];
+    size = 0;
 
-    fgets(buff, sizeof buff, fvk);
-    mclBnG2_setStr(&keys.vk.gamma2, buff, strlen(buff), 10);
-
-    fgets(buff, sizeof buff, fvk);
-    mclBnG2_setStr(&keys.vk.delta2, buff, strlen(buff), 10);
+    fread(buff_vk, 1, SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst), fvk);
+    size += mclBnGT_deserialize(&keys.vk.alphabetaT, buff_vk, SIZE_GT);
+    size += mclBnG2_deserialize(&keys.vk.gamma2, buff_vk + size, SIZE_G2);
+    size += mclBnG2_deserialize(&keys.vk.delta2, buff_vk + size, SIZE_G2);
 
     keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
 
     for (int i = 0; i < (nPublic + nConst); i++)
     {
-        fgets(buff, sizeof buff, fvk);
-        mclBnG1_setStr(&keys.vk.vk1[i], buff, strlen(buff), 10);
+        size += mclBnG1_deserialize(&keys.vk.vk1[i], buff_vk + size, SIZE_G1);
     }
 
     fclose(fpk); 
@@ -477,7 +423,7 @@ proof generate_proof(void *circuit, proving_key pk)
     return p;
 }
 
-void store_proof(proof p)
+void store_proof(proof *p)
 {
     char buff[2048];
     FILE *fproof;
@@ -485,19 +431,16 @@ void store_proof(proof p)
 
     for (int i = 0; i < (nPublic); i++)
     {
-        mpz_out_str(fproof, 10, p.uwProof[i]);
-        fprintf(fproof, "\n");
+        mpz_out_raw(fproof, p->uwProof[i]);
     }
 
-    mclBnG1_getStr(buff, sizeof(buff), &p.piA, 10);
-    fprintf(fproof, "%s\n", buff);
+    int size = 0;
 
-    mclBnG2_getStr(buff, sizeof(buff), &p.piB2, 10);
-    fprintf(fproof, "%s\n", buff);
+    size += mclBnG1_serialize(buff, SIZE_G1, &p->piA);
+    size += mclBnG2_serialize(buff + size, SIZE_G2, &p->piB2);
+    size += mclBnG1_serialize(buff + size, SIZE_G1, &p->piC);
 
-    mclBnG1_getStr(buff, sizeof(buff), &p.piC, 10);
-    fprintf(fproof, "%s\n", buff);
-
+    fwrite(buff, 1, size, fproof);
     fclose(fproof);
 }
 
@@ -513,19 +456,16 @@ proof read_proof()
 
     for (int i = 0; i < (nPublic); i++)
     {
-        fgets(buff, sizeof buff, fproof);
         mpz_init(p.uwProof[i]);
-        mpz_set_str(p.uwProof[i], buff, 10);
+        mpz_inp_raw(p.uwProof[i], fproof);
     }
 
-    fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&p.piA, buff, strlen(buff), 10);
+    int size = 0;
 
-    fgets(buff, sizeof buff, fproof);
-    mclBnG2_setStr(&p.piB2, buff, strlen(buff), 10);
-
-    fgets(buff, sizeof buff, fproof);
-    mclBnG1_setStr(&p.piC, buff, strlen(buff), 10);
+    fread(buff, 1, SIZE_G1 + SIZE_G2 + SIZE_G1, fproof);
+    size += mclBnG1_deserialize(&p.piA, buff, SIZE_G1);
+    size += mclBnG2_deserialize(&p.piB2, buff + size, SIZE_G2);
+    size += mclBnG1_deserialize(&p.piC, buff + size, SIZE_G1);
 
     fclose(fproof);
 
