@@ -40,6 +40,10 @@
 #include "common/sha256.c" 
 #include "CUnit/Basic.h"
 
+#ifndef IS_MAC_OS
+    #include <sys/sysinfo.h>
+#endif
+
 int init_suite(void) { return 0; }
 int clean_suite(void) { return 0; }
 

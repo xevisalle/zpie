@@ -68,11 +68,9 @@ void init_prover(void *circuit, proving_key pk)
     BsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     CsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
 
-    if (bench) printf("  |--- Mode: Prove\n");
-
     mpz_init(pPrime);
     mpz_set_str(pPrime, PRIMESTR, 10);
-    if (bench) printf("  |--- FFT constraints size : %d\n", n);
+    if (bench) printf("  |--- FFT domain size : %d\n", n);
 
     rsigma = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
     rsigmaInv = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
