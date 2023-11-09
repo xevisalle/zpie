@@ -409,8 +409,8 @@ proof generate_proof(void *circuit, proving_key pk)
         mclBnFr_clear(&BsFr[i]);
         mclBnFr_clear(&CsFr[i]);
 
-        mpz_clear(rsigma[i]);
-        mpz_clear(rsigmaInv[i]);
+        mclBnFr_clear(&rsigma[i]);
+        mclBnFr_clear(&rsigmaInv[i]);
     }
 
     for (int i = 0; i < M; i++)

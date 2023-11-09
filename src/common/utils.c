@@ -72,22 +72,16 @@ void init_prover(void *circuit, proving_key pk)
     mpz_set_str(pPrime, PRIMESTR, 10);
     if (bench) printf("  |--- FFT domain size : %d\n", n);
 
-    rsigma = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
-    rsigmaFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr)); 
-    rsigmaInv = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
+    rsigma = (mclBnFr*) malloc((n) * sizeof(mclBnFr)); 
+    rsigmaInv = (mclBnFr*) malloc((n) * sizeof(mclBnFr)); 
 
-    mpz_t randNum;
-    mpz_init(randNum);
-    mpz_t factor, shift_fft_mpz;
-    mpz_init_set_ui(factor, n);
-    mpz_invert(factor, factor, pPrime);
+    mpz_t shift_fft_mpz;
     mpz_init(shift);
     mpz_init(shift_fft_mpz);
 
     mclBnFr rand;
     generate_random_scalar(&rand);
-    fr_to_mpz(&randNum, &rand);
-    mpz_set(shift, randNum);
+    fr_to_mpz(&shift, &rand);
 
     mpz_powm(shift_fft_mpz, shift, pk.Ne, pPrime);
     mpz_sub_ui(shift_fft_mpz, shift_fft_mpz, 1);
@@ -95,32 +89,29 @@ void init_prover(void *circuit, proving_key pk)
 
     mpz_to_fr(&shift_fft, &shift_fft_mpz);
 
-    mpz_init2(rsigma[0], BITS);
-    mpz_init2(rsigmaInv[0], BITS);
-    mpz_set_ui(rsigma[0], 1);
-    mpz_invert(rsigmaInv[0], rsigma[0], pPrime);
+    mclBnFr_setInt(&rsigma[0], 1);
+    mclBnFr_inv(&rsigmaInv[0], &rsigma[0]);
 
-    mclBnFr frFactor;
-    mpz_to_fr(&frFactor, &rsigmaInv[0]);
-    mclBnG1_mul(&pk.xt1_rand[0], &pk.xt1[0], &frFactor);
-    mpz_mul(rsigma[0], rsigma[0], factor);
-    mpz_mod(rsigma[0], rsigma[0], pPrime);
-    mpz_to_fr(&rsigmaFr[0], &rsigma[0]);
+    mclBnG1_mul(&pk.xt1_rand[0], &pk.xt1[0], &rsigmaInv[0]);
+
+    mclBnFr n_inverted;
+    mclBnFr_setInt(&n_inverted, n);
+    mclBnFr_inv(&n_inverted, &n_inverted);
+
+    mclBnFr_mul(&rsigma[0], &rsigma[0], &n_inverted);
 
     for (int i = 1; i < n; i++)
     {
-        mclBnFr frFactorMulti;
-        mpz_init2(rsigma[i], BITS);
-        mpz_init2(rsigmaInv[i], BITS);
-        mpz_powm_ui(rsigma[i], shift, i, pPrime);
-        mpz_invert(rsigmaInv[i], rsigma[i], pPrime);
+        mpz_t factor;
+        mpz_init(factor);
+        mpz_powm_ui(factor, shift, i, pPrime);
 
-        mpz_to_fr(&frFactorMulti, &rsigmaInv[i]);
-        mclBnG1_mul(&pk.xt1_rand[i], &pk.xt1[i], &frFactorMulti);
+        mpz_to_fr(&rsigma[i], &factor);
 
-        mpz_mul(rsigma[i], rsigma[i], factor);
-        mpz_mod(rsigma[i], rsigma[i], pPrime);
-        mpz_to_fr(&rsigmaFr[i], &rsigma[i]);
+        mclBnFr_inv(&rsigmaInv[i], &rsigma[i]);
+        mclBnG1_mul(&pk.xt1_rand[i], &pk.xt1[i], &rsigmaInv[i]);
+
+        mclBnFr_mul(&rsigma[i], &rsigma[i], &n_inverted);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);

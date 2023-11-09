@@ -63,11 +63,11 @@ void ifft_t(size_t arr, mclBnFr domain[], mclBnFr *o)
         out[i] = o[i];
     }
 
-    mclBnFr_mul(&o[0], &out[0], &rsigmaFr[0]);
+    mclBnFr_mul(&o[0], &out[0], &rsigma[0]);
 
     for (int i = 1; i < arr; i++)
     {
-        mclBnFr_mul(&o[i], &out[arr-i], &rsigmaFr[i]);
+        mclBnFr_mul(&o[i], &out[arr-i], &rsigma[i]);
     }
 
     fft(arr, domain, o);

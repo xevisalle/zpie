@@ -45,9 +45,9 @@ static mclBnFr *AsFr;
 static mclBnFr *BsFr;
 static mclBnFr *CsFr;
 
-static mpz_t *rsigma;
-static mclBnFr *rsigmaFr;
-static mpz_t *rsigmaInv;
+static mclBnFr *rsigma;
+static mclBnFr *rsigmaInv;
+
 static mpz_t shift;
 static mclBnFr shift_fft;
 
