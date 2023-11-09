@@ -73,19 +73,27 @@ void init_prover(void *circuit, proving_key pk)
     if (bench) printf("  |--- FFT domain size : %d\n", n);
 
     rsigma = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
+    rsigmaFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr)); 
     rsigmaInv = (mpz_t*) malloc((n) * sizeof(mpz_t)); 
 
     mpz_t randNum;
     mpz_init(randNum);
-    mpz_t factor;
+    mpz_t factor, shift_fft_mpz;
     mpz_init_set_ui(factor, n);
     mpz_invert(factor, factor, pPrime);
     mpz_init(shift);
+    mpz_init(shift_fft_mpz);
 
     mclBnFr rand;
     generate_random_scalar(&rand);
     fr_to_mpz(&randNum, &rand);
     mpz_set(shift, randNum);
+
+    mpz_powm(shift_fft_mpz, shift, pk.Ne, pPrime);
+    mpz_sub_ui(shift_fft_mpz, shift_fft_mpz, 1);
+    mpz_invert(shift_fft_mpz, shift_fft_mpz, pPrime);
+
+    mpz_to_fr(&shift_fft, &shift_fft_mpz);
 
     mpz_init2(rsigma[0], BITS);
     mpz_init2(rsigmaInv[0], BITS);
@@ -97,6 +105,7 @@ void init_prover(void *circuit, proving_key pk)
     mclBnG1_mul(&pk.xt1_rand[0], &pk.xt1[0], &frFactor);
     mpz_mul(rsigma[0], rsigma[0], factor);
     mpz_mod(rsigma[0], rsigma[0], pPrime);
+    mpz_to_fr(&rsigmaFr[0], &rsigma[0]);
 
     for (int i = 1; i < n; i++)
     {
@@ -111,6 +120,7 @@ void init_prover(void *circuit, proving_key pk)
 
         mpz_mul(rsigma[i], rsigma[i], factor);
         mpz_mod(rsigma[i], rsigma[i], pPrime);
+        mpz_to_fr(&rsigmaFr[i], &rsigma[i]);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);

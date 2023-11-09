@@ -89,7 +89,7 @@ void h_coefficients(proving_key pk)
         mclBnFr_sub(&AsFr[i], &AsFr[i], &CsFr[i]);
     }
 
-    ifft(n, pk.wMFr, AsFr, &pk.Ne);
+    ifft(n, pk.wMFr, AsFr);
 }
 
 void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
