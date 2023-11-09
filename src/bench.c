@@ -77,14 +77,14 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[1], "-p") == 0)
     {
         setup_keys keys = read_setup(&bench_circuit);
-        proof p = generate_proof(&bench_circuit, keys.pk);
+        proof p = generate_proof(&bench_circuit, &keys.pk);
         store_proof(&p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
         setup_keys keys = read_setup(&bench_circuit);
         proof p = read_proof();
-        verify_proof(&bench_circuit, p, keys.vk);
+        verify_proof(&bench_circuit, &p, &keys.vk);
     }
 
     return 0;

@@ -365,7 +365,7 @@ setup_keys read_setup(void *circuit)
     return keys;
 }
 
-proof generate_proof(void *circuit, proving_key pk)
+proof generate_proof(void *circuit, proving_key *pk)
 {
     init_prover(circuit, pk);
 
@@ -377,7 +377,7 @@ proof generate_proof(void *circuit, proving_key pk)
         mpz_init(uw[i]);
     }
 
-    int n = mpz_get_ui(pk.Ne);
+    int n = mpz_get_ui(pk->Ne);
     wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
     
     proof p;
@@ -417,8 +417,6 @@ proof generate_proof(void *circuit, proving_key pk)
     {
         mpz_clear(uw[i]);
     }
-
-    mpz_clear(shift);
 
     return p;
 }
@@ -472,7 +470,7 @@ proof read_proof()
     return p;
 }
 
-int verify_proof(void *circuit, proof p, verifying_key vk)
+int verify_proof(void *circuit, proof *p, verifying_key *vk)
 {
     init_setup(circuit);
 
@@ -480,7 +478,7 @@ int verify_proof(void *circuit, proof p, verifying_key vk)
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    int verified = verify(&p.piA, &p.piB2, &p.piC, p.uwProof, vk);
+    int verified = verify(p, vk);
 
     if (verified)
     {

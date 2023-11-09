@@ -1,5 +1,5 @@
 
-int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[(nPublic + nConst)], verifying_key vk)
+int verify(proof *p, verifying_key *vk)
 {
     mclBnG1 factorG1;
     mclBnFr frFactor;
@@ -10,16 +10,16 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[(nPublic + nConst)
     for (int i = (nPublic); i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
-        mpz_to_fr(&frFactor, &u[i]);
-        mclBnG1_mul(&factorG1, &vk.vk1[i+nConst], &frFactor);
+        mpz_to_fr(&frFactor, &p->uwProof[i]);
+        mclBnG1_mul(&factorG1, &vk->vk1[i+nConst], &frFactor);
         mclBnG1_add(&Vu, &Vu, &factorG1);
     }
 
     for (int i = (nConst); i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
-        mpz_to_fr(&frFactor, &vk.constants[i]);
-        mclBnG1_mul(&factorG1, &vk.vk1[i], &frFactor);
+        mpz_to_fr(&frFactor, &vk->constants[i]);
+        mclBnG1_mul(&factorG1, &vk->vk1[i], &frFactor);
         mclBnG1_add(&Vu, &Vu, &factorG1);
     }
 
@@ -29,13 +29,13 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[(nPublic + nConst)
     {
         switch (get_thread())
         {
-            case 0: mclBn_pairing(&pairing1, piA, piB2); break;
-            case 1: mclBn_pairing(&pairing2, &Vu, &vk.gamma2); break;
-            case 2: mclBn_pairing(&pairing3, piC, &vk.delta2); break;
+            case 0: mclBn_pairing(&pairing1, &p->piA, &p->piB2); break;
+            case 1: mclBn_pairing(&pairing2, &Vu, &vk->gamma2); break;
+            case 2: mclBn_pairing(&pairing3, &p->piC, &vk->delta2); break;
             case 99:
-                mclBn_pairing(&pairing1, piA, piB2);
-                mclBn_pairing(&pairing2, &Vu, &vk.gamma2);
-                mclBn_pairing(&pairing3, piC, &vk.delta2);
+                mclBn_pairing(&pairing1, &p->piA, &p->piB2);
+                mclBn_pairing(&pairing2, &Vu, &vk->gamma2);
+                mclBn_pairing(&pairing3, &p->piC, &vk->delta2);
                 break;
         }
     }
@@ -53,7 +53,7 @@ int verify(mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t u[(nPublic + nConst)
     }
 
     log_message("Computing e(alpha, beta) * e(Vu, gamma) * e(piC, delta)...");
-    mclBnGT_mul(&factorGT, &vk.alphabetaT, &pairing2);
+    mclBnGT_mul(&factorGT, &vk->alphabetaT, &pairing2);
     mclBnGT_mul(&factorGT, &factorGT, &pairing3);
     log_state(1);
     if (logs)

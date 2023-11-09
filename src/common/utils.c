@@ -54,7 +54,7 @@ void init_setup(void *circuit)
     }
 }
 
-void init_prover(void *circuit, proving_key pk)
+void init_prover(void *circuit, proving_key *pk)
 {
     init_setup(circuit);
 
@@ -62,7 +62,7 @@ void init_prover(void *circuit, proving_key pk)
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    int n = mpz_get_ui(pk.Ne);
+    int n = mpz_get_ui(pk->Ne);
 
     AsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     BsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
@@ -75,24 +75,23 @@ void init_prover(void *circuit, proving_key pk)
     rsigma = (mclBnFr*) malloc((n) * sizeof(mclBnFr)); 
     rsigmaInv = (mclBnFr*) malloc((n) * sizeof(mclBnFr)); 
 
-    mpz_t shift_fft_mpz;
+    static mpz_t shift;
     mpz_init(shift);
-    mpz_init(shift_fft_mpz);
 
     mclBnFr rand;
     generate_random_scalar(&rand);
     fr_to_mpz(&shift, &rand);
 
-    mpz_powm(shift_fft_mpz, shift, pk.Ne, pPrime);
-    mpz_sub_ui(shift_fft_mpz, shift_fft_mpz, 1);
-    mpz_invert(shift_fft_mpz, shift_fft_mpz, pPrime);
+    mpz_powm(shift, shift, pk->Ne, pPrime);
+    mpz_sub_ui(shift, shift, 1);
+    mpz_invert(shift, shift, pPrime);
 
-    mpz_to_fr(&shift_fft, &shift_fft_mpz);
+    mpz_to_fr(&shift_fft, &shift);
 
     mclBnFr_setInt(&rsigma[0], 1);
     mclBnFr_inv(&rsigmaInv[0], &rsigma[0]);
 
-    mclBnG1_mul(&pk.xt1_rand[0], &pk.xt1[0], &rsigmaInv[0]);
+    mclBnG1_mul(&pk->xt1_rand[0], &pk->xt1[0], &rsigmaInv[0]);
 
     mclBnFr n_inverted;
     mclBnFr_setInt(&n_inverted, n);
@@ -100,16 +99,16 @@ void init_prover(void *circuit, proving_key pk)
 
     mclBnFr_mul(&rsigma[0], &rsigma[0], &n_inverted);
 
+    mclBnFr one;
+    mclBnFr_setInt(&one, 1);
+    mclBnFr_mul(&rsigma[1], &rand, &one);
+
     for (int i = 1; i < n; i++)
     {
-        mpz_t factor;
-        mpz_init(factor);
-        mpz_powm_ui(factor, shift, i, pPrime);
-
-        mpz_to_fr(&rsigma[i], &factor);
+        if (i < n - 1) mclBnFr_mul(&rsigma[i + 1], &rsigma[i], &rand);
 
         mclBnFr_inv(&rsigmaInv[i], &rsigma[i]);
-        mclBnG1_mul(&pk.xt1_rand[i], &pk.xt1[i], &rsigmaInv[i]);
+        mclBnG1_mul(&pk->xt1_rand[i], &pk->xt1[i], &rsigmaInv[i]);
 
         mclBnFr_mul(&rsigma[i], &rsigma[i], &n_inverted);
     }

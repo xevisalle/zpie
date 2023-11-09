@@ -85,9 +85,9 @@ static inline void bulletproof_get_context(context *ctx);
 static inline void bulletproof_user_gammas(int val);
 void init_setup(void *circuit);
 setup_keys perform_setup(void *circuit);
-void init_prover(void *circuit, proving_key pk);
-proof generate_proof(void *circuit, proving_key pk);
-int verify_proof(void *circuit, proof p, verifying_key vk);
+void init_prover(void *circuit, proving_key *pk);
+proof generate_proof(void *circuit, proving_key *pk);
+int verify_proof(void *circuit, proof *p, verifying_key *vk);
 
 #include "zpie.c"
 #include "bulletproofs/bulletproofs.c"

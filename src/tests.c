@@ -56,7 +56,7 @@ void test_prover(void)
 {
     test_no_rand = 1;
     setup_keys keys = perform_setup(&test_single_constraint); 
-    proof p = generate_proof(&test_single_constraint, keys.pk);
+    proof p = generate_proof(&test_single_constraint, &keys.pk);
 
     const char *piAstr = "1 13398732126763033363928255770670403609664455533535809960659793057603927642327 14567332642717250669329472598965177550050834309459245026995104363234319745805";
     const char *piB2str = "1 9513526328373247288214002967710658327692956864193416721895179753121227228903 17320346092699268035923233491595138958007151833266586455159840335219170425243 8079768110185479532548096263199181437927983909022782182442306192699700743609 19381997603489315175356927627025590277145986935796790438444340629346184509934";
@@ -82,13 +82,13 @@ void test_full_circuits(void)
     setup_keys keys_mh = perform_setup(&test_mimc_hash);  
     setup_keys keys_ev = perform_setup(&test_eddsa_verification); 
 
-    proof p_sc = generate_proof(&test_single_constraint, keys_sc.pk);
-    proof p_mh = generate_proof(&test_mimc_hash, keys_mh.pk);
-    proof p_ev = generate_proof(&test_eddsa_verification, keys_ev.pk);
+    proof p_sc = generate_proof(&test_single_constraint, &keys_sc.pk);
+    proof p_mh = generate_proof(&test_mimc_hash, &keys_mh.pk);
+    proof p_ev = generate_proof(&test_eddsa_verification, &keys_ev.pk);
     
-    CU_ASSERT(verify_proof(&test_single_constraint, p_sc, keys_sc.vk));
-    CU_ASSERT(verify_proof(&test_mimc_hash, p_mh, keys_mh.vk));
-    CU_ASSERT(verify_proof(&test_eddsa_verification, p_ev, keys_ev.vk));
+    CU_ASSERT(verify_proof(&test_single_constraint, &p_sc, &keys_sc.vk));
+    CU_ASSERT(verify_proof(&test_mimc_hash, &p_mh, &keys_mh.vk));
+    CU_ASSERT(verify_proof(&test_eddsa_verification, &p_ev, &keys_ev.vk));
 }
 
 //TODO: fix this

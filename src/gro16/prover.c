@@ -1,7 +1,7 @@
 
-void h_coefficients(proving_key pk)
+void h_coefficients(proving_key *pk)
 {
-    int n = mpz_get_ui(pk.Ne);
+    int n = mpz_get_ui(pk->Ne);
     mclBnFr uwFr[M];
 
     #pragma omp parallel for
@@ -21,46 +21,46 @@ void h_coefficients(proving_key pk)
     int l_it = 0;
     int r_it = 1;
 
-    for (int j = 0; j < pk.qap_size; j+=3)
+    for (int j = 0; j < pk->qap_size; j+=3)
     {
-        switch (pk.LRO[j])
+        switch (pk->LRO[j])
         {
-            case 1: mclBnFr_add(&AsFr[pk.LRO[j+1]], &AsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
-            case 2: mclBnFr_add(&BsFr[pk.LRO[j+1]], &BsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
-            case 3: mclBnFr_add(&CsFr[pk.LRO[j+1]], &CsFr[pk.LRO[j+1]], &uwFr[pk.LRO[j+2]]); break;
+            case 1: mclBnFr_add(&AsFr[pk->LRO[j+1]], &AsFr[pk->LRO[j+1]], &uwFr[pk->LRO[j+2]]); break;
+            case 2: mclBnFr_add(&BsFr[pk->LRO[j+1]], &BsFr[pk->LRO[j+1]], &uwFr[pk->LRO[j+2]]); break;
+            case 3: mclBnFr_add(&CsFr[pk->LRO[j+1]], &CsFr[pk->LRO[j+1]], &uwFr[pk->LRO[j+2]]); break;
             case 10:
             {
                 mclBnFr factorFr;
-                if (pk.LRO[j+3] != INT_MAX)
+                if (pk->LRO[j+3] != INT_MAX)
                 {
-                    mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                    mclBnFr_setInt(&factorFr, pk->LRO[j+3]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
                 }
                 else
                 {
-                    mpz_to_fr(&factorFr, &pk.LRO_constants[l_it]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                    mpz_to_fr(&factorFr, &pk->LRO_constants[l_it]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
                     l_it+=2;
                 }
-                mclBnFr_add(&AsFr[pk.LRO[j+1]], &AsFr[pk.LRO[j+1]], &factorFr); 
+                mclBnFr_add(&AsFr[pk->LRO[j+1]], &AsFr[pk->LRO[j+1]], &factorFr); 
                 j+=1;
                 break;
             }
             case 20:
             {
                 mclBnFr factorFr;
-                if (pk.LRO[j+3] != INT_MAX)
+                if (pk->LRO[j+3] != INT_MAX)
                 {
-                    mclBnFr_setInt(&factorFr, pk.LRO[j+3]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                    mclBnFr_setInt(&factorFr, pk->LRO[j+3]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
                 }
                 else
                 {
-                    mpz_to_fr(&factorFr, &pk.LRO_constants[r_it]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk.LRO[j+2]], &factorFr);
+                    mpz_to_fr(&factorFr, &pk->LRO_constants[r_it]);
+                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
                     r_it+=2;
                 }
-                mclBnFr_add(&BsFr[pk.LRO[j+1]], &BsFr[pk.LRO[j+1]], &factorFr);
+                mclBnFr_add(&BsFr[pk->LRO[j+1]], &BsFr[pk->LRO[j+1]], &factorFr);
                 j+=1; 
                 break;
             }
@@ -71,13 +71,13 @@ void h_coefficients(proving_key pk)
     {
         switch (get_thread())
         {
-            case 0: ifft_t(n, pk.wMFr, AsFr); break;
-            case 1: ifft_t(n, pk.wMFr, BsFr); break;
-            case 2: ifft_t(n, pk.wMFr, CsFr); break;
+            case 0: ifft_t(n, pk->wMFr, AsFr); break;
+            case 1: ifft_t(n, pk->wMFr, BsFr); break;
+            case 2: ifft_t(n, pk->wMFr, CsFr); break;
             case 99:
-                ifft_t(n, pk.wMFr, AsFr);
-                ifft_t(n, pk.wMFr, BsFr);
-                ifft_t(n, pk.wMFr, CsFr);
+                ifft_t(n, pk->wMFr, AsFr);
+                ifft_t(n, pk->wMFr, BsFr);
+                ifft_t(n, pk->wMFr, CsFr);
                 break;
         }
     }
@@ -89,12 +89,12 @@ void h_coefficients(proving_key pk)
         mclBnFr_sub(&AsFr[i], &AsFr[i], &CsFr[i]);
     }
 
-    ifft(n, pk.wMFr, AsFr);
+    ifft(n, pk->wMFr, AsFr);
 }
 
-void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
+void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key *pk)
 {
-    int n = mpz_get_ui(pk.Ne);
+    int n = mpz_get_ui(pk->Ne);
 
     mclBnFr uwFactor[M];
     mclBnFr uwFactorPublic[M-(nPublic + nConst)];
@@ -117,14 +117,14 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key pk)
         int num_threads = get_nprocs();
     #endif
 
-    mclBnG1_mulVecMT(&result->uwA1, pk.A1, uwFactor, M, num_threads);
-    mclBnG1_mulVecMT(&result->uwB1, pk.B1, uwFactor, M, num_threads);
-    mclBnG2_mulVecMT(&result->uwB2, pk.B2, uwFactor, M, num_threads);
-    mclBnG1_mulVecMT(&result->uwC1, pk.pk1, uwFactorPublic, M-(nPublic + nConst), num_threads);
-    mclBnG1_mulVecMT(&result->htdelta, pk.xt1_rand, AsFr, n, num_threads);
+    mclBnG1_mulVecMT(&result->uwA1, pk->A1, uwFactor, M, num_threads);
+    mclBnG1_mulVecMT(&result->uwB1, pk->B1, uwFactor, M, num_threads);
+    mclBnG2_mulVecMT(&result->uwB2, pk->B2, uwFactor, M, num_threads);
+    mclBnG1_mulVecMT(&result->uwC1, pk->pk1, uwFactorPublic, M-(nPublic + nConst), num_threads);
+    mclBnG1_mulVecMT(&result->htdelta, pk->xt1_rand, AsFr, n, num_threads);
 }
 
-void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwProof, proving_key pk)
+void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwProof, proving_key *pk)
 {
     prover = 1;
 
@@ -169,22 +169,22 @@ void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwPro
     generate_random_scalar(&s);
 
     // piA = s1.alpha + Auw + r * s1.delta;
-    mclBnG1_mul(piA, &pk.delta1, &r);
+    mclBnG1_mul(piA, &pk->delta1, &r);
     mclBnG1_add(piA, piA, &result.uwA1);
-    mclBnG1_add(piA, piA, &pk.alpha1);
+    mclBnG1_add(piA, piA, &pk->alpha1);
     // piB1 = s1.beta + B1uw + s * s1.delta;
-    mclBnG1_mul(&piB1, &pk.delta1, &s);
+    mclBnG1_mul(&piB1, &pk->delta1, &s);
     mclBnG1_add(&piB1, &piB1, &result.uwB1);
-    mclBnG1_add(&piB1, &piB1, &pk.beta1);
+    mclBnG1_add(&piB1, &piB1, &pk->beta1);
     // piB2 = s2.beta + B2uw + s * s2.delta;
-    mclBnG2_mul(piB2, &pk.delta2, &s);
+    mclBnG2_mul(piB2, &pk->delta2, &s);
     mclBnG2_add(piB2, piB2, &result.uwB2);
-    mclBnG2_add(piB2, piB2, &pk.beta2);
+    mclBnG2_add(piB2, piB2, &pk->beta2);
 
     mclBnG1 factorG1;
 
     // piC = Cw + htdelta + piA*s + piB*r - r*s*s1.delta
-    mclBnG1_mul(&factorG1, &pk.delta1, &r);
+    mclBnG1_mul(&factorG1, &pk->delta1, &r);
     mclBnG1_mul(&factorG1, &factorG1, &s);
     mclBnG1_mul(piC, &piB1, &r);
     mclBnG1_sub(&factorG1, piC, &factorG1);
