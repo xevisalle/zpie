@@ -69,7 +69,7 @@ typedef struct
 
 typedef struct
 {
-    mpz_t *uwProof;
+    mclBnFr *uwProof;
     mclBnG1 piA, piC;
     mclBnG2 piB2;
 } proof;

@@ -10,8 +10,7 @@ int verify(proof *p, verifying_key *vk)
     for (int i = (nPublic); i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
-        mpz_to_fr(&frFactor, &p->uwProof[i]);
-        mclBnG1_mul(&factorG1, &vk->vk1[i+nConst], &frFactor);
+        mclBnG1_mul(&factorG1, &vk->vk1[i+nConst], &p->uwProof[i]);
         mclBnG1_add(&Vu, &Vu, &factorG1);
     }
 

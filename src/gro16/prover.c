@@ -92,7 +92,7 @@ void h_coefficients(proving_key *pk)
     ifft(n, pk->wMFr, AsFr);
 }
 
-void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key *pk)
+void mul_exp(struct mulExpResult *result, mclBnFr *uwProof, proving_key *pk)
 {
     int n = mpz_get_ui(pk->Ne);
 
@@ -101,7 +101,7 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key *pk)
 
     for (int i = nConst; i < (nPublic + nConst); i++)
     {
-        mpz_set(uwProof[i-nConst], uw[i]);
+        mpz_to_fr(&uwProof[i-nConst], &uw[i]);
     }
 
     #pragma omp parallel for
@@ -124,7 +124,7 @@ void mul_exp(struct mulExpResult *result, mpz_t *uwProof, proving_key *pk)
     mclBnG1_mulVecMT(&result->htdelta, pk->xt1_rand, AsFr, n, num_threads);
 }
 
-void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mpz_t *uwProof, proving_key *pk)
+void prove(int *circuit, mclBnG1 *piA, mclBnG2 *piB2, mclBnG1 *piC, mclBnFr *uwProof, proving_key *pk)
 {
     prover = 1;
 

@@ -382,12 +382,7 @@ proof generate_proof(void *circuit, proving_key *pk)
     
     proof p;
 
-    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
-
-    for (int i = 0; i < (nPublic); i++)
-    {
-        mpz_init(p.uwProof[i]);
-    }
+    p.uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
 
     if (bench) printf("--- Computing proof...\n");
     struct timespec begin, end;
@@ -427,14 +422,14 @@ void store_proof(proof *p)
     FILE *fproof;
     fproof = fopen("data/proof.params", "w");
 
-    for (int i = 0; i < (nPublic); i++)
-    {
-        mpz_out_raw(fproof, p->uwProof[i]);
-    }
-
     int size = 0;
 
-    size += mclBnG1_serialize(buff, SIZE_G1, &p->piA);
+    for (int i = 0; i < (nPublic); i++)
+    {
+        size += mclBnFr_serialize(buff + size, SIZE_FR, &p->uwProof[i]);
+    }
+
+    size += mclBnG1_serialize(buff + size, SIZE_G1, &p->piA);
     size += mclBnG2_serialize(buff + size, SIZE_G2, &p->piB2);
     size += mclBnG1_serialize(buff + size, SIZE_G1, &p->piC);
 
@@ -450,18 +445,18 @@ proof read_proof()
     FILE *fproof;
     fproof = fopen("data/proof.params", "r");
 
-    p.uwProof = (mpz_t*) malloc((nPublic) * sizeof(mpz_t));
-
-    for (int i = 0; i < (nPublic); i++)
-    {
-        mpz_init(p.uwProof[i]);
-        mpz_inp_raw(p.uwProof[i], fproof);
-    }
+    p.uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
 
     int size = 0;
 
-    fread(buff, 1, SIZE_G1 + SIZE_G2 + SIZE_G1, fproof);
-    size += mclBnG1_deserialize(&p.piA, buff, SIZE_G1);
+    fread(buff, 1, (SIZE_FR * nPublic) + SIZE_G1 + SIZE_G2 + SIZE_G1, fproof);
+
+    for (int i = 0; i < (nPublic); i++)
+    {
+        size += mclBnFr_deserialize(&p.uwProof[i], buff + size, SIZE_FR);
+    }
+
+    size += mclBnG1_deserialize(&p.piA, buff + size, SIZE_G1);
     size += mclBnG2_deserialize(&p.piB2, buff + size, SIZE_G2);
     size += mclBnG1_deserialize(&p.piC, buff + size, SIZE_G1);
 
