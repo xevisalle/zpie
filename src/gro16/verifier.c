@@ -17,8 +17,7 @@ int verify(proof *p, verifying_key *vk)
     for (int i = (nConst); i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
-        mpz_to_fr(&frFactor, &vk->constants[i]);
-        mclBnG1_mul(&factorG1, &vk->vk1[i], &frFactor);
+        mclBnG1_mul(&factorG1, &vk->vk1[i], &vk->constants[i]);
         mclBnG1_add(&Vu, &Vu, &factorG1);
     }
 

@@ -45,12 +45,12 @@ void init_setup(void *circuit)
     init_circuit(circuit);
     setParams = 0;
 
-    uw = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    uw = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
     LRO_constants = (mpz_t*) malloc((lro_const_total) * sizeof(mpz_t));
 
     for (int i = 0; i < M; i++)
     {
-       mpz_init2(uw[i], BITS);
+       mclBnFr_clear(&uw[i]);
     }
 }
 
@@ -238,35 +238,6 @@ void sort_list(mpz_t *exp[], int heapsize)
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsedSort += (end.tv_sec - begin.tv_sec);
     elapsedSort += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-}
-
-void bos_coster(mpz_t *exp[], int heapsize, int baseNum, proving_key *pk)
-{
-    sort_list(exp, heapsize);
-    while (mpz_cmp_ui(*exp[2], 0) != 0)
-    {
-        struct timespec begin, end;
-        clock_gettime(CLOCK_MONOTONIC, &begin);
-        mpz_sub(*exp[0], *exp[0], *exp[2]); 
-
-        if (baseNum) mclBnG1_add(&pk->xt1[exp[2]-wM], &pk->xt1[exp[0]-wM], &pk->xt1[exp[2]-wM]);
-        else
-        {
-            mclBnG1_add(&pk->A1[exp[2]-uw], &pk->A1[exp[0]-uw], &pk->A1[exp[2]-uw]);
-            mclBnG1_add(&pk->B1[exp[2]-uw], &pk->B1[exp[0]-uw], &pk->B1[exp[2]-uw]);
-            mclBnG2_add(&pk->B2[exp[2]-uw], &pk->B2[exp[0]-uw], &pk->B2[exp[2]-uw]);
-            mclBnG1_add(&pk->pk1[exp[2]-uw], &pk->pk1[exp[0]-uw], &pk->pk1[exp[2]-uw]);  
-        }
-
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsedBosCoster += (end.tv_sec - begin.tv_sec);
-        elapsedBosCoster += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-        clock_gettime(CLOCK_MONOTONIC, &begin);
-        binarymaxheap(exp, 0, heapsize);
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsedSort += (end.tv_sec - begin.tv_sec);
-        elapsedSort += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-    }
 }
 
 int fr_cmp(mclBnFr *frFactor1, mclBnFr *frFactor2)

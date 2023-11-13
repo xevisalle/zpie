@@ -57,7 +57,7 @@ int nPublic;
 int nConst;
 int setParams;
 
-mpz_t *uw;
+mclBnFr *uw;
 
 typedef struct
 {

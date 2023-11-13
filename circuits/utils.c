@@ -19,19 +19,17 @@ void add(element uOut, element vOut, element u1, element v1, element u2, element
 
 	mul_constants(&factor, &one_int, &factor1, &d, &factor2);
 
-	mpz_t invFactor;
-	mpz_init(invFactor);
+	mclBnFr invFactor;
 
 	if(!setParams)
 	{
-		mpz_t f_check;
-		mpz_init(f_check);
-		mpz_add(f_check, uw[one.index], uw[factor.index]);
-		mpz_invert(invFactor, f_check, pPrime);
+		mclBnFr f_check;
+		mclBnFr_add(&f_check, &uw[one.index], &uw[factor.index]);
+		mclBnFr_inv(&invFactor, &f_check);
 	}
 
 	char buff[2048];
-  	mpz_get_str(buff, 10, invFactor);
+  	mclBnFr_getStr(buff, sizeof(buff), &invFactor, 10);
   	input(&factor4, buff);
 
 	addmul(&one, &factor, &one, &factor4); // verify x * 1/x = 1
@@ -47,13 +45,12 @@ void add(element uOut, element vOut, element u1, element v1, element u2, element
 
 	if(!setParams) 
 	{
-		mpz_t f_check;
-		mpz_init(f_check);
-		mpz_sub(f_check, uw[one.index], uw[factor.index]);
-		mpz_invert(invFactor, f_check, pPrime);
+		mclBnFr f_check;
+		mclBnFr_sub(&f_check, &uw[one.index], &uw[factor.index]);
+		mclBnFr_inv(&invFactor, &f_check);
 	}
 
-  	mpz_get_str(buff, 10, invFactor);
+  	mclBnFr_getStr(buff, sizeof(buff), &invFactor, 10);
   	input(&factor7, buff);
 
 	addmul_constants(&one, &one_int, &one, &one_neg, &factor, &one_int, &factor7); // verify x * 1/x = 1
@@ -146,7 +143,10 @@ void to_bits(element *bits, element val, int size)
 	{
 		if(!setParams)
 		{
-			mpz_tdiv_q_2exp(t1, uw[val.index], i);
+			mpz_t factor;
+			mpz_init(factor);
+			fr_to_mpz(&factor, &uw[val.index]);
+			mpz_tdiv_q_2exp(t1, factor, i);
 			mpz_and(t3, t1, t2);
 		}
 
@@ -156,11 +156,13 @@ void to_bits(element *bits, element val, int size)
 
 		mpz_ui_pow_ui(total, 2, i);
 
-		mpz_t one_mpz;
-		mpz_init_set_ui(one_mpz, 1);
+		mclBnFr one_mpz;
+		mclBnFr_setInt(&one_mpz, 1);
 
 		init(&b[i]);
-		mul_big_constants(&b[i], &total, &bits[i], &one_mpz, &one);
+		mclBnFr factor;
+		mpz_to_fr(&factor, &total);
+		mul_big_constants(&b[i], &factor, &bits[i], &one_mpz, &one);
 	}
 
 	element fa;

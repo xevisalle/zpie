@@ -95,11 +95,11 @@ struct Sigma2
 typedef struct
 {
     mpz_t Ne;
-    mclBnFr *wMFr;
+    mclBnFr *wM;
 
     int qap_size;
     int *LRO;
-    mpz_t *LRO_constants;
+    mclBnFr *LRO_constants;
 
     mclBnG1 alpha1;
     mclBnG1 beta1;
@@ -126,7 +126,7 @@ struct mulExpResult
 
 typedef struct
 {
-    mpz_t *constants;
+    mclBnFr *constants;
     mclBnGT alphabetaT;
     mclBnG2 gamma2;
     mclBnG2 delta2;

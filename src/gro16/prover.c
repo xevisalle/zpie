@@ -2,13 +2,6 @@
 void h_coefficients(proving_key *pk)
 {
     int n = mpz_get_ui(pk->Ne);
-    mclBnFr uwFr[M];
-
-    #pragma omp parallel for
-    for (int j = 0; j < M; j++)
-    {
-        mpz_to_fr(&uwFr[j], &uw[j]);
-    }
 
     #pragma omp parallel for
     for (int j = 0; j < n; j++)
@@ -25,21 +18,20 @@ void h_coefficients(proving_key *pk)
     {
         switch (pk->LRO[j])
         {
-            case 1: mclBnFr_add(&AsFr[pk->LRO[j+1]], &AsFr[pk->LRO[j+1]], &uwFr[pk->LRO[j+2]]); break;
-            case 2: mclBnFr_add(&BsFr[pk->LRO[j+1]], &BsFr[pk->LRO[j+1]], &uwFr[pk->LRO[j+2]]); break;
-            case 3: mclBnFr_add(&CsFr[pk->LRO[j+1]], &CsFr[pk->LRO[j+1]], &uwFr[pk->LRO[j+2]]); break;
+            case 1: mclBnFr_add(&AsFr[pk->LRO[j+1]], &AsFr[pk->LRO[j+1]], &uw[pk->LRO[j+2]]); break;
+            case 2: mclBnFr_add(&BsFr[pk->LRO[j+1]], &BsFr[pk->LRO[j+1]], &uw[pk->LRO[j+2]]); break;
+            case 3: mclBnFr_add(&CsFr[pk->LRO[j+1]], &CsFr[pk->LRO[j+1]], &uw[pk->LRO[j+2]]); break;
             case 10:
             {
                 mclBnFr factorFr;
                 if (pk->LRO[j+3] != INT_MAX)
                 {
                     mclBnFr_setInt(&factorFr, pk->LRO[j+3]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
+                    mclBnFr_mul(&factorFr, &uw[pk->LRO[j+2]], &factorFr);
                 }
                 else
                 {
-                    mpz_to_fr(&factorFr, &pk->LRO_constants[l_it]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
+                    mclBnFr_mul(&factorFr, &uw[pk->LRO[j+2]], &pk->LRO_constants[l_it]);
                     l_it+=2;
                 }
                 mclBnFr_add(&AsFr[pk->LRO[j+1]], &AsFr[pk->LRO[j+1]], &factorFr); 
@@ -52,12 +44,11 @@ void h_coefficients(proving_key *pk)
                 if (pk->LRO[j+3] != INT_MAX)
                 {
                     mclBnFr_setInt(&factorFr, pk->LRO[j+3]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
+                    mclBnFr_mul(&factorFr, &uw[pk->LRO[j+2]], &factorFr);
                 }
                 else
                 {
-                    mpz_to_fr(&factorFr, &pk->LRO_constants[r_it]);
-                    mclBnFr_mul(&factorFr, &uwFr[pk->LRO[j+2]], &factorFr);
+                    mclBnFr_mul(&factorFr, &uw[pk->LRO[j+2]], &pk->LRO_constants[r_it]);
                     r_it+=2;
                 }
                 mclBnFr_add(&BsFr[pk->LRO[j+1]], &BsFr[pk->LRO[j+1]], &factorFr);
@@ -71,13 +62,13 @@ void h_coefficients(proving_key *pk)
     {
         switch (get_thread())
         {
-            case 0: ifft_t(n, pk->wMFr, AsFr); break;
-            case 1: ifft_t(n, pk->wMFr, BsFr); break;
-            case 2: ifft_t(n, pk->wMFr, CsFr); break;
+            case 0: ifft_t(n, pk->wM, AsFr); break;
+            case 1: ifft_t(n, pk->wM, BsFr); break;
+            case 2: ifft_t(n, pk->wM, CsFr); break;
             case 99:
-                ifft_t(n, pk->wMFr, AsFr);
-                ifft_t(n, pk->wMFr, BsFr);
-                ifft_t(n, pk->wMFr, CsFr);
+                ifft_t(n, pk->wM, AsFr);
+                ifft_t(n, pk->wM, BsFr);
+                ifft_t(n, pk->wM, CsFr);
                 break;
         }
     }
@@ -89,26 +80,16 @@ void h_coefficients(proving_key *pk)
         mclBnFr_sub(&AsFr[i], &AsFr[i], &CsFr[i]);
     }
 
-    ifft(n, pk->wMFr, AsFr);
+    ifft(n, pk->wM, AsFr);
 }
 
 void mul_exp(struct mulExpResult *result, mclBnFr *uwProof, proving_key *pk)
 {
     int n = mpz_get_ui(pk->Ne);
 
-    mclBnFr uwFactor[M];
-    mclBnFr uwFactorPublic[M-(nPublic + nConst)];
-
     for (int i = nConst; i < (nPublic + nConst); i++)
     {
-        mpz_to_fr(&uwProof[i-nConst], &uw[i]);
-    }
-
-    #pragma omp parallel for
-    for (int i = 0; i < M; i++)
-    {
-        mpz_to_fr(&uwFactor[i], &uw[i]);
-        if(i >= (nPublic + nConst)) mpz_to_fr(&uwFactorPublic[i-(nPublic + nConst)], &uw[i]);
+        uwProof[i-nConst] = uw[i];
     }
 
     #ifdef IS_MAC_OS
@@ -117,10 +98,10 @@ void mul_exp(struct mulExpResult *result, mclBnFr *uwProof, proving_key *pk)
         int num_threads = get_nprocs();
     #endif
 
-    mclBnG1_mulVecMT(&result->uwA1, pk->A1, uwFactor, M, num_threads);
-    mclBnG1_mulVecMT(&result->uwB1, pk->B1, uwFactor, M, num_threads);
-    mclBnG2_mulVecMT(&result->uwB2, pk->B2, uwFactor, M, num_threads);
-    mclBnG1_mulVecMT(&result->uwC1, pk->pk1, uwFactorPublic, M-(nPublic + nConst), num_threads);
+    mclBnG1_mulVecMT(&result->uwA1, pk->A1, uw, M, num_threads);
+    mclBnG1_mulVecMT(&result->uwB1, pk->B1, uw, M, num_threads);
+    mclBnG2_mulVecMT(&result->uwB2, pk->B2, uw, M, num_threads);
+    mclBnG1_mulVecMT(&result->uwC1, pk->pk1, uw + nPublic + nConst, M-(nPublic + nConst), num_threads);
     mclBnG1_mulVecMT(&result->htdelta, pk->xt1_rand, AsFr, n, num_threads);
 }
 
