@@ -114,6 +114,15 @@ void test_bulletproofs(void)
     // else printf("Bulletproof cannot be verified.\n");
 }
 
+int init_suite(void)
+{
+    return 0;
+}
+int clean_suite(void)
+{
+    return 0;
+}
+
 int main()
 {
     CU_pSuite suite = NULL;

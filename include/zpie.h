@@ -62,15 +62,6 @@
 #include <sys/sysinfo.h>
 #endif
 
-int init_suite(void)
-{
-    return 0;
-}
-int clean_suite(void)
-{
-    return 0;
-}
-
 int logN;
 int Nb;
 int Mc;
