@@ -1,5 +1,5 @@
 
-int verify(proof *p, verifying_key *vk)
+int verify(proof* p, verifying_key* vk)
 {
     mclBnG1 factorG1;
     mclBnFr frFactor;
@@ -10,7 +10,7 @@ int verify(proof *p, verifying_key *vk)
     for (int i = (nPublic); i--;)
     {
         // Vu = Vu + u[i] * s1.vk[i]
-        mclBnG1_mul(&factorG1, &vk->vk1[i+nConst], &p->uwProof[i]);
+        mclBnG1_mul(&factorG1, &vk->vk1[i + nConst], &p->uwProof[i]);
         mclBnG1_add(&Vu, &Vu, &factorG1);
     }
 
@@ -23,18 +23,24 @@ int verify(proof *p, verifying_key *vk)
 
     log_message("Computing e(piA, piB2), e(Vu, gamma), e(piC, delta)...");
 
-    #pragma omp parallel num_threads(3)
+#pragma omp parallel num_threads(3)
     {
         switch (get_thread())
         {
-            case 0: mclBn_pairing(&pairing1, &p->piA, &p->piB2); break;
-            case 1: mclBn_pairing(&pairing2, &Vu, &vk->gamma2); break;
-            case 2: mclBn_pairing(&pairing3, &p->piC, &vk->delta2); break;
-            case 99:
-                mclBn_pairing(&pairing1, &p->piA, &p->piB2);
-                mclBn_pairing(&pairing2, &Vu, &vk->gamma2);
-                mclBn_pairing(&pairing3, &p->piC, &vk->delta2);
-                break;
+        case 0:
+            mclBn_pairing(&pairing1, &p->piA, &p->piB2);
+            break;
+        case 1:
+            mclBn_pairing(&pairing2, &Vu, &vk->gamma2);
+            break;
+        case 2:
+            mclBn_pairing(&pairing3, &p->piC, &vk->delta2);
+            break;
+        case 99:
+            mclBn_pairing(&pairing1, &p->piA, &p->piB2);
+            mclBn_pairing(&pairing2, &Vu, &vk->gamma2);
+            mclBn_pairing(&pairing3, &p->piC, &vk->delta2);
+            break;
         }
     }
 
@@ -61,13 +67,16 @@ int verify(proof *p, verifying_key *vk)
     }
 
     log_message("e(piA, piB2) = e(alpha, beta) * e(Vu, gamma) * e(piC, delta)???");
-    
+
     int verified = mclBnGT_isEqual(&pairing1, &factorGT);
 
-    if (mclBnGT_isOne(&pairing2)) verified = 0;
-    
-    if (verified) log_state(1);
-    else log_state(0);
-    
+    if (mclBnGT_isOne(&pairing2))
+        verified = 0;
+
+    if (verified)
+        log_state(1);
+    else
+        log_state(0);
+
     return verified;
 }

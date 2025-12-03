@@ -1,9 +1,10 @@
-void fft(size_t arr, mclBnFr domain[], mclBnFr *o)
+void fft(size_t arr, mclBnFr domain[], mclBnFr* o)
 {
-    if (arr == 1) return;
+    if (arr == 1)
+        return;
     else
     {
-        size_t arrNew = arr/2;
+        size_t arrNew = arr / 2;
 
         mclBnFr oddDom[arrNew];
         mclBnFr oddVals[arrNew];
@@ -11,9 +12,9 @@ void fft(size_t arr, mclBnFr domain[], mclBnFr *o)
 
         for (int i = 0; i < arrNew; i++)
         {
-            oddDom[i] = domain[2*i];
-            oddVals[i] = o[2*i];
-            evenVals[i] = o[(2*i)+1];
+            oddDom[i] = domain[2 * i];
+            oddVals[i] = o[2 * i];
+            evenVals[i] = o[(2 * i) + 1];
         }
 
         fft(arrNew, oddDom, oddVals);
@@ -23,12 +24,12 @@ void fft(size_t arr, mclBnFr domain[], mclBnFr *o)
         {
             mclBnFr_mul(&oddDom[i], &evenVals[i], &domain[i]);
             mclBnFr_add(&o[i], &oddVals[i], &oddDom[i]);
-            mclBnFr_sub(&o[i+arrNew], &oddVals[i], &oddDom[i]);
+            mclBnFr_sub(&o[i + arrNew], &oddVals[i], &oddDom[i]);
         }
     }
 }
 
-void ifft(size_t arr, mclBnFr domain[], mclBnFr *o)
+void ifft(size_t arr, mclBnFr domain[], mclBnFr* o)
 {
     fft(arr, domain, o);
 
@@ -48,11 +49,11 @@ void ifft(size_t arr, mclBnFr domain[], mclBnFr *o)
 
     for (int i = 1; i < arr; i++)
     {
-        mclBnFr_mul(&o[i], &out[arr-i], &frFactor);
+        mclBnFr_mul(&o[i], &out[arr - i], &frFactor);
     }
 }
 
-void ifft_t(size_t arr, mclBnFr domain[], mclBnFr *o)
+void ifft_t(size_t arr, mclBnFr domain[], mclBnFr* o)
 {
     fft(arr, domain, o);
 
@@ -67,7 +68,7 @@ void ifft_t(size_t arr, mclBnFr domain[], mclBnFr *o)
 
     for (int i = 1; i < arr; i++)
     {
-        mclBnFr_mul(&o[i], &out[arr-i], &rsigma[i]);
+        mclBnFr_mul(&o[i], &out[arr - i], &rsigma[i]);
     }
 
     fft(arr, domain, o);

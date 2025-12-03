@@ -1,8 +1,9 @@
-void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *s2, mclBnGT *alphabetaT, int *qap_size, mpz_t *Ne)
+void setup(void* circuit, struct Trapdoor* t, struct Sigma1* s1, struct Sigma2* s2,
+           mclBnGT* alphabetaT, int* qap_size, mpz_t* Ne)
 {
-    mpz_t *A = (mpz_t*) malloc((M) * sizeof(mpz_t));
-    mpz_t *B = (mpz_t*) malloc((M) * sizeof(mpz_t));
-    mpz_t *C = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    mpz_t* A = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    mpz_t* B = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    mpz_t* C = (mpz_t*) malloc((M) * sizeof(mpz_t));
 
     mclBnG1 g;
     mclBnG2 h; // generators for G1 and G2
@@ -38,7 +39,7 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     mpz_sub(T, T, factor);
 
     // encrypt
-    mclBnFr *frFactor = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
+    mclBnFr* frFactor = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
     mpz_to_fr(&frFactor[0], &t->alpha);
     mclBnG1_mul(&s1->alpha, &g, &frFactor[0]);
     mpz_to_fr(&frFactor[0], &t->beta);
@@ -51,7 +52,7 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     mpz_invert(invGamma, t->gamma, pPrime);
     mpz_invert(invDelta, t->delta, pPrime);
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
         mpz_to_fr(&frFactor[i], &A[i]);
@@ -60,7 +61,7 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
         mclBnG1_mul(&s1->B[i], &g, &frFactor[i]);
     }
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < (nPublic + nConst); i++)
     {
         mpz_t f;
@@ -78,17 +79,17 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
         mclBnG1_mul(&s1->vk[i], &g, &frFactor[i]);
     }
 
-    #pragma omp parallel for
-    for (int i = 0; i < M-(nPublic + nConst); i++)
+#pragma omp parallel for
+    for (int i = 0; i < M - (nPublic + nConst); i++)
     {
         mpz_t f;
         mpz_init(f);
         // (t->beta * A[i] + t->alpha * B[i] + C[i]) * invDelta
-        mpz_mul(f, t->beta, A[i+(nPublic + nConst)]);
+        mpz_mul(f, t->beta, A[i + (nPublic + nConst)]);
         mpz_mod(f, f, pPrime);
-        mpz_addmul(f, t->alpha, B[i+(nPublic + nConst)]);
+        mpz_addmul(f, t->alpha, B[i + (nPublic + nConst)]);
         mpz_mod(f, f, pPrime);
-        mpz_add(f, f, C[i+(nPublic + nConst)]);
+        mpz_add(f, f, C[i + (nPublic + nConst)]);
         mpz_mul(f, f, invDelta);
         mpz_mod(f, f, pPrime);
         mpz_to_fr(&frFactor[i], &f);
@@ -101,7 +102,7 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     mpz_mod(zod, zod, pPrime);
 
     int n = mpz_get_ui(*Ne);
-    mclBnFr *frFactor2 = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    mclBnFr* frFactor2 = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
 
     mpz_to_fr(&frFactor2[0], &zod);
     mclBnG1_mul(&s1->xt[0], &g, &frFactor2[0]);
@@ -125,7 +126,7 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     mpz_to_fr(&frFactor[0], &t->delta);
     mclBnG2_mul(&s2->delta, &h, &frFactor[0]);
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
         mpz_to_fr(&frFactor[i], &B[i]);
@@ -133,8 +134,8 @@ void setup(void *circuit, struct Trapdoor *t, struct Sigma1 *s1, struct Sigma2 *
     }
 
     mclBn_pairing(alphabetaT, &s1->alpha, &s2->beta);
-    
-    #pragma omp parallel for
+
+#pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
         mpz_clear(A[i]);

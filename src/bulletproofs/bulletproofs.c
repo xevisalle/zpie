@@ -1,23 +1,23 @@
 mclBnG1 Gb, Hb, Ub;
 mclBnG1 *G, *H;
-mclBnG1 *V;
+mclBnG1* V;
 mclBnG1 A, S;
 mclBnFr y, z;
 mclBnFr x, t_inner, tx, mu;
 mclBnG1 T1, T2;
-mclBnG1 *Hp;
+mclBnG1* Hp;
 mclBnFr xp;
-mclBnFr *xp_vec;
+mclBnFr* xp_vec;
 mclBnG1 *L_vec, *R_vec;
 mclBnFr *l, *r;
-mclBnFr *two_vec;
-mclBnFr *y_vec;
-mclBnFr *y_vec_inv;
-mclBnFr *gammas;
+mclBnFr* two_vec;
+mclBnFr* y_vec;
+mclBnFr* y_vec_inv;
+mclBnFr* gammas;
 
 int userGammas = 0;
 
-void bulletproof_prove(unsigned char *si[])
+void bulletproof_prove(unsigned char* si[])
 {
     struct timespec begin, end;
     double elapsed;
@@ -34,10 +34,10 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
 
     mclBnFr *aL, *aR;
-    aL = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    aR = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    aL = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    aR = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_clear(&aL[i]);
     }
@@ -49,12 +49,13 @@ void bulletproof_prove(unsigned char *si[])
     for (int j = 0; j < Mc; j++)
     {
         // FIXME
-        //mclBnFr_setStr(&v[j], si[j], strlen(si[j]), 10);
+        // mclBnFr_setStr(&v[j], si[j], strlen(si[j]), 10);
         mclBnFr_getStr(buff, sizeof(buff), &v[j], 2);
 
         for (int i = 0; i < strlen(buff); i++)
         {
-            if(buff[strlen(buff) - 1 - i] == '1') mclBnFr_setInt(&aL[i + (j*Nb)], 1);
+            if (buff[strlen(buff) - 1 - i] == '1')
+                mclBnFr_setInt(&aL[i + (j * Nb)], 1);
         }
     }
 
@@ -64,8 +65,8 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr_setByCSPRNG(&alpha);
 
     mclBnFr *sL, *sR;
-    sL = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    sR = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    sL = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    sR = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
 
     mclBnFr rho;
     mclBnFr_setByCSPRNG(&rho);
@@ -73,7 +74,7 @@ void bulletproof_prove(unsigned char *si[])
     mclBnG1_mul(&A, &Hb, &alpha);
     mclBnG1_mul(&S, &Hb, &rho);
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < Mc; i++)
     {
         // compute commitment V
@@ -83,29 +84,30 @@ void bulletproof_prove(unsigned char *si[])
         mclBnG1_add(&V[i], &V[i], &g1Tmp);
     }
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_sub(&aR[i], &aL[i], &one);
-        
+
         mclBnFr_setByCSPRNG(&sL[i]);
         mclBnFr_setByCSPRNG(&sR[i]);
     }
 
     // compute commitment A
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
-        if (mclBnFr_isOne(&aL[i])) mclBnG1_add(&A, &A, &G[i]);
+        if (mclBnFr_isOne(&aL[i]))
+            mclBnG1_add(&A, &A, &G[i]);
     }
 
     mclBnG1 A_chunk;
-    mult_exp(&A_chunk, H, aR, Nb*Mc);
+    mult_exp(&A_chunk, H, aR, Nb * Mc);
     mclBnG1_add(&A, &A, &A_chunk);
 
     // compute commitment S
     mclBnG1 S_chunk;
-    mult_exp(&S_chunk, G, sL, Nb*Mc);
+    mult_exp(&S_chunk, G, sL, Nb * Mc);
     mclBnG1_add(&S, &S, &S_chunk);
-    mult_exp(&S_chunk, H, sR, Nb*Mc);
+    mult_exp(&S_chunk, H, sR, Nb * Mc);
     mclBnG1_add(&S, &S, &S_chunk);
 
     transcript_add_G1(&A);
@@ -121,9 +123,9 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr_setInt(&y_vec[0], 1);
     mclBnFr_mul(&y_vec[1], &y_vec[0], &y);
 
-    for (int i = 2; i < Nb*Mc; i++)
+    for (int i = 2; i < Nb * Mc; i++)
     {
-        mclBnFr_mul(&y_vec[i], &y_vec[i-1], &y);
+        mclBnFr_mul(&y_vec[i], &y_vec[i - 1], &y);
     }
 
     mclBnFr t1, t2;
@@ -131,12 +133,13 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr_clear(&t2);
     mclBnFr_clear(&frFactor3);
     mclBnFr_mul(&frFactor3, &one, &z);
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_add(&frFactor, &aR[i], &z);
         mclBnFr_mul(&frFactor, &y_vec[i], &frFactor);
 
-        if (i % Nb == 0) mclBnFr_mul(&frFactor3, &frFactor3, &z);
+        if (i % Nb == 0)
+            mclBnFr_mul(&frFactor3, &frFactor3, &z);
         mclBnFr_mul(&frFactor2, &two_vec[i % Nb], &frFactor3);
 
         mclBnFr_add(&frFactor, &frFactor, &frFactor2);
@@ -175,7 +178,7 @@ void bulletproof_prove(unsigned char *si[])
     mclBnFr_clear(&frFactor2);
     mclBnFr_mul(&frFactor2, &one, &z);
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_sub(&l[i], &aL[i], &z);
         mclBnFr_mul(&frFactor, &sL[i], &x);
@@ -186,7 +189,8 @@ void bulletproof_prove(unsigned char *si[])
         mclBnFr_add(&frFactor, &frFactor, &aR[i]);
         mclBnFr_mul(&frFactor, &frFactor, &y_vec[i]);
 
-        if (i % Nb == 0) mclBnFr_mul(&frFactor2, &frFactor2, &z);
+        if (i % Nb == 0)
+            mclBnFr_mul(&frFactor2, &frFactor2, &z);
         mclBnFr_mul(&r[i], &frFactor2, &two_vec[i % Nb]);
         mclBnFr_add(&r[i], &r[i], &frFactor);
 
@@ -205,7 +209,7 @@ void bulletproof_prove(unsigned char *si[])
     for (int i = 1; i < Mc + 1; i++)
     {
         mclBnFr_mul(&frFactor2, &frFactor2, &z);
-        mclBnFr_mul(&frFactor, &frFactor2, &gammas[i-1]);
+        mclBnFr_mul(&frFactor, &frFactor2, &gammas[i - 1]);
         mclBnFr_add(&frFactor3, &frFactor3, &frFactor);
     }
 
@@ -217,15 +221,15 @@ void bulletproof_prove(unsigned char *si[])
     // inner product
     transcript_hash(&xp);
     transcript_add_Fr(&xp);
-    
+
     mclBnG1 Ubn;
     mclBnG1_mul(&Ubn, &Ub, &xp);
 
-    mclBnG1 *Gp;
-    Gp = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
+    mclBnG1* Gp;
+    Gp = (mclBnG1*) malloc((Nb * Mc) * sizeof(mclBnG1));
 
-    #pragma omp parallel for
-    for (int i = 0; i < Nb*Mc; i++)
+#pragma omp parallel for
+    for (int i = 0; i < Nb * Mc; i++)
     {
         Gp[i] = G[i];
 
@@ -234,7 +238,7 @@ void bulletproof_prove(unsigned char *si[])
         mclBnG1_mul(&Hp[i], &H[i], &frTmp);
     }
 
-    int np = Nb*Mc;
+    int np = Nb * Mc;
     mclBnFr cl, cr;
     for (int i = 0; i < logN; i++)
     {
@@ -245,9 +249,9 @@ void bulletproof_prove(unsigned char *si[])
 
         for (int j = 0; j < np; j++)
         {
-            mclBnFr_mul(&frFactor, &l[j], &r[j+np]);
+            mclBnFr_mul(&frFactor, &l[j], &r[j + np]);
             mclBnFr_add(&cl, &cl, &frFactor);
-            mclBnFr_mul(&frFactor, &l[j+np], &r[j]);
+            mclBnFr_mul(&frFactor, &l[j + np], &r[j]);
             mclBnFr_add(&cr, &cr, &frFactor);
         }
 
@@ -256,15 +260,15 @@ void bulletproof_prove(unsigned char *si[])
         mclBnG1_mul(&R, &Ubn, &cr);
 
         mclBnG1 L_chunk;
-        mult_exp(&L_chunk, Gp+np, l, np);
+        mult_exp(&L_chunk, Gp + np, l, np);
         mclBnG1_add(&L, &L, &L_chunk);
-        mult_exp(&L_chunk, Hp, r+np, np);
+        mult_exp(&L_chunk, Hp, r + np, np);
         mclBnG1_add(&L, &L, &L_chunk);
 
         mclBnG1 R_chunk;
-        mult_exp(&R_chunk, Gp, l+np, np);
+        mult_exp(&R_chunk, Gp, l + np, np);
         mclBnG1_add(&R, &R, &R_chunk);
-        mult_exp(&R_chunk, Hp+np, r, np);
+        mult_exp(&R_chunk, Hp + np, r, np);
         mclBnG1_add(&R, &R, &R_chunk);
 
         transcript_add_G1(&L);
@@ -275,29 +279,29 @@ void bulletproof_prove(unsigned char *si[])
 
         mclBnFr_inv(&frFactor, &xp);
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int j = 0; j < np; j++)
         {
             mclBnG1 g1Tmp;
             mclBnFr frTmp;
             mclBnG1_mul(&g1Tmp, &Gp[j], &frFactor);
-            mclBnG1_mul(&Gp[j], &Gp[j+np], &xp);
+            mclBnG1_mul(&Gp[j], &Gp[j + np], &xp);
             mclBnG1_add(&Gp[j], &Gp[j], &g1Tmp);
 
             mclBnG1_mul(&Hp[j], &Hp[j], &xp);
-            mclBnG1_mul(&g1Tmp, &Hp[j+np], &frFactor);
+            mclBnG1_mul(&g1Tmp, &Hp[j + np], &frFactor);
             mclBnG1_add(&Hp[j], &Hp[j], &g1Tmp);
 
             mclBnFr_mul(&l[j], &l[j], &xp);
-            mclBnFr_mul(&frTmp, &l[j+np], &frFactor);
+            mclBnFr_mul(&frTmp, &l[j + np], &frFactor);
             mclBnFr_add(&l[j], &l[j], &frTmp);
 
             mclBnFr_mul(&frTmp, &r[j], &frFactor);
-            mclBnFr_mul(&r[j], &r[j+np], &xp);
+            mclBnFr_mul(&r[j], &r[j + np], &xp);
             mclBnFr_add(&r[j], &r[j], &frTmp);
         }
     }
-    
+
     bulletproof_save();
 
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -326,7 +330,7 @@ int bulletproof_verify()
     mclBnG1 g1Factor;
 
     mclBnFr z2;
-    
+
     mclBnG1 P, Pp;
     mclBnFr_mul(&z2, &z, &z);
     mclBnFr_setInt(&y_vec[0], 1);
@@ -334,9 +338,9 @@ int bulletproof_verify()
     mclBnFr_mul(&y_vec[1], &y_vec[0], &y);
     mclBnFr_inv(&y_vec_inv[1], &y_vec[1]);
 
-    for (int i = 2; i < Nb*Mc; i++)
+    for (int i = 2; i < Nb * Mc; i++)
     {
-        mclBnFr_mul(&y_vec[i], &y_vec[i-1], &y);
+        mclBnFr_mul(&y_vec[i], &y_vec[i - 1], &y);
         mclBnFr_inv(&y_vec_inv[i], &y_vec[i]);
     }
 
@@ -346,16 +350,17 @@ int bulletproof_verify()
     mclBnFr_clear(&frFactor3);
     mclBnFr_mul(&frFactor3, &one, &z);
 
-    mclBnFr *frFactor_vec;
-    frFactor_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    mclBnFr *frFactor_vec2;
-    frFactor_vec2 = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    mclBnFr* frFactor_vec;
+    frFactor_vec = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    mclBnFr* frFactor_vec2;
+    frFactor_vec2 = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
     mclBnG1 P_chunk;
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_mul(&frFactor, &z, &y_vec[i]);
-        if (i % Nb == 0) mclBnFr_mul(&frFactor3, &frFactor3, &z);
+        if (i % Nb == 0)
+            mclBnFr_mul(&frFactor3, &frFactor3, &z);
         mclBnFr_mul(&frFactor2, &frFactor3, &two_vec[i % Nb]);
         mclBnFr_add(&frFactor_vec[i], &frFactor, &frFactor2);
 
@@ -363,9 +368,9 @@ int bulletproof_verify()
         mclBnFr_neg(&frFactor_vec2[i], &z);
     }
 
-    mult_exp(&P_chunk, H, frFactor_vec, Nb*Mc); // H represents Hp due to precomputation
+    mult_exp(&P_chunk, H, frFactor_vec, Nb * Mc); // H represents Hp due to precomputation
     mclBnG1_add(&P, &P, &P_chunk);
-    mult_exp(&P_chunk, G, frFactor_vec2, Nb*Mc);
+    mult_exp(&P_chunk, G, frFactor_vec2, Nb * Mc);
     mclBnG1_add(&P, &P, &P_chunk);
 
     mclBnFr_neg(&frFactor, &mu);
@@ -382,7 +387,7 @@ int bulletproof_verify()
     mclBnFr_clear(&frFactor);
     mclBnFr_clear(&frFactor2);
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_add(&frFactor, &frFactor, &y_vec[i]);
     }
@@ -404,14 +409,14 @@ int bulletproof_verify()
         mclBnFr_mul(&frFactor3, &frFactor, &frFactor2);
         mclBnFr_add(&frFactor4, &frFactor4, &frFactor3);
     }
-    
+
     mclBnFr_sub(&delta_yz, &delta_yz, &frFactor4);
 
     mclBnFr z_vec[Mc];
     mclBnFr_setInt(&z_vec[0], 1);
     for (int i = 1; i < Mc; i++)
     {
-        mclBnFr_mul(&z_vec[i], &z_vec[i-1], &z);
+        mclBnFr_mul(&z_vec[i], &z_vec[i - 1], &z);
     }
 
     mclBnG1 CL, CR;
@@ -426,27 +431,28 @@ int bulletproof_verify()
     }
 
     mult_exp(&CR, V, frFactor_vec, Mc);
-    
+
     mclBnG1_mul(&g1Factor, &Gb, &delta_yz);
     mclBnG1_add(&CR, &CR, &g1Factor);
     mclBnG1_mul(&g1Factor, &T1, &x);
     mclBnG1_add(&CR, &CR, &g1Factor);
     mclBnG1_mul(&g1Factor, &T2, &x);
     mclBnG1_mul(&g1Factor, &g1Factor, &x);
-    mclBnG1_add(&CR, &CR, &g1Factor);   
+    mclBnG1_add(&CR, &CR, &g1Factor);
 
     int cond1 = mclBnG1_isEqual(&CL, &CR);
 
-    mclBnFr *s_vec;
-    s_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    mclBnFr* s_vec;
+    s_vec = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_setInt(&s_vec[i], 1);
         for (int j = 0; j < logN; j++)
         {
             int bin = i >> (logN - 1 - j);
-            if (bin & 1) mclBnFr_mul(&s_vec[i], &s_vec[i], &xp_vec[j]);
+            if (bin & 1)
+                mclBnFr_mul(&s_vec[i], &s_vec[i], &xp_vec[j]);
             else
             {
                 mclBnFr_inv(&frFactor, &xp_vec[j]);
@@ -461,7 +467,7 @@ int bulletproof_verify()
     mclBnFr_mul(&frFactor, &l[0], &r[0]);
     mclBnG1_mul(&LHS, &Ub, &frFactor);
 
-    for (int i = 0; i < Nb*Mc; i++)
+    for (int i = 0; i < Nb * Mc; i++)
     {
         mclBnFr_mul(&frFactor_vec[i], &s_vec[i], &l[0]);
         mclBnFr_inv(&frFactor, &s_vec[i]);
@@ -470,9 +476,9 @@ int bulletproof_verify()
         mclBnFr_mul(&frFactor_vec2[i], &frFactor, &r[0]);
     }
 
-    mult_exp(&LHS_chunk, G, frFactor_vec, Nb*Mc);
+    mult_exp(&LHS_chunk, G, frFactor_vec, Nb * Mc);
     mclBnG1_add(&LHS, &LHS, &LHS_chunk);
-    mult_exp(&LHS_chunk, H, frFactor_vec2, Nb*Mc); // H represents Hp due to precomputation
+    mult_exp(&LHS_chunk, H, frFactor_vec2, Nb * Mc); // H represents Hp due to precomputation
     mclBnG1_add(&LHS, &LHS, &LHS_chunk);
 
     mclBnG1_clear(&RHS);
@@ -504,10 +510,11 @@ int bulletproof_verify()
         }
 
         return 1;
-    } 
+    }
     else
     {
-        if (bench) printf("\033[1;31m[FAIL] :\033[0m Bulletproof INCORRECT."); 
+        if (bench)
+            printf("\033[1;31m[FAIL] :\033[0m Bulletproof INCORRECT.");
         return 0;
     }
 }
@@ -516,7 +523,7 @@ void bulletproof_save()
 {
     char buff[2048];
 
-    FILE *fbp;
+    FILE* fbp;
     fbp = fopen("data/bulletproof.params", "w");
 
     for (int i = 0; i < Mc; i++)
@@ -546,7 +553,7 @@ void bulletproof_read()
 {
     char buff[2048];
 
-    FILE *fbp;
+    FILE* fbp;
     fbp = fopen("data/bulletproof.params", "r");
 
     for (int i = 0; i < Mc; i++)
@@ -593,9 +600,9 @@ void bulletproof_read()
         fgets(buff, sizeof buff, fbp);
         mclBnG1_setStr(&L_vec[i], buff, strlen(buff), 10);
         fgets(buff, sizeof buff, fbp);
-        mclBnG1_setStr(&R_vec[i], buff, strlen(buff), 10);  
+        mclBnG1_setStr(&R_vec[i], buff, strlen(buff), 10);
         fgets(buff, sizeof buff, fbp);
-        mclBnFr_setStr(&xp_vec[i], buff, strlen(buff), 10);      
+        mclBnFr_setStr(&xp_vec[i], buff, strlen(buff), 10);
     }
 
     fclose(fbp);
@@ -615,39 +622,40 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
     Mc = Mc_set;
 
     struct stat st = {0};
-    if (stat("data", &st) == -1) mkdir("data", 0700);
+    if (stat("data", &st) == -1)
+        mkdir("data", 0700);
 
     mclBn_init(USEDCURVE, MCLBN_COMPILED_TIME_VAR);
 
-    logN = log2(Nb*Mc);
-    transcript = (char *) malloc(1024 * logN * sizeof(char));
+    logN = log2(Nb * Mc);
+    transcript = (char*) malloc(1024 * logN * sizeof(char));
 
-    G = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
-    H = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
+    G = (mclBnG1*) malloc((Nb * Mc) * sizeof(mclBnG1));
+    H = (mclBnG1*) malloc((Nb * Mc) * sizeof(mclBnG1));
     V = (mclBnG1*) malloc((Mc) * sizeof(mclBnG1));
-    Hp = (mclBnG1*) malloc((Nb*Mc) * sizeof(mclBnG1));
+    Hp = (mclBnG1*) malloc((Nb * Mc) * sizeof(mclBnG1));
     xp_vec = (mclBnFr*) malloc((logN) * sizeof(mclBnFr));
     L_vec = (mclBnG1*) malloc((logN) * sizeof(mclBnG1));
     R_vec = (mclBnG1*) malloc((logN) * sizeof(mclBnG1));
-    l = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    r = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    two_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    y_vec = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
-    y_vec_inv = (mclBnFr*) malloc((Nb*Mc) * sizeof(mclBnFr));
+    l = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    r = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    two_vec = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    y_vec = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
+    y_vec_inv = (mclBnFr*) malloc((Nb * Mc) * sizeof(mclBnFr));
     gammas = (mclBnFr*) malloc((Mc) * sizeof(mclBnFr));
 
     mclBnFr_setInt(&two_vec[0], 1);
     mclBnFr_setInt(&two_vec[1], 2);
 
-    for (int i = 2; i < Nb*Mc; i++)
+    for (int i = 2; i < Nb * Mc; i++)
     {
-        mclBnFr_mul(&two_vec[i], &two_vec[i-1], &two_vec[1]);
+        mclBnFr_mul(&two_vec[i], &two_vec[i - 1], &two_vec[1]);
     }
 
     mclBnG1 Gen;
     mclBnFr seed;
     mclBnG1_setStr(&Gen, GGEN, strlen(GGEN), 10);
-    
+
     mclBnFr_setStr(&seed, SEED1, strlen(SEED1), 10);
     mclBnG1_mul(&Gb, &Gen, &seed);
     mclBnFr_setStr(&seed, SEED2, strlen(SEED2), 10);
@@ -656,16 +664,16 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
     mclBnG1_mul(&Ub, &Gen, &seed);
 
     mclBnG1_clear(&G[0]);
-    mclBnG1_clear(&H[0]); 
+    mclBnG1_clear(&H[0]);
 
-    for (int i = 1; i < Nb*Mc; i++)
+    for (int i = 1; i < Nb * Mc; i++)
     {
-        mclBnG1_add(&G[i], &G[i-1], &Gb);
-        mclBnG1_add(&H[i], &H[i-1], &Hb);
+        mclBnG1_add(&G[i], &G[i - 1], &Gb);
+        mclBnG1_add(&H[i], &H[i - 1], &Hb);
     }
 }
 
-static inline void bulletproof_get_context(context *ctx)
+static inline void bulletproof_get_context(context* ctx)
 {
     ctx->V = V;
     ctx->G = Gb;

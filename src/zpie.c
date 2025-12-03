@@ -1,8 +1,8 @@
 
-setup_keys perform_setup(void *circuit)
+setup_keys perform_setup(void* circuit)
 {
     init_setup(circuit);
-    
+
     struct Trapdoor t; // to be destroyed
 
     struct Sigma1 s1;
@@ -29,7 +29,7 @@ setup_keys perform_setup(void *circuit)
     mpz_t base, w;
     mpz_init(w);
     mpz_init(base);
-    mpz_init_set_ui(base, GROUPGEN); // multiplicative group generator  
+    mpz_init_set_ui(base, GROUPGEN); // multiplicative group generator
     mpz_powm(w, base, kmul, pPrime);
 
     int n = mpz_get_ui(Ne);
@@ -46,7 +46,7 @@ setup_keys perform_setup(void *circuit)
     s1.A = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     s1.B = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     s1.vk = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
-    s1.pk = (mclBnG1*) malloc((M-(nPublic + nConst)) * sizeof(mclBnG1));
+    s1.pk = (mclBnG1*) malloc((M - (nPublic + nConst)) * sizeof(mclBnG1));
     s2.B = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
 
     for (int i = 0; i < n; i++)
@@ -75,46 +75,46 @@ setup_keys perform_setup(void *circuit)
     {
         for (int j = 0; j < N; j++)
         {
-            if(L[j][i] != 0) 
+            if (L[j][i] != 0)
             {
-                keys.pk.LRO[it+1] = j;
-                keys.pk.LRO[it+2] = i;
+                keys.pk.LRO[it + 1] = j;
+                keys.pk.LRO[it + 2] = i;
 
                 if (L[j][i] != 1)
                 {
                     keys.pk.LRO[it] = 10;
-                    keys.pk.LRO[it+3] = L[j][i];
-                    it+=4;
+                    keys.pk.LRO[it + 3] = L[j][i];
+                    it += 4;
                 }
                 else
                 {
                     keys.pk.LRO[it] = 1;
-                    it+=3;
+                    it += 3;
                 }
             }
-            if(R[j][i] != 0) 
+            if (R[j][i] != 0)
             {
-                keys.pk.LRO[it+1] = j;
-                keys.pk.LRO[it+2] = i;
+                keys.pk.LRO[it + 1] = j;
+                keys.pk.LRO[it + 2] = i;
 
                 if (R[j][i] != 1)
                 {
                     keys.pk.LRO[it] = 20;
-                    keys.pk.LRO[it+3] = R[j][i];
-                    it+=4;
+                    keys.pk.LRO[it + 3] = R[j][i];
+                    it += 4;
                 }
-                else 
+                else
                 {
                     keys.pk.LRO[it] = 2;
-                    it+=3;
+                    it += 3;
                 }
             }
-            if(O[j][i]) 
+            if (O[j][i])
             {
                 keys.pk.LRO[it] = 3;
-                keys.pk.LRO[it+1] = j;
-                keys.pk.LRO[it+2] = i;
-                it+=3;
+                keys.pk.LRO[it + 1] = j;
+                keys.pk.LRO[it + 2] = i;
+                it += 3;
             }
         }
     }
@@ -153,19 +153,21 @@ setup_keys perform_setup(void *circuit)
     elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
 
     log_success("Setup generated successfully in", 1);
-    if (bench) printf(" %fs\n", elapsed);
+    if (bench)
+        printf(" %fs\n", elapsed);
 
     return keys;
 }
 
-void serialize_pk(proving_key *pk)
+void serialize_pk(proving_key* pk)
 {
-    FILE *fpk;
+    FILE* fpk;
     fpk = fopen("data/provingkey.params", "w");
 
     int n = mpz_get_ui(pk->Ne);
 
-    int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) + SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
+    int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) +
+                       SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
     char buff_pk[buff_pk_size];
 
     mpz_out_raw(fpk, pk->Ne);
@@ -206,7 +208,7 @@ void serialize_pk(proving_key *pk)
         size += mclBnG2_serialize(buff_pk + size, SIZE_G2, &pk->B2[i]);
     }
 
-    for (int i = 0; i < M-(nPublic + nConst); i++)
+    for (int i = 0; i < M - (nPublic + nConst); i++)
     {
         size += mclBnG1_serialize(buff_pk + size, SIZE_G1, &pk->pk1[i]);
     }
@@ -220,9 +222,9 @@ void serialize_pk(proving_key *pk)
     fclose(fpk);
 }
 
-void serialize_vk(verifying_key *vk)
+void serialize_vk(verifying_key* vk)
 {
-    FILE *fvk;
+    FILE* fvk;
     fvk = fopen("data/verifyingkey.params", "w");
 
     int buff_vk_size = SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst) + SIZE_FR * nConst;
@@ -234,7 +236,7 @@ void serialize_vk(verifying_key *vk)
     {
         size += mclBnFr_serialize(buff_vk + size, SIZE_FR, &vk->constants[i]);
     }
-    
+
     size += mclBnGT_serialize(buff_vk + size, SIZE_GT, &vk->alphabetaT);
     size += mclBnG2_serialize(buff_vk + size, SIZE_G2, &vk->gamma2);
     size += mclBnG2_serialize(buff_vk + size, SIZE_G2, &vk->delta2);
@@ -248,21 +250,22 @@ void serialize_vk(verifying_key *vk)
     fclose(fvk);
 }
 
-void store_setup(setup_keys *keys)
+void store_setup(setup_keys* keys)
 {
     struct stat st = {0};
-    if (stat("data", &st) == -1) mkdir("data", 0700);
+    if (stat("data", &st) == -1)
+        mkdir("data", 0700);
 
     serialize_pk(&keys->pk);
     serialize_vk(&keys->vk);
 }
 
-setup_keys read_setup(void *circuit)
+setup_keys read_setup(void* circuit)
 {
     init_setup(circuit);
 
     FILE *fpk, *fvk;
-    
+
     fpk = fopen("data/provingkey.params", "r");
     fvk = fopen("data/verifyingkey.params", "r");
 
@@ -273,9 +276,10 @@ setup_keys read_setup(void *circuit)
 
     int n = mpz_get_ui(keys.pk.Ne);
 
-    int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) + SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
+    int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) +
+                       SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
     char buff_pk[buff_pk_size];
-    
+
     keys.pk.wM = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
     keys.vk.constants = (mclBnFr*) malloc(((nConst)) * sizeof(mclBnFr));
@@ -284,7 +288,7 @@ setup_keys read_setup(void *circuit)
     keys.pk.xt1_rand = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     keys.pk.A1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     keys.pk.B1 = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
-    keys.pk.pk1 = (mclBnG1*) malloc((M-(nPublic + nConst)) * sizeof(mclBnG1));
+    keys.pk.pk1 = (mclBnG1*) malloc((M - (nPublic + nConst)) * sizeof(mclBnG1));
     keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
     keys.pk.LRO_constants = (mclBnFr*) malloc((lro_const_total) * sizeof(mclBnFr));
 
@@ -293,7 +297,7 @@ setup_keys read_setup(void *circuit)
     mpz_inp_raw(factor, fpk);
 
     keys.pk.qap_size = mpz_get_si(factor);
-    keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int)); 
+    keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int));
 
     for (int i = 0; i < keys.pk.qap_size; i++)
     {
@@ -313,7 +317,7 @@ setup_keys read_setup(void *circuit)
     {
         size += mclBnFr_deserialize(&keys.pk.wM[i], buff_pk + size, SIZE_FR);
     }
-        
+
     size += mclBnG1_deserialize(&keys.pk.alpha1, buff_pk + size, SIZE_G1);
     size += mclBnG1_deserialize(&keys.pk.beta1, buff_pk + size, SIZE_G1);
     size += mclBnG2_deserialize(&keys.pk.beta2, buff_pk + size, SIZE_G2);
@@ -327,7 +331,7 @@ setup_keys read_setup(void *circuit)
         size += mclBnG2_deserialize(&keys.pk.B2[i], buff_pk + size, SIZE_G2);
     }
 
-    for (int i = 0; i < M-(nPublic + nConst); i++)
+    for (int i = 0; i < M - (nPublic + nConst); i++)
     {
         size += mclBnG1_deserialize(&keys.pk.pk1[i], buff_pk + size, SIZE_G1);
     }
@@ -336,7 +340,7 @@ setup_keys read_setup(void *circuit)
     {
         size += mclBnG1_deserialize(&keys.pk.xt1[i], buff_pk + size, SIZE_G1);
     }
-    
+
     char buff_vk[SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst) + SIZE_FR * nConst];
     size = 0;
 
@@ -358,13 +362,13 @@ setup_keys read_setup(void *circuit)
         size += mclBnG1_deserialize(&keys.vk.vk1[i], buff_vk + size, SIZE_G1);
     }
 
-    fclose(fpk); 
+    fclose(fpk);
     fclose(fvk);
 
     return keys;
 }
 
-proof generate_proof(void *circuit, proving_key *pk)
+proof generate_proof(void* circuit, proving_key* pk)
 {
     init_prover(circuit, pk);
 
@@ -378,12 +382,13 @@ proof generate_proof(void *circuit, proving_key *pk)
 
     int n = mpz_get_ui(pk->Ne);
     wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
-    
+
     proof p;
 
     p.uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
 
-    if (bench) printf("--- Computing proof...\n");
+    if (bench)
+        printf("--- Computing proof...\n");
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -395,7 +400,8 @@ proof generate_proof(void *circuit, proving_key *pk)
     elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
 
     log_success("Proof generated successfully in ", 1);
-    if (bench) printf("%fs\n", elapsed);
+    if (bench)
+        printf("%fs\n", elapsed);
 
     for (int i = 0; i < n; i++)
     {
@@ -410,10 +416,10 @@ proof generate_proof(void *circuit, proving_key *pk)
     return p;
 }
 
-void store_proof(proof *p)
+void store_proof(proof* p)
 {
     char buff[2048];
-    FILE *fproof;
+    FILE* fproof;
     fproof = fopen("data/proof.params", "w");
 
     int size = 0;
@@ -436,7 +442,7 @@ proof read_proof()
     proof p;
 
     char buff[2048];
-    FILE *fproof;
+    FILE* fproof;
     fproof = fopen("data/proof.params", "r");
 
     p.uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
@@ -459,7 +465,7 @@ proof read_proof()
     return p;
 }
 
-int verify_proof(void *circuit, proof *p, verifying_key *vk)
+int verify_proof(void* circuit, proof* p, verifying_key* vk)
 {
     init_setup(circuit);
 
@@ -475,7 +481,8 @@ int verify_proof(void *circuit, proof *p, verifying_key *vk)
         elapsed = (end.tv_sec - begin.tv_sec);
         elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
         log_success("Proof verified in ", 1);
-        if (bench) printf("%fs\n", elapsed);
+        if (bench)
+            printf("%fs\n", elapsed);
     }
     else
     {

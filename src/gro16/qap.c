@@ -1,7 +1,8 @@
 
-void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t, int *qap_size, mpz_t *Ne)
+void generateqap(void* circuit, mpz_t* A, mpz_t* B, mpz_t* C, struct Trapdoor t, int* qap_size,
+                 mpz_t* Ne)
 {
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
         mpz_init(A[i]);
@@ -9,9 +10,9 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         mpz_init(C[i]);
     }
 
-    L = (int **)malloc(N * sizeof(int*));
-    R = (int **)malloc(N * sizeof(int*));
-    O = (int **)malloc(N * sizeof(int*));
+    L = (int**) malloc(N * sizeof(int*));
+    R = (int**) malloc(N * sizeof(int*));
+    O = (int**) malloc(N * sizeof(int*));
 
     for (int i = 0; i < N; i++)
     {
@@ -34,7 +35,7 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     wn = nPublic + nConst;
     un = nConst;
     constant_n = 0;
-    init_circuit(circuit); 
+    init_circuit(circuit);
     log_state(1);
 
     if (logs)
@@ -87,7 +88,7 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
     mpz_mul(uL, T, uL); // L1 = Zs / d
     mpz_mod(uL, uL, pPrime);
 
-    mpz_t *u = (mpz_t*) malloc((N) * sizeof(mpz_t));
+    mpz_t* u = (mpz_t*) malloc((N) * sizeof(mpz_t));
 
     for (int i = 0; i < N; i++)
     {
@@ -102,28 +103,30 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
         mpz_mod(uL, uL, pPrime);
     }
 
-    int l_it = lro_const_total-2;
-    int r_it = lro_const_total-1;
-    
+    int l_it = lro_const_total - 2;
+    int r_it = lro_const_total - 1;
+
     for (int j = N; j--;)
     {
         for (int i = M; i--;)
         {
             mpz_t factor;
             mpz_init(factor);
-            if (L[j][i] != INT_MAX) mpz_mul_si(factor, u[j], L[j][i]);
-            else 
+            if (L[j][i] != INT_MAX)
+                mpz_mul_si(factor, u[j], L[j][i]);
+            else
             {
                 mpz_mul(factor, u[j], LRO_constants[l_it]);
-                l_it-=2;
+                l_it -= 2;
             }
             mpz_add(A[i], A[i], factor);
             mpz_mod(A[i], A[i], pPrime);
-            if (R[j][i] != INT_MAX) mpz_mul_si(factor, u[j], R[j][i]);
-            else 
+            if (R[j][i] != INT_MAX)
+                mpz_mul_si(factor, u[j], R[j][i]);
+            else
             {
                 mpz_mul(factor, u[j], LRO_constants[r_it]);
-                r_it-=2;
+                r_it -= 2;
             }
             mpz_add(B[i], B[i], factor);
             mpz_mod(B[i], B[i], pPrime);
@@ -131,18 +134,23 @@ void generateqap(void *circuit, mpz_t *A, mpz_t *B, mpz_t *C, struct Trapdoor t,
             mpz_mod(C[i], C[i], pPrime);
         }
     }
-    
+
     *qap_size = 0;
     for (int i = 0; i < M; i++)
     {
         for (int j = 0; j < N; j++)
         {
-            if (L[j][i] == 1) *qap_size += 3;
-            else if (L[j][i] != 0) *qap_size += 4;
-            if (R[j][i] == 1) *qap_size += 3;
-            else if (R[j][i] != 0) *qap_size += 4;
-            
-            if (O[j][i]) *qap_size += 3;
+            if (L[j][i] == 1)
+                *qap_size += 3;
+            else if (L[j][i] != 0)
+                *qap_size += 4;
+            if (R[j][i] == 1)
+                *qap_size += 3;
+            else if (R[j][i] != 0)
+                *qap_size += 4;
+
+            if (O[j][i])
+                *qap_size += 3;
         }
     }
 }
