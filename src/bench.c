@@ -1,4 +1,4 @@
-#include "zpie.h"
+#include "../include/zpie.h"
 
 int mulsize;
 

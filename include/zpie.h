@@ -49,7 +49,7 @@
 #endif
 
 #include "CUnit/Basic.h"
-#include "common/sha256.c"
+#include "../src/common/sha256.c"
 #include <gmp.h>
 #include <math.h>
 #include <omp.h>
@@ -98,7 +98,7 @@ typedef struct
     mclBnG2 piB2;
 } proof;
 
-#include "gro16/gro16.h"
+#include "gro16.h"
 
 void bulletproof_prove(unsigned char* si[]);
 int bulletproof_verify();
@@ -113,5 +113,5 @@ void init_prover(void* circuit, proving_key* pk);
 proof generate_proof(void* circuit, proving_key* pk);
 int verify_proof(void* circuit, proof* p, verifying_key* vk);
 
-#include "bulletproofs/bulletproofs.c"
-#include "zpie.c"
+#include "../src/bulletproofs/bulletproofs.c"
+#include "../src/zpie.c"

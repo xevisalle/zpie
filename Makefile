@@ -9,7 +9,7 @@ GMPPATH = /usr/local
 LIB = $(MCLPATH)/lib/lishe384_256.a $(MCLPATH)/lib/libmcl.a -I $(MCLPATH)/include -lgmp -lcunit -lm -lstdc++
 LIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /opt/homebrew/opt/cunit/lib/libcunit.a $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -I $(MCLPATH)/include -lm -lstdc++
 LIBCROSS = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a $(GMPPATH)/lib/libgmp.a -I $(MCLPATH)/include -I $(GMPPATH)/include -lstdc++
-SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/src/*.h
+SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/include/*.h
 
 CURVE = BN128
 ARCH = None

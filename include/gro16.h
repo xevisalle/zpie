@@ -51,7 +51,7 @@ static mclBnFr shift_fft;
 
 static mpz_t* wM;
 
-#include "../common/fourier.c"
+#include "../src/common/fourier.c"
 
 int prover;
 int cn;
@@ -61,7 +61,7 @@ int wn;
 int un;
 int constant_n;
 
-#include "parser.c"
+#include "../src/gro16/parser.c"
 
 struct Trapdoor
 {
@@ -139,10 +139,10 @@ typedef struct
     verifying_key vk;
 } setup_keys;
 
-#include "../common/utils.c"
-#include "prover.c"
-#include "qap.c"
-#include "setup.c"
-#include "verifier.c"
+#include "../src/common/utils.c"
+#include "../src/gro16/prover.c"
+#include "../src/gro16/qap.c"
+#include "../src/gro16/setup.c"
+#include "../src/gro16/verifier.c"
 
 #endif
