@@ -4,7 +4,7 @@ CAARCH64 = aarch64-linux-gnu-gcc
 CARM = arm-linux-gnueabihf-gcc
 COMMON = -c src/zpie.c -o build/zpie.o -std=gnu99 -Ofast -Wno-unused-result -Wno-pointer-sign
 
-MCLPATH = ../mcl
+MCLPATH = lib/mcl
 GMPPATH = /usr/local
 
 MCLINCL = -I $(MCLPATH)/include 
@@ -27,6 +27,8 @@ endif
 
 zpie: $(SRC)
 	mkdir -p build
+	git submodule update --init
+	cd lib/mcl && make -j16
 ifeq ($(ARCH), x86)
 	$(CC) -m32 $(COMMON) $(MCLINCL) $(EXTLIBCROSS) -D $(CURVE) $(MULTI_SET)
 

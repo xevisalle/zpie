@@ -22,16 +22,13 @@ In order to compute the circuit inputs for the above described circuits, you can
 
 
 ## Install dependencies
-ZPiE needs [GMP](https://gmplib.org/) and [MCL](https://github.com/herumi/mcl). To install them, and some other required dependencies, simply run:
+ZPiE needs [GMP](https://gmplib.org/) and CUnit. To install them, simply run:
 
 ```
 sudo apt install libgmp-dev libcunit1-dev
-git clone https://github.com/herumi/mcl
-cd mcl
-make -j8
 ```
 
-If willing to use the multi-thread execution, compile MCL using `make -j8 MCL_USE_OMP=1`.
+[MCL](https://github.com/herumi/mcl) is also required, but will be compiled automatically when compiling ZPiE.
 
 ## Build static ZPiE lib
 ZPiE can be built as follows (`build/libzpie.a`):
@@ -147,9 +144,9 @@ sudo make install
 Then, we have to build MCL for i386 64-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
-make -j12 ARCH=x86_64
+git submodule update --init
+cd lib/mcl
+make -j16 ARCH=x86_64
 ```
 
 We finally build ZPiE:
@@ -174,8 +171,8 @@ sudo make install
 Then, we have to build MCL for i386 32-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
+git submodule update --init
+cd lib/mcl
 make -j12 ARCH=x86
 ```
 
@@ -201,8 +198,8 @@ sudo make install
 Then, we have to build MCL for 32-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
+git submodule update --init
+cd lib/mcl
 make -j12 CXX=aarch64-linux-gnu-g++ ARCH=aarch64 MCL_USE_GMP=0
 ```
 
@@ -228,8 +225,8 @@ sudo make install
 Then, we have to build MCL for ARM 32-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
+git submodule update --init
+cd lib/mcl
 make -j12 CXX=arm-linux-gnueabihf-g++ ARCH=armv6l CFLAGS_USER="-I /usr/local/include" LDFLAGS="/usr/local/lib/libgmp.a /usr/local/lib/libgmpxx.a"
 ```
 
