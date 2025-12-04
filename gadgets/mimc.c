@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #ifndef MIMC_C
 #define MIMC_C
 

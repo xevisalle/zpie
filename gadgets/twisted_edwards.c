@@ -1,4 +1,4 @@
-void add(element uOut, element vOut, element u1, element v1, element u2, element v2)
+void add_points(element uOut, element vOut, element u1, element v1, element u2, element v2)
 {
     element factor, factor1, factor2, factor3, factor4, factor5, factor6, factor7;
     init(&factor);
@@ -91,14 +91,14 @@ void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, elemen
 
         if (i == 0)
         {
-            add(accumulatedP1[i + 1], accumulatedP2[i + 1], step1[i], step2[i], A1, A2);
-            add(doubledP1[i], doubledP2[i], A1, A2, A1, A2);
+            add_points(accumulatedP1[i + 1], accumulatedP2[i + 1], step1[i], step2[i], A1, A2);
+            add_points(doubledP1[i], doubledP2[i], A1, A2, A1, A2);
         }
         else
         {
-            add(accumulatedP1[i + 1], accumulatedP2[i + 1], step1[i], step2[i], doubledP1[i - 1],
+            add_points(accumulatedP1[i + 1], accumulatedP2[i + 1], step1[i], step2[i], doubledP1[i - 1],
                 doubledP2[i - 1]);
-            add(doubledP1[i], doubledP2[i], doubledP1[i - 1], doubledP2[i - 1], doubledP1[i - 1],
+            add_points(doubledP1[i], doubledP2[i], doubledP1[i - 1], doubledP2[i - 1], doubledP1[i - 1],
                 doubledP2[i - 1]);
         }
 
@@ -180,9 +180,3 @@ typedef struct
     char* x;
     char* y;
 } point;
-
-typedef struct
-{
-    point R;
-    char* S;
-} eddsa_signature;

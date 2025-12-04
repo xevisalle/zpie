@@ -1,7 +1,8 @@
-#include "zpie.h"
+#include <criterion/criterion.h>
+#include <zpie.h>
 
-#include "../circuits/eddsa.c"
-#include "../circuits/mimc.c"
+#include "../gadgets/eddsa.c"
+#include "../gadgets/mimc.c"
 
 void test_single_constraint()
 {
@@ -52,7 +53,7 @@ void test_mimc_hash()
     mimc7(&h, &x_in, &k);
 }
 
-void test_prover(void)
+Test(zpie, prover)
 {
     test_no_rand = 1;
     setup_keys keys = perform_setup(&test_single_constraint);
@@ -77,14 +78,14 @@ void test_prover(void)
     mclBnG2_setStr(&piB2, piB2str, strlen(piB2str), 10);
     mclBnG1_setStr(&piC, piCstr, strlen(piCstr), 10);
 
-    CU_ASSERT(mclBnG1_isEqual(&piA, &p.piA));
-    CU_ASSERT(mclBnG2_isEqual(&piB2, &p.piB2));
-    CU_ASSERT(mclBnG1_isEqual(&piC, &p.piC));
+    cr_assert(mclBnG1_isEqual(&piA, &p.piA));
+    cr_assert(mclBnG2_isEqual(&piB2, &p.piB2));
+    cr_assert(mclBnG1_isEqual(&piC, &p.piC));
 
     test_no_rand = 0;
 }
 
-void test_full_circuits(void)
+Test(zpie, full_circuits)
 {
     setup_keys keys_sc = perform_setup(&test_single_constraint);
     setup_keys keys_mh = perform_setup(&test_mimc_hash);
@@ -94,10 +95,62 @@ void test_full_circuits(void)
     proof p_mh = generate_proof(&test_mimc_hash, &keys_mh.pk);
     proof p_ev = generate_proof(&test_eddsa_verification, &keys_ev.pk);
 
-    CU_ASSERT(verify_proof(&test_single_constraint, &p_sc, &keys_sc.vk));
-    CU_ASSERT(verify_proof(&test_mimc_hash, &p_mh, &keys_mh.vk));
-    CU_ASSERT(verify_proof(&test_eddsa_verification, &p_ev, &keys_ev.vk));
+    cr_assert(verify_proof(&test_single_constraint, &p_sc, &keys_sc.vk));
+    cr_assert(verify_proof(&test_mimc_hash, &p_mh, &keys_mh.vk));
+    cr_assert(verify_proof(&test_eddsa_verification, &p_ev, &keys_ev.vk));
 }
+
+void test_full_api()
+{
+    element e_mul, e_addmul, e_add3mul, e_addmuladd;
+    init(&e_mul);
+    init(&e_addmul);
+    init(&e_add3mul);
+    init(&e_addmuladd);
+
+    element a, b;
+    init(&a);
+    init(&b);
+
+    input(&a, "5");
+    input(&b, "10");
+
+    mul(&e_mul, &a, &b);
+    addmul(&e_addmul, &a, &b, &b);
+    add3mul(&e_add3mul, &a, &a, &a, &b);
+    addmuladd(&e_addmuladd, &a, &a, &b, &b);
+}
+
+// TODO: fix this
+/*Test(zpie, constraint_system)
+{
+    uw = (mclBnFr*) malloc((99) * sizeof(mclBnFr));
+    wn = nPublic + nConst;
+    un = nConst;
+    constant_n = 0;
+    lro_constants_n = 0;
+    lro_const_total = 0;
+
+    for (int i = 0; i < 99; i++)
+    {
+        mclBnFr_clear(&uw[i]);
+    }
+
+    prover = 1;
+    init_circuit(&test_full_api);
+    prover = 0;
+
+    mclBnFr equal;
+    mclBnFr_setInt(&equal, 50);
+    cr_assert(mclBnFr_isEqual(&uw[nConst], &equal));
+
+    mclBnFr_setInt(&equal, 150);
+    cr_assert(mclBnFr_isEqual(&uw[1 + nConst], &equal));
+    cr_assert(mclBnFr_isEqual(&uw[2 + nConst], &equal));
+
+    mclBnFr_setInt(&equal, 200);
+    cr_assert(mclBnFr_isEqual(&uw[3 + nConst], &equal));
+}*/
 
 // TODO: fix this
 void test_bulletproofs(void)
@@ -112,39 +165,4 @@ void test_bulletproofs(void)
     // we verify the bulletproof (../data/bulletproof.params)
     // if(bulletproof_verify()) printf("Bulletproof verified.\n");
     // else printf("Bulletproof cannot be verified.\n");
-}
-
-int main()
-{
-    CU_pSuite suite = NULL;
-    if (CUE_SUCCESS != CU_initialize_registry())
-        return CU_get_error();
-    suite = CU_add_suite("Test Suite", init_suite, clean_suite);
-
-    if ((NULL == suite) ||
-        (NULL == CU_add_test(suite, "\n\nFull Circuits Testing\n\n", test_full_circuits)))
-    {
-        CU_cleanup_registry();
-        return CU_get_error();
-    }
-
-    if ((NULL == suite) ||
-        (NULL == CU_add_test(suite, "\n\nConstraint System Testing\n\n", test_constraint_system)))
-    {
-        CU_cleanup_registry();
-        return CU_get_error();
-    }
-
-    if ((NULL == suite) || (NULL == CU_add_test(suite, "\n\nProver Testing\n\n", test_prover)))
-    {
-        CU_cleanup_registry();
-        return CU_get_error();
-    }
-
-    CU_basic_run_tests();
-    if (CU_get_number_of_failures())
-        abort();
-
-    CU_cleanup_registry();
-    return CU_get_error();
 }

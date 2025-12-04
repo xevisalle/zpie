@@ -13,32 +13,37 @@ An academic paper about ZPiE has been published in the special issue *Recent Adv
 
 ZPiE supports the following Zero-Knowledge schemes, defined over the elliptic curves BN128 and BLS12-381:
 
-- zk-SNARKs for arithmetic circuits. We support the [Groth'16](https://eprint.iacr.org/2016/260.pdf) scheme. ZPiE includes the following arithmetic circuits:
+- zk-SNARKs for arithmetic circuits. We support the [Groth'16](https://eprint.iacr.org/2016/260.pdf) scheme. ZPiE includes the following gadgets:
+    - Twisted Edwards curve operations.
     - [EdDSA](https://eprint.iacr.org/2015/677.pdf) signature algorithm over [Baby JubJub](https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf) elliptic curve and BN128.
     - [MiMC-7](https://eprint.iacr.org/2016/492.pdf) hashing function (BN128 order).
 - [Bulletproofs](https://eprint.iacr.org/2017/1066.pdf). We support range proofs (and aggregated range proofs).
 
-In order to compute the circuit inputs for the above described circuits, you can use this [repository](https://github.com/xevisalle/cryptoolz).
+In order to compute the circuit inputs for the above described gadgets, you can use [this repository](https://github.com/xevisalle/cryptoolz).
 
 
 ## Install dependencies
-ZPiE needs [GMP](https://gmplib.org/) and [MCL](https://github.com/herumi/mcl). To install them, and some other required dependencies, simply run:
+ZPiE needs [GMP](https://gmplib.org/) and criterion. To install them, simply run:
 
 ```
-sudo apt install libgmp-dev libcunit1-dev
-git clone https://github.com/herumi/mcl
-cd mcl
-make -j8
+sudo apt install libgmp-dev libcriterion-dev
 ```
 
-If willing to use the multi-thread execution, compile MCL using `make -j8 MCL_USE_OMP=1`.
+[MCL](https://github.com/herumi/mcl) is also required, but will be compiled automatically when compiling ZPiE.
 
-## Test
-ZPiE can be tested as follows:
+## Build static ZPiE lib
+ZPiE can be built as follows (`build/libzpie.a`):
 
 ```
 git clone https://github.com/xevisalle/zpie
 cd zpie
+make
+```
+
+## Test ZPiE lib
+You can execute the tests by running:
+
+```
 make test
 ```
 
@@ -73,7 +78,7 @@ make bench MULTI=on
 Here there is an example on how to use zk-SNARKs. Copy the following snippet into a file (e.g. called `/src/main.c`):
 
 ```c
-#include "zpie.h"
+#include <zpie.h>
 
 void circuit()
 {
@@ -100,10 +105,10 @@ int main()
     setup_keys keys = perform_setup(&circuit); 
 
     // we generate a proof
-    proof p = generate_proof(&circuit, keys.pk);
+    proof p = generate_proof(&circuit, &keys.pk);
 
     // we verify the proof 
-    if (verify_proof(&circuit, p, keys.vk)) 
+    if (verify_proof(&circuit, &p, &keys.vk)) 
         printf("Proof verified.\n");
     else 
         printf("Proof cannot be verified.\n");
@@ -113,7 +118,7 @@ int main()
 And compile and execute using:
 
 ```
-make MAIN=main && ./zpie
+gcc main.c -o main build/libzpie.a ../mcl/lib/lishe384_256.a ../mcl/lib/libmcl.a -I ./include -I ../mcl/include  -lgmp -lcriterion -lm -lstdc++ -D BN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.
@@ -140,9 +145,9 @@ sudo make install
 Then, we have to build MCL for i386 64-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
-make -j12 ARCH=x86_64
+git submodule update --init
+cd lib/mcl
+make -j16 ARCH=x86_64
 ```
 
 We finally build ZPiE:
@@ -167,8 +172,8 @@ sudo make install
 Then, we have to build MCL for i386 32-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
+git submodule update --init
+cd lib/mcl
 make -j12 ARCH=x86
 ```
 
@@ -194,8 +199,8 @@ sudo make install
 Then, we have to build MCL for 32-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
+git submodule update --init
+cd lib/mcl
 make -j12 CXX=aarch64-linux-gnu-g++ ARCH=aarch64 MCL_USE_GMP=0
 ```
 
@@ -221,8 +226,8 @@ sudo make install
 Then, we have to build MCL for ARM 32-bits:
 
 ```
-git clone https://github.com/herumi/mcl
-cd mcl
+git submodule update --init
+cd lib/mcl
 make -j12 CXX=arm-linux-gnueabihf-g++ ARCH=armv6l CFLAGS_USER="-I /usr/local/include" LDFLAGS="/usr/local/lib/libgmp.a /usr/local/lib/libgmpxx.a"
 ```
 
