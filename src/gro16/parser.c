@@ -1,4 +1,6 @@
 
+#include "CUnit/Basic.h"
+
 void element_log(char* text, element* oo)
 {
     // if(!setParams) gmp_printf("%s%Zd\n", text, uw[oo->index]);

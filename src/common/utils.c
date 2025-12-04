@@ -130,7 +130,7 @@ void init_prover(void* circuit, proving_key* pk)
         printf("%fs\n\n", elapsed);
 }
 
-void bos_coster_bp(mclBnG1* chunk, mclBnG1* points, mclBnFr* scalars, int heapsize)
+/*void bos_coster_bp(mclBnG1* chunk, mclBnG1* points, mclBnFr* scalars, int heapsize)
 {
     mpz_t* exp[heapsize];
     mpz_t scalars_p[heapsize];
@@ -156,7 +156,7 @@ void bos_coster_bp(mclBnG1* chunk, mclBnG1* points, mclBnFr* scalars, int heapsi
     mclBnFr frFactor;
     mpz_to_fr(&frFactor, exp[0]);
     mclBnG1_mul(chunk, &points_p[exp[0] - scalars_p], &frFactor);
-}
+}*/
 
 static inline void mult_exp(mclBnG1* chunk, mclBnG1* points, mclBnFr* scalars, int heapsize)
 {
@@ -178,7 +178,7 @@ char* to_hex(const unsigned char* array, size_t length)
     return outstr;
 }
 
-void transcript_hash(mclBnFr* hash)
+/*void transcript_hash(mclBnFr* hash)
 {
     BYTE buff_hash_bytes[SHA256_BLOCK_SIZE];
 
@@ -238,9 +238,9 @@ void binarymaxheap(mpz_t* exp[], int i, int heapsize)
             binarymaxheap(exp, largest, heapsize);
         }
     }
-}
+}*/
 
-void sort_list(mpz_t* exp[], int heapsize)
+/*void sort_list(mpz_t* exp[], int heapsize)
 {
     struct timespec begin, end;
     clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -253,7 +253,7 @@ void sort_list(mpz_t* exp[], int heapsize)
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsedSort += (end.tv_sec - begin.tv_sec);
     elapsedSort += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-}
+}*/
 
 int fr_cmp(mclBnFr* frFactor1, mclBnFr* frFactor2)
 {

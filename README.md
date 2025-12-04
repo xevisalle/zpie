@@ -33,12 +33,19 @@ make -j8
 
 If willing to use the multi-thread execution, compile MCL using `make -j8 MCL_USE_OMP=1`.
 
-## Test
-ZPiE can be tested as follows:
+## Build static ZPiE lib
+ZPiE can be built as follows (`build/libzpie.a`):
 
 ```
 git clone https://github.com/xevisalle/zpie
 cd zpie
+make
+```
+
+## Test ZPiE lib
+You can execute the tests by running:
+
+```
 make test
 ```
 
@@ -73,7 +80,7 @@ make bench MULTI=on
 Here there is an example on how to use zk-SNARKs. Copy the following snippet into a file (e.g. called `/src/main.c`):
 
 ```c
-#include "zpie.h"
+#include <zpie.h>
 
 void circuit()
 {
@@ -100,10 +107,10 @@ int main()
     setup_keys keys = perform_setup(&circuit); 
 
     // we generate a proof
-    proof p = generate_proof(&circuit, keys.pk);
+    proof p = generate_proof(&circuit, &keys.pk);
 
     // we verify the proof 
-    if (verify_proof(&circuit, p, keys.vk)) 
+    if (verify_proof(&circuit, &p, &keys.vk)) 
         printf("Proof verified.\n");
     else 
         printf("Proof cannot be verified.\n");
@@ -113,7 +120,7 @@ int main()
 And compile and execute using:
 
 ```
-make MAIN=main && ./zpie
+gcc main.c -o main build/libzpie.a ../mcl/lib/lishe384_256.a ../mcl/lib/libmcl.a -I ./include -I ../mcl/include  -lgmp -lcunit -lm -lstdc++ -D BN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.

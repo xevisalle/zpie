@@ -1,3 +1,61 @@
+#include "../include/zpie.h"
+#include <gmp.h>
+#include <mcl/bn_c384_256.h>
+#include <stdlib.h>
+
+int logs;
+int test_no_rand;
+
+element one, oneNeg, c_mimc[91];
+int bench;
+
+static mpz_t pPrime;
+static gmp_randstate_t state;
+
+int** L;
+int** R;
+int** O;
+
+mpz_t* LRO_constants;
+
+static mclBnFr* AsFr;
+static mclBnFr* BsFr;
+static mclBnFr* CsFr;
+
+static mclBnFr* rsigma;
+static mclBnFr* rsigmaInv;
+static mclBnFr shift_fft;
+
+static mpz_t* wM;
+
+int logN;
+int Nb;
+int Mc;
+
+int M;
+int N;
+int nPublic;
+int nConst;
+int setParams;
+
+mclBnFr* uw;
+
+#include "../src/common/fourier.c"
+
+int prover;
+int cn;
+int lro_constants_n;
+int lro_const_total;
+int wn;
+int un;
+int constant_n;
+
+#include "../src/common/utils.c"
+#include "../src/gro16/parser.c"
+#include "../src/gro16/prover.c"
+#include "../src/gro16/qap.c"
+#include "../src/gro16/setup.c"
+#include "../src/gro16/verifier.c"
 
 setup_keys perform_setup(void* circuit)
 {

@@ -1,4 +1,5 @@
-#include "../include/zpie.h"
+#include "CUnit/Basic.h"
+#include <zpie.h>
 
 #include "../circuits/eddsa.c"
 #include "../circuits/mimc.c"
