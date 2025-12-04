@@ -231,7 +231,6 @@ void assert_equal(element* lo, element* ro)
     else if (prover)
     {
         mclBnFr_add(&uw[factor2.index], &uw[lo->index], &uw[factor1.index]);
-        mclBnFr_mul(&uw[factor2.index], &uw[factor2.index], &uw[one.index]);
     }
     else
     {
