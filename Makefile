@@ -8,10 +8,10 @@ MCLPATH = lib/mcl
 GMPPATH = /usr/local
 
 MCLINCL = -I $(MCLPATH)/include 
-EXTLIB = -lgmp -lcunit -lm -lstdc++
+EXTLIB = -lgmp -lcriterion -lm -lstdc++
 MCLLIB = $(MCLPATH)/lib/lishe384_256.a $(MCLPATH)/lib/libmcl.a
 
-EXTLIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /opt/homebrew/opt/cunit/lib/libcunit.a -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -lm -lstdc++
+EXTLIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /opt/homebrew/opt/criterion/lib/libcriterion.a -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -lm -lstdc++
 
 EXTLIBCROSS = $(GMPPATH)/lib/libgmp.a -I $(GMPPATH)/include -lstdc++
 

@@ -23,10 +23,10 @@ In order to compute the circuit inputs for the above described gadgets, you can 
 
 
 ## Install dependencies
-ZPiE needs [GMP](https://gmplib.org/) and CUnit. To install them, simply run:
+ZPiE needs [GMP](https://gmplib.org/) and criterion. To install them, simply run:
 
 ```
-sudo apt install libgmp-dev libcunit1-dev
+sudo apt install libgmp-dev libcriterion-dev
 ```
 
 [MCL](https://github.com/herumi/mcl) is also required, but will be compiled automatically when compiling ZPiE.
@@ -118,7 +118,7 @@ int main()
 And compile and execute using:
 
 ```
-gcc main.c -o main build/libzpie.a ../mcl/lib/lishe384_256.a ../mcl/lib/libmcl.a -I ./include -I ../mcl/include  -lgmp -lcunit -lm -lstdc++ -D BN128 && ./main
+gcc main.c -o main build/libzpie.a ../mcl/lib/lishe384_256.a ../mcl/lib/libmcl.a -I ./include -I ../mcl/include  -lgmp -lcriterion -lm -lstdc++ -D BN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.
