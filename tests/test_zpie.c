@@ -100,6 +100,57 @@ void test_full_circuits(void)
     CU_ASSERT(verify_proof(&test_eddsa_verification, &p_ev, &keys_ev.vk));
 }
 
+void test_full_api()
+{
+    element e_mul, e_addmul, e_add3mul, e_addmuladd;
+    init(&e_mul);
+    init(&e_addmul);
+    init(&e_add3mul);
+    init(&e_addmuladd);
+
+    element a, b;
+    init(&a);
+    init(&b);
+
+    input(&a, "5");
+    input(&b, "10");
+
+    mul(&e_mul, &a, &b);
+    addmul(&e_addmul, &a, &b, &b);
+    add3mul(&e_add3mul, &a, &a, &a, &b);
+    addmuladd(&e_addmuladd, &a, &a, &b, &b);
+}
+
+void test_constraint_system(void)
+{
+    uw = (mclBnFr*) malloc((99) * sizeof(mclBnFr));
+    wn = nPublic + nConst;
+    un = nConst;
+    constant_n = 0;
+    lro_constants_n = 0;
+    lro_const_total = 0;
+
+    for (int i = 0; i < 99; i++)
+    {
+        mclBnFr_clear(&uw[i]);
+    }
+
+    prover = 1;
+    init_circuit(&test_full_api);
+    prover = 0;
+
+    mclBnFr equal;
+    mclBnFr_setInt(&equal, 50);
+    CU_ASSERT(mclBnFr_isEqual(&uw[nConst], &equal));
+
+    mclBnFr_setInt(&equal, 150);
+    CU_ASSERT(mclBnFr_isEqual(&uw[1 + nConst], &equal));
+    CU_ASSERT(mclBnFr_isEqual(&uw[2 + nConst], &equal));
+
+    mclBnFr_setInt(&equal, 200);
+    CU_ASSERT(mclBnFr_isEqual(&uw[3 + nConst], &equal));
+}
+
 // TODO: fix this
 void test_bulletproofs(void)
 {

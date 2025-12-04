@@ -171,7 +171,6 @@ struct mulExpResult
 /* Helpers                                                                   */
 /* ------------------------------------------------------------------------- */
 
-void element_log(char* text, element* oo);
 void mpz_to_fr(mclBnFr* frFactor, mpz_t* convert);
 void fr_to_mpz(mpz_t* convert, mclBnFr* frFactor);
 int fr_cmp(mclBnFr* frFactor1, mclBnFr* frFactor2);
@@ -192,6 +191,12 @@ extern int setParams;
 
 extern int bench;
 extern int logs;
+extern int prover;
+extern int lro_const_total;
+extern int lro_constants_n;
+extern int constant_n;
+extern int un;
+extern int wn;
 
 /* ------------------------------------------------------------------------- */
 /* Groth'16 API                                                              */
