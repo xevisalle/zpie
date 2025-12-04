@@ -11,8 +11,10 @@ MCLINCL = -I $(MCLPATH)/include
 EXTLIB = -lgmp -lcunit -lm -lstdc++
 MCLLIB = $(MCLPATH)/lib/lishe384_256.a $(MCLPATH)/lib/libmcl.a
 
-LIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /opt/homebrew/opt/cunit/lib/libcunit.a $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -I $(MCLPATH)/include -lm -lstdc++
-LIBCROSS = $(MCLPATH)/lib/libmclbn384_256.a $(MCLPATH)/lib/libmcl.a $(GMPPATH)/lib/libgmp.a -I $(MCLPATH)/include -I $(GMPPATH)/include -lstdc++
+EXTLIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /opt/homebrew/opt/cunit/lib/libcunit.a -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -lm -lstdc++
+
+EXTLIBCROSS = $(GMPPATH)/lib/libgmp.a -I $(GMPPATH)/include -lstdc++
+
 SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/include/*.h
 
 CURVE = BN128
@@ -26,25 +28,25 @@ endif
 zpie: $(SRC)
 	mkdir -p build
 ifeq ($(ARCH), x86)
-	$(CC) -m32 $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
+	$(CC) -m32 $(COMMON) $(MCLINCL) $(EXTLIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(ARCH), x86_64)
-	$(CC) -m64 $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
+	$(CC) -m64 $(COMMON) $(MCLINCL) $(EXTLIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(ARCH), aarch64)
-	$(CAARCH64) $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
+	$(CAARCH64) $(COMMON) $(MCLINCL) $(EXTLIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(ARCH), arm)
-	$(CARM) $(COMMON) $(LIBCROSS) -D $(CURVE) $(MULTI_SET)
+	$(CARM) $(COMMON) $(MCLINCL) $(EXTLIBCROSS) -D $(CURVE) $(MULTI_SET)
 
 else ifeq ($(shell uname), Darwin)
-	$(CC) $(COMMON) $(LIBMAC) -D $(CURVE) $(MULTI_SET) -D IS_MAC_OS
+	$(CC) $(COMMON) $(MCLINCL) $(EXTLIBMAC) -D $(CURVE) $(MULTI_SET) IS_MAC_OS
 
 else
 	$(CC) $(COMMON) $(MCLINCL) $(EXTLIB) -D $(CURVE) $(MULTI_SET)
-	ar rcs build/libzpie.a build/zpie.o
 
 endif
+	ar rcs build/libzpie.a build/zpie.o
 test: 
 ifneq ("$(wildcard build/libzpie.a)","")
 	rm build/libzpie.a
@@ -61,6 +63,4 @@ endif
 	./build/zpie-bench
 clean:
 	rm -rf data
-ifneq ("$(wildcard zpie)","")
-	rm zpie
-endif
+	rm -rf build
