@@ -1,7 +1,13 @@
 #ifndef EDDSA_C
 #define EDDSA_C
 #include "mimc.c"
-#include "utils.c"
+#include "twisted_edwards.c"
+
+typedef struct
+{
+    point R;
+    char* S;
+} eddsa_signature;
 
 void verify_eddsa(eddsa_signature edsig, point B, point A, char* msg)
 {
@@ -49,7 +55,7 @@ void verify_eddsa(eddsa_signature edsig, point B, point A, char* msg)
     to_bits(sBits, signature, size - 1);
 
     mul_scalar(outPrivate[1], outPrivate[2], ram[2], ram[3], hBits, size);
-    add(out[0], out[1], outPrivate[1], outPrivate[2], ram[0], ram[1]);
+    add_points(out[0], out[1], outPrivate[1], outPrivate[2], ram[0], ram[1]);
 
     mul_scalar(out[2], out[3], Bx, By, sBits, size - 1);
 

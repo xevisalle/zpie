@@ -13,12 +13,13 @@ An academic paper about ZPiE has been published in the special issue *Recent Adv
 
 ZPiE supports the following Zero-Knowledge schemes, defined over the elliptic curves BN128 and BLS12-381:
 
-- zk-SNARKs for arithmetic circuits. We support the [Groth'16](https://eprint.iacr.org/2016/260.pdf) scheme. ZPiE includes the following arithmetic circuits:
+- zk-SNARKs for arithmetic circuits. We support the [Groth'16](https://eprint.iacr.org/2016/260.pdf) scheme. ZPiE includes the following gadgets:
+    - Twisted Edwards curve operations.
     - [EdDSA](https://eprint.iacr.org/2015/677.pdf) signature algorithm over [Baby JubJub](https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf) elliptic curve and BN128.
     - [MiMC-7](https://eprint.iacr.org/2016/492.pdf) hashing function (BN128 order).
 - [Bulletproofs](https://eprint.iacr.org/2017/1066.pdf). We support range proofs (and aggregated range proofs).
 
-In order to compute the circuit inputs for the above described circuits, you can use this [repository](https://github.com/xevisalle/cryptoolz).
+In order to compute the circuit inputs for the above described gadgets, you can use [this repository](https://github.com/xevisalle/cryptoolz).
 
 
 ## Install dependencies
