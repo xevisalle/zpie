@@ -19,25 +19,6 @@ void addmul(element* oo, element* lo1, element* lo2, element* ro)
     }
 }
 
-void addmul0(element* oo, element* lo1, element* lo2, element* ro)
-{
-    if (setParams)
-        N++;
-    else if (prover)
-    {
-        mclBnFr_add(&uw[oo->index], &uw[lo1->index], &uw[lo2->index]);
-        mclBnFr_mul(&uw[oo->index], &uw[oo->index], &uw[ro->index]);
-    }
-    else
-    {
-        L[cn][lo1->index] = 1;
-        L[cn][lo2->index] = 1;
-        R[cn][ro->index] = 1;
-
-        cn++;
-    }
-}
-
 void add3mul(element* oo, element* lo1, element* lo2, element* lo3, element* ro)
 {
     if (setParams)
@@ -244,7 +225,22 @@ void assert_equal(element* lo, element* ro)
     init(&factor2);
 
     mul(&factor1, ro, &oneNeg);
-    addmul0(&factor2, lo, &factor1, &one);
+    
+    if (setParams)
+        N++;
+    else if (prover)
+    {
+        mclBnFr_add(&uw[factor2.index], &uw[lo->index], &uw[factor1.index]);
+        mclBnFr_mul(&uw[factor2.index], &uw[factor2.index], &uw[one.index]);
+    }
+    else
+    {
+        L[cn][lo->index] = 1;
+        L[cn][factor1.index] = 1;
+        R[cn][one.index] = 1;
+
+        cn++;
+    }
 }
 
 void input(element* var, char* val)
