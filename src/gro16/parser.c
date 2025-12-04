@@ -313,7 +313,7 @@ void init_circuit(void* circuit)
 
     char buff[2048];
     FILE* cnst;
-    cnst = fopen("circuits/constants.txt", "r");
+    cnst = fopen("gadgets/constants.txt", "r");
 
     for (int i = 0; i < 91; i++)
     {

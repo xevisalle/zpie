@@ -15,7 +15,7 @@ EXTLIBMAC = /opt/homebrew/lib/libgmp.a /opt/homebrew/opt/libomp/lib/libomp.a /op
 
 EXTLIBCROSS = $(GMPPATH)/lib/libgmp.a -I $(GMPPATH)/include -lstdc++
 
-SRC = $(shell pwd)/src/*.c $(shell pwd)/circuits/*.c $(shell pwd)/include/*.h
+SRC = $(shell pwd)/src/*.c $(shell pwd)/gadgets/*.c $(shell pwd)/include/*.h
 
 CURVE = BN128
 ARCH = None
@@ -54,15 +54,15 @@ ifneq ("$(wildcard build/libzpie.a)","")
 	rm build/libzpie.a
 endif
 	make
-	$(CC) src/tests.c -o build/zpie-tests build/libzpie.a $(MCLLIB) -I ./include $(MCLINCL) $(EXTLIB) -D $(CURVE) $(MULTI_SET)
-	./build/zpie-tests
+	$(CC) tests/test_zpie.c -o build/test_zpie build/libzpie.a $(MCLLIB) -I ./include $(MCLINCL) $(EXTLIB) -D $(CURVE) $(MULTI_SET)
+	./build/test_zpie
 bench: 
 ifneq ("$(wildcard build/libzpie.a)","")
 	rm build/libzpie.a
 endif
 	make
-	$(CC) src/bench.c -o build/zpie-bench build/libzpie.a $(MCLLIB) -I ./include $(MCLINCL) $(EXTLIB) -D $(CURVE) $(MULTI_SET)
-	./build/zpie-bench
+	$(CC) tests/bench_zpie.c -o build/bench_zpie build/libzpie.a $(MCLLIB) -I ./include $(MCLINCL) $(EXTLIB) -D $(CURVE) $(MULTI_SET)
+	./build/bench_zpie
 clean:
 	rm -rf data
 	rm -rf build

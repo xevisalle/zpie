@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         printf("******************* ZPiE v0.5 *******************\n");
-        printf("USAGE: ./build/zpie-bench [ACTIONS] [OPTIONS]\n\n");
+        printf("USAGE: ./build/bench_zpie [ACTIONS] [OPTIONS]\n\n");
         printf("[ACTIONS]:\n");
         printf("-s <c>: Perform setup of 'c' constraints.\n");
         printf("-p <c>: Generate proof of 'c' constraints.\n");

@@ -1,8 +1,8 @@
 #include "CUnit/Basic.h"
 #include <zpie.h>
 
-#include "../circuits/eddsa.c"
-#include "../circuits/mimc.c"
+#include "../gadgets/eddsa.c"
+#include "../gadgets/mimc.c"
 
 void test_single_constraint()
 {
