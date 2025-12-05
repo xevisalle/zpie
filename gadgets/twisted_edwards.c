@@ -69,10 +69,6 @@ void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, elemen
     element doubledP1[size];
     element doubledP2[size];
 
-    element oneNeg;
-    init(&oneNeg);
-    input(&oneNeg, "-1");
-
     init_array(doubledP1, size);
     init_array(doubledP2, size);
 
