@@ -118,7 +118,7 @@ int main()
 And compile and execute using:
 
 ```
-gcc main.c -o main build/libzpie.a ../mcl/lib/lishe384_256.a ../mcl/lib/libmcl.a -I ./include -I ../mcl/include  -lgmp -lcriterion -lm -lstdc++ -D BN128 && ./main
+gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include  -lgmp -lcriterion -lm -lstdc++ -D BN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.
