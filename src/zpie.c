@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "../include/zpie.h"
 #include <gmp.h>
 #include <mcl/bn_c384_256.h>
