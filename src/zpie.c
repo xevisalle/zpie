@@ -1,6 +1,6 @@
-#include <stdio.h>
 #include "../include/zpie.h"
 #include <mcl/bn_c384_256.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 int logs;
