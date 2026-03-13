@@ -209,11 +209,8 @@ void mul_big_constants(element* oo, mclBnFr* lc, element* lo, mclBnFr* rc, eleme
         O[cn][oo->index] = 1;
 
         cn++;
-        mpz_t factor;
-        fr_to_mpz(&factor, lc);
-        mpz_set(LRO_constants[lro_constants_n], factor);
-        fr_to_mpz(&factor, rc);
-        mpz_set(LRO_constants[lro_constants_n + 1], factor);
+        LRO_constants[lro_constants_n] = *lc;
+        LRO_constants[lro_constants_n + 1] = *rc;
         lro_constants_n += 2;
     }
 }

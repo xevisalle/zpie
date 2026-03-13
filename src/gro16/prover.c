@@ -1,7 +1,7 @@
 
 void h_coefficients(proving_key* pk)
 {
-    int n = mpz_get_ui(pk->Ne);
+    int n = pk->Ne;
 
 #pragma omp parallel for
     for (int j = 0; j < n; j++)
@@ -97,7 +97,7 @@ void h_coefficients(proving_key* pk)
 
 void mul_exp(struct mulExpResult* result, mclBnFr* uwProof, proving_key* pk)
 {
-    int n = mpz_get_ui(pk->Ne);
+    int n = pk->Ne;
 
     for (int i = nConst; i < (nPublic + nConst); i++)
     {

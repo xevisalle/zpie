@@ -55,7 +55,7 @@
 #define SEED3 "9337391987890516768459279655811256076141636705119217609748065801581636739148"
 #endif
 
-#include <gmp.h>
+#include <limits.h>
 #include <math.h>
 #include <omp.h>
 #include <stdio.h>
@@ -97,7 +97,7 @@ typedef struct
 
 typedef struct
 {
-    mpz_t Ne;
+    int Ne;
     mclBnFr* wM;
 
     int qap_size;
@@ -131,11 +131,11 @@ typedef struct
 
 struct Trapdoor
 {
-    mpz_t alpha;
-    mpz_t beta;
-    mpz_t gamma;
-    mpz_t delta;
-    mpz_t x;
+    mclBnFr alpha;
+    mclBnFr beta;
+    mclBnFr gamma;
+    mclBnFr delta;
+    mclBnFr x;
 };
 
 struct Sigma1
@@ -171,11 +171,7 @@ struct mulExpResult
 /* Helpers                                                                   */
 /* ------------------------------------------------------------------------- */
 
-void mpz_to_fr(mclBnFr* frFactor, mpz_t* convert);
-void fr_to_mpz(mpz_t* convert, mclBnFr* frFactor);
 int fr_cmp(mclBnFr* frFactor1, mclBnFr* frFactor2);
-void sort_list(mpz_t* exp[], int heapsize);
-void binarymaxheap(mpz_t* exp[], int i, int heapsize);
 void test_constraint_system(void);
 
 extern int test_no_rand;

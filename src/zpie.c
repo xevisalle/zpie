@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "../include/zpie.h"
-#include <gmp.h>
 #include <mcl/bn_c384_256.h>
 #include <stdlib.h>
 
@@ -10,14 +9,11 @@ int test_no_rand;
 element one, oneNeg, c_mimc[91];
 int bench;
 
-static mpz_t pPrime;
-static gmp_randstate_t state;
-
 int** L;
 int** R;
 int** O;
 
-mpz_t* LRO_constants;
+mclBnFr* LRO_constants;
 
 static mclBnFr* AsFr;
 static mclBnFr* BsFr;
@@ -27,7 +23,7 @@ static mclBnFr* rsigma;
 static mclBnFr* rsigmaInv;
 static mclBnFr shift_fft;
 
-static mpz_t* wM;
+static mclBnFr* wM;
 
 int logN;
 int Nb;
@@ -68,39 +64,46 @@ setup_keys perform_setup(void* circuit)
     struct Sigma2 s2;
     mclBnGT alphabetaT;
 
-    mpz_t kmul, factor, two, Ne;
-    mpz_inits(kmul, Ne, factor, NULL);
+    // Find smallest power of 2 >= N that divides (p - 1)
+    // Since p - 1 = r * 2^s for BN/BLS curves, any power of 2 up to 2^s works.
+    // We compute this with plain integers since Ne is always small.
+    mclBnFr frPrime;
+    mclBnFr_setStr(&frPrime, PRIMESTR, strlen(PRIMESTR), 10);
 
-    mpz_init(pPrime);
-    mpz_set_str(pPrime, PRIMESTR, 10);
-    mpz_sub_ui(factor, pPrime, 1);
-    mpz_init_set_ui(two, 2);
-
-    int i = 3;
-    while ((mpz_cmp_ui(Ne, N) < 0) || (!mpz_divisible_p(factor, Ne)))
+    int Ne = 8; // start at 2^3
+    while (Ne < N)
     {
-        mpz_pow_ui(Ne, two, i);
-        i++;
+        Ne <<= 1;
     }
+    // Ne is now a power of 2 >= N.
+    // For BN128/BLS12_381, (p-1) is divisible by large powers of 2, so this is fine.
 
-    mpz_cdiv_q(kmul, factor, Ne);
+    // Compute root of unity: w = g^((p-1)/Ne) mod p
+    // Using mclBnFr: factor = (p-1)/Ne, w = GROUPGEN^factor
+    mclBnFr frOne, frNe, factor, w;
+    mclBnFr_setInt(&frOne, 1);
+    mclBnFr_setInt(&frNe, Ne);
 
-    mpz_t base, w;
-    mpz_init(w);
-    mpz_init(base);
-    mpz_init_set_ui(base, GROUPGEN); // multiplicative group generator
-    mpz_powm(w, base, kmul, pPrime);
+    // (p - 1) in Fr: since Fr is mod p, p mod p = 0, so p-1 = -1 in Fr
+    mclBnFr pMinus1;
+    mclBnFr_neg(&pMinus1, &frOne); // -1 mod p = p-1
 
-    int n = mpz_get_ui(Ne);
+    mclBnFr_div(&factor, &pMinus1, &frNe); // (p-1)/Ne
+
+    mclBnFr base;
+    mclBnFr_setInt(&base, GROUPGEN);
+    mclBnFr_pow(&w, &base, &factor);
+
+    int n = Ne;
 
     setup_keys keys;
-    mpz_init_set(keys.pk.Ne, Ne);
+    keys.pk.Ne = Ne;
 
     keys.pk.LRO_constants = (mclBnFr*) malloc((lro_const_total) * sizeof(mclBnFr));
     keys.pk.wM = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
 
-    wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
+    wM = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     s1.xt = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
     s1.A = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
     s1.B = (mclBnG1*) malloc((M) * sizeof(mclBnG1));
@@ -108,24 +111,28 @@ setup_keys perform_setup(void* circuit)
     s1.pk = (mclBnG1*) malloc((M - (nPublic + nConst)) * sizeof(mclBnG1));
     s2.B = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
 
+    // wM[i] = w^i
+    mclBnFr_setInt(&wM[0], 1);
+    for (int i = 1; i < n; i++)
+    {
+        mclBnFr_mul(&wM[i], &wM[i - 1], &w);
+    }
     for (int i = 0; i < n; i++)
     {
-        mpz_init(wM[i]);
-        mpz_powm_ui(wM[i], w, i, pPrime);
-        mpz_to_fr(&keys.pk.wM[i], &wM[i]);
+        keys.pk.wM[i] = wM[i];
     }
 
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    setup(circuit, &t, &s1, &s2, &alphabetaT, &keys.pk.qap_size, &keys.pk.Ne);
+    setup(circuit, &t, &s1, &s2, &alphabetaT, &keys.pk.qap_size, keys.pk.Ne);
 
     keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int));
 
     for (int i = 0; i < lro_const_total; i++)
     {
-        mpz_to_fr(&keys.pk.LRO_constants[i], &LRO_constants[i]);
+        keys.pk.LRO_constants[i] = LRO_constants[i];
     }
 
     int it = 0;
@@ -223,23 +230,18 @@ void serialize_pk(proving_key* pk)
     FILE* fpk;
     fpk = fopen("data/provingkey.params", "w");
 
-    int n = mpz_get_ui(pk->Ne);
+    int n = pk->Ne;
 
     int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) +
                        SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
     char buff_pk[buff_pk_size];
 
-    mpz_out_raw(fpk, pk->Ne);
-
-    mpz_t factor;
-    mpz_init(factor);
-    mpz_set_si(factor, pk->qap_size);
-    mpz_out_raw(fpk, factor);
+    fwrite(&pk->Ne, sizeof(int), 1, fpk);
+    fwrite(&pk->qap_size, sizeof(int), 1, fpk);
 
     for (int i = 0; i < pk->qap_size; i++)
     {
-        mpz_set_si(factor, pk->LRO[i]);
-        mpz_out_raw(fpk, factor);
+        fwrite(&pk->LRO[i], sizeof(int), 1, fpk);
     }
 
     int size = 0;
@@ -330,10 +332,9 @@ setup_keys read_setup(void* circuit)
 
     setup_keys keys;
 
-    mpz_init(keys.pk.Ne);
-    mpz_inp_raw(keys.pk.Ne, fpk);
+    fread(&keys.pk.Ne, sizeof(int), 1, fpk);
 
-    int n = mpz_get_ui(keys.pk.Ne);
+    int n = keys.pk.Ne;
 
     int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) +
                        SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
@@ -351,17 +352,12 @@ setup_keys read_setup(void* circuit)
     keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
     keys.pk.LRO_constants = (mclBnFr*) malloc((lro_const_total) * sizeof(mclBnFr));
 
-    mpz_t factor;
-    mpz_init(factor);
-    mpz_inp_raw(factor, fpk);
-
-    keys.pk.qap_size = mpz_get_si(factor);
+    fread(&keys.pk.qap_size, sizeof(int), 1, fpk);
     keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int));
 
     for (int i = 0; i < keys.pk.qap_size; i++)
     {
-        mpz_inp_raw(factor, fpk);
-        keys.pk.LRO[i] = mpz_get_si(factor);
+        fread(&keys.pk.LRO[i], sizeof(int), 1, fpk);
     }
 
     int size = 0;
@@ -439,8 +435,7 @@ proof generate_proof(void* circuit, proving_key* pk)
         mclBnFr_clear(&uw[i]);
     }
 
-    int n = mpz_get_ui(pk->Ne);
-    wM = (mpz_t*) malloc((n) * sizeof(mpz_t));
+    int n = pk->Ne;
 
     proof p;
 

@@ -128,40 +128,39 @@ void mul_scalar(element mulOut1, element mulOut2, element A1, element A2, elemen
 
 void to_bits(element* bits, element val, int size)
 {
-    mpz_t t1, t2, t3, total;
-    mpz_init(t1);
-    mpz_init(t2);
-    mpz_init(t3);
-    mpz_init(total);
-
-    mpz_set_str(t2, "1", 10);
-
+    unsigned char bytes[SIZE_FR];
     element b[size];
 
     for (int i = 0; i < size; i++)
     {
+        int bit = 0;
         if (!setParams)
         {
-            mpz_t factor;
-            mpz_init(factor);
-            fr_to_mpz(&factor, &uw[val.index]);
-            mpz_tdiv_q_2exp(t1, factor, i);
-            mpz_and(t3, t1, t2);
+            mclBnFr_getLittleEndian(bytes, SIZE_FR, &uw[val.index]);
+            int byte_idx = i / 8;
+            int bit_idx = i % 8;
+            bit = (bytes[byte_idx] >> bit_idx) & 1;
         }
 
-        char buff[2048];
-        mpz_get_str(buff, 10, t3);
+        char buff[2];
+        buff[0] = '0' + bit;
+        buff[1] = '\0';
         input(&bits[i], buff);
 
-        mpz_ui_pow_ui(total, 2, i);
-
-        mclBnFr one_mpz;
-        mclBnFr_setInt(&one_mpz, 1);
+        mclBnFr one_mcl;
+        mclBnFr_setInt(&one_mcl, 1);
 
         init(&b[i]);
         mclBnFr factor;
-        mpz_to_fr(&factor, &total);
-        mul_big_constants(&b[i], &factor, &bits[i], &one_mpz, &one);
+        mclBnFr_setInt(&factor, 1);
+        // factor = 2^i
+        for (int j = 0; j < i; j++)
+        {
+            mclBnFr two;
+            mclBnFr_setInt(&two, 2);
+            mclBnFr_mul(&factor, &factor, &two);
+        }
+        mul_big_constants(&b[i], &factor, &bits[i], &one_mcl, &one);
     }
 
     element fa;

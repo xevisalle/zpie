@@ -1,13 +1,13 @@
 
-void generateqap(void* circuit, mpz_t* A, mpz_t* B, mpz_t* C, struct Trapdoor t, int* qap_size,
-                 mpz_t* Ne)
+void generateqap(void* circuit, mclBnFr* A, mclBnFr* B, mclBnFr* C, struct Trapdoor t,
+                 int* qap_size, int Ne)
 {
 #pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
-        mpz_init(A[i]);
-        mpz_init(B[i]);
-        mpz_init(C[i]);
+        mclBnFr_clear(&A[i]);
+        mclBnFr_clear(&B[i]);
+        mclBnFr_clear(&C[i]);
     }
 
     L = (int**) malloc(N * sizeof(int*));
@@ -77,30 +77,26 @@ void generateqap(void* circuit, mpz_t* A, mpz_t* B, mpz_t* C, struct Trapdoor t,
         }
     }
 
-    mpz_t factor, tX, T, uL;
-    mpz_inits(factor, T, uL, NULL);
-    mpz_init_set(tX, t.x);
+    mclBnFr tX, T, uL, frNe, frOne, factor;
+    tX = t.x;
+    mclBnFr_setInt(&frNe, Ne);
+    mclBnFr_setInt(&frOne, 1);
 
-    mpz_powm(T, tX, *Ne, pPrime);
-    mpz_sub_ui(T, T, 1); // Z^d - 1 = Zs
+    mclBnFr_pow(&T, &tX, &frNe);
+    mclBnFr_sub(&T, &T, &frOne); // Z^d - 1 = Zs
 
-    mpz_invert(uL, *Ne, pPrime);
-    mpz_mul(uL, T, uL); // L1 = Zs / d
-    mpz_mod(uL, uL, pPrime);
+    mclBnFr_inv(&uL, &frNe);
+    mclBnFr_mul(&uL, &T, &uL); // L1 = Zs / d
 
-    mpz_t* u = (mpz_t*) malloc((N) * sizeof(mpz_t));
+    mclBnFr* u = (mclBnFr*) malloc((N) * sizeof(mclBnFr));
 
     for (int i = 0; i < N; i++)
     {
-        mpz_init(u[i]);
+        mclBnFr_sub(&factor, &tX, &wM[i]);
+        mclBnFr_inv(&factor, &factor);
+        mclBnFr_mul(&u[i], &uL, &factor);
 
-        mpz_sub(factor, tX, wM[i]);
-        mpz_invert(factor, factor, pPrime);
-        mpz_mul(u[i], uL, factor);
-        mpz_mod(u[i], u[i], pPrime);
-
-        mpz_mul(uL, uL, wM[1]);
-        mpz_mod(uL, uL, pPrime);
+        mclBnFr_mul(&uL, &uL, &wM[1]);
     }
 
     int l_it = lro_const_total - 2;
@@ -110,28 +106,37 @@ void generateqap(void* circuit, mpz_t* A, mpz_t* B, mpz_t* C, struct Trapdoor t,
     {
         for (int i = M; i--;)
         {
-            mpz_t factor;
-            mpz_init(factor);
+            mclBnFr f;
             if (L[j][i] != INT_MAX)
-                mpz_mul_si(factor, u[j], L[j][i]);
+            {
+                mclBnFr frLji;
+                mclBnFr_setInt(&frLji, L[j][i]);
+                mclBnFr_mul(&f, &u[j], &frLji);
+            }
             else
             {
-                mpz_mul(factor, u[j], LRO_constants[l_it]);
+                mclBnFr_mul(&f, &u[j], &LRO_constants[l_it]);
                 l_it -= 2;
             }
-            mpz_add(A[i], A[i], factor);
-            mpz_mod(A[i], A[i], pPrime);
+            mclBnFr_add(&A[i], &A[i], &f);
             if (R[j][i] != INT_MAX)
-                mpz_mul_si(factor, u[j], R[j][i]);
+            {
+                mclBnFr frRji;
+                mclBnFr_setInt(&frRji, R[j][i]);
+                mclBnFr_mul(&f, &u[j], &frRji);
+            }
             else
             {
-                mpz_mul(factor, u[j], LRO_constants[r_it]);
+                mclBnFr_mul(&f, &u[j], &LRO_constants[r_it]);
                 r_it -= 2;
             }
-            mpz_add(B[i], B[i], factor);
-            mpz_mod(B[i], B[i], pPrime);
-            mpz_addmul_ui(C[i], u[j], O[j][i]);
-            mpz_mod(C[i], C[i], pPrime);
+            mclBnFr_add(&B[i], &B[i], &f);
+            {
+                mclBnFr frOji;
+                mclBnFr_setInt(&frOji, O[j][i]);
+                mclBnFr_mul(&f, &u[j], &frOji);
+            }
+            mclBnFr_add(&C[i], &C[i], &f);
         }
     }
 
@@ -153,4 +158,6 @@ void generateqap(void* circuit, mpz_t* A, mpz_t* B, mpz_t* C, struct Trapdoor t,
                 *qap_size += 3;
         }
     }
+
+    free(u);
 }
