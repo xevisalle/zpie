@@ -23,10 +23,10 @@ In order to compute the circuit inputs for the above described gadgets, you can 
 
 
 ## Install dependencies
-ZPiE needs [GMP](https://gmplib.org/) and criterion. To install them, simply run:
+ZPiE needs criterion. To install it, simply run:
 
 ```
-sudo apt install libgmp-dev libcriterion-dev
+sudo apt install libcriterion-dev
 ```
 
 [MCL](https://github.com/herumi/mcl) is also required, but will be compiled automatically when compiling ZPiE.
@@ -118,7 +118,7 @@ int main()
 And compile and execute using:
 
 ```
-gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include  -lgmp -lcriterion -lm -lstdc++ -D BN128 && ./main
+gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include -lcriterion -lm -lstdc++ -D BN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.
@@ -131,18 +131,7 @@ TBC.
 
 ### Build for x86_64
 
-First we need to download and compile GMP for i386 64-bits:
-
-```
-wget https://gmplib.org/download/gmp/gmp-6.2.0.tar.xz
-tar -xf gmp-6.2.0.tar.xz
-cd gmp-6.2.0
-./configure --enable-cxx ABI=64
-make -j12
-sudo make install
-```
-
-Then, we have to build MCL for i386 64-bits:
+First, we have to build MCL for i386 64-bits:
 
 ```
 git submodule update --init
@@ -158,18 +147,7 @@ make bench ARCH=x86_64
 
 ### Build for x86
 
-First we need to download and compile GMP for i386 32-bits:
-
-```
-wget https://gmplib.org/download/gmp/gmp-6.2.0.tar.xz
-tar -xf gmp-6.2.0.tar.xz
-cd gmp-6.2.0
-./configure --enable-cxx ABI=32
-make -j12
-sudo make install
-```
-
-Then, we have to build MCL for i386 32-bits:
+First, we have to build MCL for i386 32-bits:
 
 ```
 git submodule update --init
@@ -185,18 +163,7 @@ make bench ARCH=x86
 
 ### Build for ARM 64-bits
 
-First we need to download and compile GMP for ARM 64-bits:
-
-```
-wget https://gmplib.org/download/gmp/gmp-6.2.0.tar.xz
-tar -xf gmp-6.2.0.tar.xz
-cd gmp-6.2.0
-./configure --host=aarch64 ABI=64 CC=aarch64-linux-gnu-gcc
-make -j12
-sudo make install
-```
-
-Then, we have to build MCL for 32-bits:
+First, we have to build MCL for ARM 64-bits:
 
 ```
 git submodule update --init
@@ -212,18 +179,7 @@ make bench ARCH=aarch64
 
 ### Build for ARM 32-bits
 
-First we need to download and compile GMP for ARM 32-bits:
-
-```
-wget https://gmplib.org/download/gmp/gmp-6.2.0.tar.xz
-tar -xf gmp-6.2.0.tar.xz
-cd gmp-6.2.0
-./configure --enable-cxx --host=armv6l ABI=32 CC=arm-linux-gnueabihf-gcc
-make -j12
-sudo make install
-```
-
-Then, we have to build MCL for ARM 32-bits:
+First, we have to build MCL for ARM 32-bits:
 
 ```
 git submodule update --init

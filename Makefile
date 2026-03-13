@@ -5,15 +5,14 @@ CARM = arm-linux-gnueabihf-gcc
 COMMON = -c src/zpie.c -o build/zpie.o -std=gnu99 -Ofast -Wno-unused-result -Wno-pointer-sign
 
 MCLPATH = lib/mcl
-GMPPATH = /usr/local
 
 MCLINCL = -I $(MCLPATH)/include 
-EXTLIB = -lgmp -lcriterion -lm -lstdc++
+EXTLIB = -lcriterion -lm -lstdc++
 MCLLIB = $(MCLPATH)/lib/lishe384_256.a $(MCLPATH)/lib/libmcl.a
 
-EXTLIBMAC = -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -L /opt/homebrew/lib -lgmp -lcriterion -lstdc++
+EXTLIBMAC = -I /opt/homebrew/opt/libomp/include -I /opt/homebrew/include -L /opt/homebrew/lib -lcriterion -lstdc++
 
-EXTLIBCROSS = $(GMPPATH)/lib/libgmp.a -I $(GMPPATH)/include -lstdc++
+EXTLIBCROSS = -lstdc++
 
 SRC = $(shell pwd)/src/*.c $(shell pwd)/gadgets/*.c $(shell pwd)/include/*.h
 

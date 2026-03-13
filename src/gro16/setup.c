@@ -1,145 +1,101 @@
 void setup(void* circuit, struct Trapdoor* t, struct Sigma1* s1, struct Sigma2* s2,
-           mclBnGT* alphabetaT, int* qap_size, mpz_t* Ne)
+           mclBnGT* alphabetaT, int* qap_size, int Ne)
 {
-    mpz_t* A = (mpz_t*) malloc((M) * sizeof(mpz_t));
-    mpz_t* B = (mpz_t*) malloc((M) * sizeof(mpz_t));
-    mpz_t* C = (mpz_t*) malloc((M) * sizeof(mpz_t));
+    mclBnFr* A = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
+    mclBnFr* B = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
+    mclBnFr* C = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
 
     mclBnG1 g;
     mclBnG2 h; // generators for G1 and G2
     mclBnG1_setStr(&g, GGEN, strlen(GGEN), 10);
     mclBnG2_setStr(&h, HGEN, strlen(HGEN), 10);
 
-    mpz_init(t->alpha);
-    mpz_init(t->beta);
-    mpz_init(t->gamma);
-    mpz_init(t->delta);
-    mpz_init(t->x);
-
-    mclBnFr rand;
-
-    generate_random_scalar(&rand);
-    fr_to_mpz(&t->alpha, &rand);
-    generate_random_scalar(&rand);
-    fr_to_mpz(&t->beta, &rand);
-    generate_random_scalar(&rand);
-    fr_to_mpz(&t->gamma, &rand);
-    generate_random_scalar(&rand);
-    fr_to_mpz(&t->delta, &rand);
-    generate_random_scalar(&rand);
-    fr_to_mpz(&t->x, &rand);
+    generate_random_scalar(&t->alpha);
+    generate_random_scalar(&t->beta);
+    generate_random_scalar(&t->gamma);
+    generate_random_scalar(&t->delta);
+    generate_random_scalar(&t->x);
 
     generateqap(circuit, A, B, C, *t, qap_size, Ne);
 
-    mpz_t factor, T;
-    mpz_inits(factor, T, NULL);
-
-    mpz_set_ui(factor, 1);
-    mpz_powm(T, t->x, *Ne, pPrime);
-    mpz_sub(T, T, factor);
+    mclBnFr frNe, T, frOne;
+    mclBnFr_setInt(&frNe, Ne);
+    mclBnFr_setInt(&frOne, 1);
+    mclBnFr_pow(&T, &t->x, &frNe);
+    mclBnFr_sub(&T, &T, &frOne);
 
     // encrypt
-    mclBnFr* frFactor = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
-    mpz_to_fr(&frFactor[0], &t->alpha);
-    mclBnG1_mul(&s1->alpha, &g, &frFactor[0]);
-    mpz_to_fr(&frFactor[0], &t->beta);
-    mclBnG1_mul(&s1->beta, &g, &frFactor[0]);
-    mpz_to_fr(&frFactor[0], &t->delta);
-    mclBnG1_mul(&s1->delta, &g, &frFactor[0]);
+    mclBnG1_mul(&s1->alpha, &g, &t->alpha);
+    mclBnG1_mul(&s1->beta, &g, &t->beta);
+    mclBnG1_mul(&s1->delta, &g, &t->delta);
 
-    mpz_t invGamma, invDelta;
-    mpz_inits(invGamma, invDelta, NULL);
-    mpz_invert(invGamma, t->gamma, pPrime);
-    mpz_invert(invDelta, t->delta, pPrime);
+    mclBnFr invGamma, invDelta;
+    mclBnFr_inv(&invGamma, &t->gamma);
+    mclBnFr_inv(&invDelta, &t->delta);
 
 #pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
-        mpz_to_fr(&frFactor[i], &A[i]);
-        mclBnG1_mul(&s1->A[i], &g, &frFactor[i]);
-        mpz_to_fr(&frFactor[i], &B[i]);
-        mclBnG1_mul(&s1->B[i], &g, &frFactor[i]);
+        mclBnG1_mul(&s1->A[i], &g, &A[i]);
+        mclBnG1_mul(&s1->B[i], &g, &B[i]);
     }
 
 #pragma omp parallel for
     for (int i = 0; i < (nPublic + nConst); i++)
     {
-        mpz_t f;
-        mpz_init(f);
+        mclBnFr f, tmp;
         // (t->beta * A[i] + t->alpha * B[i] + C[i]) * invGamma
-        mpz_mul(f, t->beta, A[i]);
-        mpz_mod(f, f, pPrime);
-        mpz_addmul(f, t->alpha, B[i]);
-        mpz_mod(f, f, pPrime);
-        mpz_add(f, f, C[i]);
-
-        mpz_mul(f, f, invGamma);
-        mpz_mod(f, f, pPrime);
-        mpz_to_fr(&frFactor[i], &f);
-        mclBnG1_mul(&s1->vk[i], &g, &frFactor[i]);
+        mclBnFr_mul(&f, &t->beta, &A[i]);
+        mclBnFr_mul(&tmp, &t->alpha, &B[i]);
+        mclBnFr_add(&f, &f, &tmp);
+        mclBnFr_add(&f, &f, &C[i]);
+        mclBnFr_mul(&f, &f, &invGamma);
+        mclBnG1_mul(&s1->vk[i], &g, &f);
     }
 
 #pragma omp parallel for
     for (int i = 0; i < M - (nPublic + nConst); i++)
     {
-        mpz_t f;
-        mpz_init(f);
+        mclBnFr f, tmp;
         // (t->beta * A[i] + t->alpha * B[i] + C[i]) * invDelta
-        mpz_mul(f, t->beta, A[i + (nPublic + nConst)]);
-        mpz_mod(f, f, pPrime);
-        mpz_addmul(f, t->alpha, B[i + (nPublic + nConst)]);
-        mpz_mod(f, f, pPrime);
-        mpz_add(f, f, C[i + (nPublic + nConst)]);
-        mpz_mul(f, f, invDelta);
-        mpz_mod(f, f, pPrime);
-        mpz_to_fr(&frFactor[i], &f);
-        mclBnG1_mul(&s1->pk[i], &g, &frFactor[i]);
+        mclBnFr_mul(&f, &t->beta, &A[i + (nPublic + nConst)]);
+        mclBnFr_mul(&tmp, &t->alpha, &B[i + (nPublic + nConst)]);
+        mclBnFr_add(&f, &f, &tmp);
+        mclBnFr_add(&f, &f, &C[i + (nPublic + nConst)]);
+        mclBnFr_mul(&f, &f, &invDelta);
+        mclBnG1_mul(&s1->pk[i], &g, &f);
     }
 
-    mpz_t zod, eT;
-    mpz_inits(zod, eT, NULL);
-    mpz_mul(zod, T, invDelta);
-    mpz_mod(zod, zod, pPrime);
+    mclBnFr zod, eT;
+    mclBnFr_mul(&zod, &T, &invDelta);
 
-    int n = mpz_get_ui(*Ne);
-    mclBnFr* frFactor2 = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
+    int n = Ne;
 
-    mpz_to_fr(&frFactor2[0], &zod);
-    mclBnG1_mul(&s1->xt[0], &g, &frFactor2[0]);
-    mpz_set(eT, t->x);
+    mclBnG1_mul(&s1->xt[0], &g, &zod);
+    eT = t->x;
 
     for (int i = 1; i < n; i++)
     {
-        mpz_mul(factor, eT, zod);
-        mpz_mod(factor, factor, pPrime);
-        mpz_to_fr(&frFactor2[i], &factor);
-        mclBnG1_mul(&s1->xt[i], &g, &frFactor2[i]);
-        mpz_mul(eT, eT, t->x);
-        mpz_mod(eT, eT, pPrime);
+        mclBnFr factor;
+        mclBnFr_mul(&factor, &eT, &zod);
+        mclBnG1_mul(&s1->xt[i], &g, &factor);
+        mclBnFr_mul(&eT, &eT, &t->x);
     }
 
     // encrypt
-    mpz_to_fr(&frFactor[0], &t->beta);
-    mclBnG2_mul(&s2->beta, &h, &frFactor[0]);
-    mpz_to_fr(&frFactor[0], &t->gamma);
-    mclBnG2_mul(&s2->gamma, &h, &frFactor[0]);
-    mpz_to_fr(&frFactor[0], &t->delta);
-    mclBnG2_mul(&s2->delta, &h, &frFactor[0]);
+    mclBnG2_mul(&s2->beta, &h, &t->beta);
+    mclBnG2_mul(&s2->gamma, &h, &t->gamma);
+    mclBnG2_mul(&s2->delta, &h, &t->delta);
 
 #pragma omp parallel for
     for (int i = 0; i < M; i++)
     {
-        mpz_to_fr(&frFactor[i], &B[i]);
-        mclBnG2_mul(&s2->B[i], &h, &frFactor[i]);
+        mclBnG2_mul(&s2->B[i], &h, &B[i]);
     }
 
     mclBn_pairing(alphabetaT, &s1->alpha, &s2->beta);
 
-#pragma omp parallel for
-    for (int i = 0; i < M; i++)
-    {
-        mpz_clear(A[i]);
-        mpz_clear(B[i]);
-        mpz_clear(C[i]);
-    }
+    free(A);
+    free(B);
+    free(C);
 }
