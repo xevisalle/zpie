@@ -51,6 +51,8 @@ void init_setup(void* circuit)
     init_circuit(circuit);
     setParams = 0;
 
+    free(uw);
+    free(LRO_constants);
     uw = (mclBnFr*) malloc((M) * sizeof(mclBnFr));
     LRO_constants = (mclBnFr*) malloc((lro_const_total) * sizeof(mclBnFr));
 
@@ -70,6 +72,9 @@ void init_prover(void* circuit, proving_key* pk)
 
     int n = pk->Ne;
 
+    free(AsFr);
+    free(BsFr);
+    free(CsFr);
     AsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     BsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     CsFr = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
@@ -77,6 +82,8 @@ void init_prover(void* circuit, proving_key* pk)
     if (bench)
         printf("  |--- FFT domain size : %d\n", n);
 
+    free(rsigma);
+    free(rsigmaInv);
     rsigma = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
     rsigmaInv = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
 
@@ -146,11 +153,6 @@ char* to_hex(const unsigned char* array, size_t length)
     }
 
     return outstr;
-}
-
-int fr_cmp(mclBnFr* frFactor1, mclBnFr* frFactor2)
-{
-    return mclBnFr_cmp(frFactor1, frFactor2);
 }
 
 int get_thread()
