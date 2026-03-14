@@ -155,11 +155,6 @@ char* to_hex(const unsigned char* array, size_t length)
     return outstr;
 }
 
-int fr_cmp(mclBnFr* frFactor1, mclBnFr* frFactor2)
-{
-    return mclBnFr_cmp(frFactor1, frFactor2);
-}
-
 int get_thread()
 {
 #ifdef MULTI_SET

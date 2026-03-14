@@ -177,9 +177,6 @@ struct mulExpResult
 /* Helpers                                                                   */
 /* ------------------------------------------------------------------------- */
 
-int fr_cmp(mclBnFr* frFactor1, mclBnFr* frFactor2);
-void test_constraint_system(void);
-
 extern int test_no_rand;
 extern element one, oneNeg, c_mimc[91];
 extern mclBnFr* uw;
@@ -208,12 +205,9 @@ void init(element* toAdd);
 void init_array(element* toAdd, int size);
 void init_public(element* toAdd);
 void input(element* var, char* val);
-void setPublic(element* set);
-
 void mul(element* oo, element* lo, element* ro);
 void assert_equal(element* lo, element* ro);
 void addmul(element* oo, element* lo1, element* lo2, element* ro);
-void submul(element* oo, element* lo1, element* lo2, element* ro);
 void add3mul(element* oo, element* lo1, element* lo2, element* lo3, element* ro);
 void addmuladd(element* oo, element* lo1, element* lo2, element* ro1, element* ro2);
 void add3muladd3(element* oo, element* lo1, element* lo2, element* lo3, element* ro1, element* ro2,
