@@ -222,7 +222,7 @@ void assert_equal(element* lo, element* ro)
     init(&factor2);
 
     mul(&factor1, ro, &oneNeg);
-    
+
     if (setParams)
         N++;
     else if (prover)
