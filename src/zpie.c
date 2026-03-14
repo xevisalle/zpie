@@ -214,6 +214,24 @@ setup_keys perform_setup(void* circuit)
         keys.vk.vk1[i] = s1.vk[i];
     }
 
+    free(s1.vk);
+
+    for (int i = 0; i < N; i++)
+    {
+        free(L[i]);
+        free(R[i]);
+        free(O[i]);
+    }
+    free(L);
+    free(R);
+    free(O);
+    L = NULL;
+    R = NULL;
+    O = NULL;
+
+    free(wM);
+    wM = NULL;
+
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
     elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
@@ -341,7 +359,6 @@ setup_keys read_setup(void* circuit)
     char buff_pk[buff_pk_size];
 
     keys.pk.wM = (mclBnFr*) malloc((n) * sizeof(mclBnFr));
-    keys.vk.vk1 = (mclBnG1*) malloc(((nPublic + nConst)) * sizeof(mclBnG1));
     keys.vk.constants = (mclBnFr*) malloc(((nConst)) * sizeof(mclBnFr));
 
     keys.pk.xt1 = (mclBnG1*) malloc((n) * sizeof(mclBnG1));
@@ -457,15 +474,16 @@ proof generate_proof(void* circuit, proving_key* pk)
     if (bench)
         printf("%fs\n", elapsed);
 
-    for (int i = 0; i < n; i++)
-    {
-        mclBnFr_clear(&AsFr[i]);
-        mclBnFr_clear(&BsFr[i]);
-        mclBnFr_clear(&CsFr[i]);
-
-        mclBnFr_clear(&rsigma[i]);
-        mclBnFr_clear(&rsigmaInv[i]);
-    }
+    free(AsFr);
+    free(BsFr);
+    free(CsFr);
+    free(rsigma);
+    free(rsigmaInv);
+    AsFr = NULL;
+    BsFr = NULL;
+    CsFr = NULL;
+    rsigma = NULL;
+    rsigmaInv = NULL;
 
     return p;
 }
