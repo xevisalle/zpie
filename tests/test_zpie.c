@@ -1,5 +1,6 @@
 #include <criterion/criterion.h>
 #include <zpie.h>
+#include <zpie_internal.h>
 
 #include "../gadgets/eddsa.c"
 #include "../gadgets/mimc.c"

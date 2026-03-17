@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <zpie.h>
+#include <zpie_internal.h>
 
 /* Internal function used by the benchmark */
 extern void init_setup(void* circuit);

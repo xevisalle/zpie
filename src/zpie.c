@@ -1,4 +1,4 @@
-#include "../include/zpie.h"
+#include "../include/zpie_internal.h"
 #include <mcl/bn_c384_256.h>
 #include <stdio.h>
 #include <stdlib.h>
