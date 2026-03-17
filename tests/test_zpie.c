@@ -127,7 +127,7 @@ void test_mimc_hash()
 {
     zpie_element h, x_in, k;
 
-    zpie_init_public(&h);
+    zpie_init(&h);
     zpie_init(&x_in);
     zpie_init(&k);
 
@@ -135,6 +135,11 @@ void test_mimc_hash()
     zpie_input(&k, "112233445566");
 
     mimc7(&h, &x_in, &k);
+
+    zpie_element h_check;
+    zpie_init(&h_check);
+    zpie_input(&h_check, "10547064275071378430963758417966601760652600083618672830627388988175151799431");
+    zpie_assert_equal(&h_check, &h);
 }
 
 // Test that the prover produces the same proof when randomness is disabled
