@@ -302,7 +302,7 @@ void init_circuit(void* circuit)
 
     for (int i = 0; i < 91; i++)
     {
-        fgets(buff, sizeof buff, cnst);
+        if (!fgets(buff, sizeof buff, cnst)) break;
         init_constant(&c_mimc[i], buff);
     }
 

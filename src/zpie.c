@@ -350,10 +350,10 @@ setup_keys read_setup(void* circuit)
 
     setup_keys keys;
 
-    fread(&keys.pk.Ne, sizeof(int), 1, fpk);
+    size_t __attribute__((unused)) _nr;
+    _nr = fread(&keys.pk.Ne, sizeof(int), 1, fpk);
 
     int n = keys.pk.Ne;
-
     int buff_pk_size = SIZE_FR * (n + lro_const_total) + SIZE_G2 * (2 + M) +
                        SIZE_G1 * (M - (nPublic + nConst) + 3 + n + 2 * M);
     char buff_pk[buff_pk_size];
@@ -369,16 +369,16 @@ setup_keys read_setup(void* circuit)
     keys.pk.B2 = (mclBnG2*) malloc((M) * sizeof(mclBnG2));
     keys.pk.LRO_constants = (mclBnFr*) malloc((lro_const_total) * sizeof(mclBnFr));
 
-    fread(&keys.pk.qap_size, sizeof(int), 1, fpk);
+    _nr = fread(&keys.pk.qap_size, sizeof(int), 1, fpk);
     keys.pk.LRO = (int*) malloc((keys.pk.qap_size) * sizeof(int));
 
     for (int i = 0; i < keys.pk.qap_size; i++)
     {
-        fread(&keys.pk.LRO[i], sizeof(int), 1, fpk);
+        _nr = fread(&keys.pk.LRO[i], sizeof(int), 1, fpk);
     }
 
     int size = 0;
-    fread(buff_pk, 1, buff_pk_size, fpk);
+    _nr = fread(buff_pk, 1, buff_pk_size, fpk);
 
     for (int i = 0; i < lro_const_total; i++)
     {
@@ -416,7 +416,7 @@ setup_keys read_setup(void* circuit)
     char buff_vk[SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst) + SIZE_FR * nConst];
     size = 0;
 
-    fread(buff_vk, 1, SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst) + SIZE_FR * nConst, fvk);
+    _nr = fread(buff_vk, 1, SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst) + SIZE_FR * nConst, fvk);
 
     for (int i = 0; i < nConst; i++)
     {
@@ -521,7 +521,8 @@ proof read_proof()
 
     int size = 0;
 
-    fread(buff, 1, (SIZE_FR * nPublic) + SIZE_G1 + SIZE_G2 + SIZE_G1, fproof);
+    size_t __attribute__((unused)) _nr;
+    _nr = fread(buff, 1, (SIZE_FR * nPublic) + SIZE_G1 + SIZE_G2 + SIZE_G1, fproof);
 
     for (int i = 0; i < (nPublic); i++)
     {

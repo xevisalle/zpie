@@ -67,7 +67,7 @@ BN128 (default)
 BLS12_381
 ```
 
-We can specify to run the code in multi-thread mode (if MCL was compiled accordingly):
+We can specify to compile the code to run in multi-thread mode:
 
 ```
 make bench MULTI=on
