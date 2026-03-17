@@ -73,19 +73,24 @@ int main(int argc, char* argv[])
 
     if (strcmp(argv[1], "-s") == 0)
     {
-        setup_keys keys = perform_setup(&bench_circuit);
+        setup_keys keys;
+        perform_setup(&keys, &bench_circuit);
         store_setup(&keys);
     }
     else if (strcmp(argv[1], "-p") == 0)
     {
-        setup_keys keys = read_setup(&bench_circuit);
-        proof p = generate_proof(&bench_circuit, &keys.pk);
+        setup_keys keys;
+        read_setup(&keys, &bench_circuit);
+        proof p;
+        generate_proof(&p, &bench_circuit, &keys.pk);
         store_proof(&p);
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
-        setup_keys keys = read_setup(&bench_circuit);
-        proof p = read_proof();
+        setup_keys keys;
+        read_setup(&keys, &bench_circuit);
+        proof p;
+        read_proof(&p);
         verify_proof(&bench_circuit, &p, &keys.vk);
     }
 

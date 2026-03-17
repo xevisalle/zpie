@@ -218,16 +218,16 @@ void addmul_constants(element* oo, int* lc1, element* lo1, int* lc2, element* lo
 void mul_constants(element* oo, int* lc, element* lo, int* rc, element* ro);
 void mul_big_constants(element* oo, mclBnFr* lc, element* lo, mclBnFr* rc, element* ro);
 
-setup_keys perform_setup(void* circuit);
-proof generate_proof(void* circuit, proving_key* pk);
+void perform_setup(setup_keys* keys, void* circuit);
+void generate_proof(proof* p, void* circuit, proving_key* pk);
 int verify_proof(void* circuit, proof* p, verifying_key* vk);
 
 void init_circuit(void* circuit);
 void init_setup(void* circuit);
 void init_prover(void* circuit, proving_key* pk);
 void store_setup(setup_keys* keys);
-proof read_proof();
-setup_keys read_setup(void* circuit);
+void read_proof(proof* p);
+void read_setup(setup_keys* keys, void* circuit);
 void store_proof(proof* p);
 
 /* ------------------------------------------------------------------------- */

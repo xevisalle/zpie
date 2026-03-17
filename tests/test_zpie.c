@@ -56,8 +56,10 @@ void test_mimc_hash()
 Test(zpie, prover)
 {
     test_no_rand = 1;
-    setup_keys keys = perform_setup(&test_single_constraint);
-    proof p = generate_proof(&test_single_constraint, &keys.pk);
+    setup_keys keys;
+    perform_setup(&keys, &test_single_constraint);
+    proof p;
+    generate_proof(&p, &test_single_constraint, &keys.pk);
 
     const char* piAstr =
         "1 13398732126763033363928255770670403609664455533535809960659793057603927642327 "
@@ -87,13 +89,19 @@ Test(zpie, prover)
 
 Test(zpie, full_circuits)
 {
-    setup_keys keys_sc = perform_setup(&test_single_constraint);
-    setup_keys keys_mh = perform_setup(&test_mimc_hash);
-    setup_keys keys_ev = perform_setup(&test_eddsa_verification);
+    setup_keys keys_sc;
+    perform_setup(&keys_sc, &test_single_constraint);
+    setup_keys keys_mh;
+    perform_setup(&keys_mh, &test_mimc_hash);
+    setup_keys keys_ev;
+    perform_setup(&keys_ev, &test_eddsa_verification);
 
-    proof p_sc = generate_proof(&test_single_constraint, &keys_sc.pk);
-    proof p_mh = generate_proof(&test_mimc_hash, &keys_mh.pk);
-    proof p_ev = generate_proof(&test_eddsa_verification, &keys_ev.pk);
+    proof p_sc;
+    generate_proof(&p_sc, &test_single_constraint, &keys_sc.pk);
+    proof p_mh;
+    generate_proof(&p_mh, &test_mimc_hash, &keys_mh.pk);
+    proof p_ev;
+    generate_proof(&p_ev, &test_eddsa_verification, &keys_ev.pk);
 
     cr_assert(verify_proof(&test_single_constraint, &p_sc, &keys_sc.vk));
     cr_assert(verify_proof(&test_mimc_hash, &p_mh, &keys_mh.vk));
@@ -196,17 +204,21 @@ void test_all_constraints()
 
 Test(zpie, all_constraints)
 {
-    setup_keys keys = perform_setup(&test_all_constraints);
-    proof p = generate_proof(&test_all_constraints, &keys.pk);
+    setup_keys keys;
+    perform_setup(&keys, &test_all_constraints);
+    proof p;
+    generate_proof(&p, &test_all_constraints, &keys.pk);
     cr_assert(verify_proof(&test_all_constraints, &p, &keys.vk));
 }
 
 Test(zpie, serialization_roundtrip)
 {
-    setup_keys keys = perform_setup(&test_mimc_hash);
+    setup_keys keys;
+    perform_setup(&keys, &test_mimc_hash);
     store_setup(&keys);
 
-    setup_keys keys2 = read_setup(&test_mimc_hash);
+    setup_keys keys2;
+    read_setup(&keys2, &test_mimc_hash);
 
     // compare deserialized keys against originals
     cr_assert_eq(keys.pk.Ne, keys2.pk.Ne);
@@ -221,14 +233,17 @@ Test(zpie, serialization_roundtrip)
     cr_assert(mclBnG1_isEqual(&keys.pk.delta1, &keys2.pk.delta1));
 
     // prove with deserialized keys and verify
-    proof p = generate_proof(&test_mimc_hash, &keys2.pk);
+    proof p;
+    generate_proof(&p, &test_mimc_hash, &keys2.pk);
     cr_assert(verify_proof(&test_mimc_hash, &p, &keys2.vk));
 }
 
 Test(zpie, invalid_proof_rejected)
 {
-    setup_keys keys = perform_setup(&test_single_constraint);
-    proof p = generate_proof(&test_single_constraint, &keys.pk);
+    setup_keys keys;
+    perform_setup(&keys, &test_single_constraint);
+    proof p;
+    generate_proof(&p, &test_single_constraint, &keys.pk);
 
     // proof should verify normally
     cr_assert(verify_proof(&test_single_constraint, &p, &keys.vk));
@@ -244,10 +259,13 @@ Test(zpie, invalid_proof_rejected)
 
 Test(zpie, cross_circuit_rejected)
 {
-    setup_keys keys_sc = perform_setup(&test_single_constraint);
-    setup_keys keys_mh = perform_setup(&test_mimc_hash);
+    setup_keys keys_sc;
+    perform_setup(&keys_sc, &test_single_constraint);
+    setup_keys keys_mh;
+    perform_setup(&keys_mh, &test_mimc_hash);
 
-    proof p_sc = generate_proof(&test_single_constraint, &keys_sc.pk);
+    proof p_sc;
+    generate_proof(&p_sc, &test_single_constraint, &keys_sc.pk);
 
     // proof for single_constraint must not verify against mimc_hash's vk
     cr_assert_not(verify_proof(&test_single_constraint, &p_sc, &keys_mh.vk));
@@ -256,14 +274,17 @@ Test(zpie, cross_circuit_rejected)
 Test(zpie, deterministic_mimc)
 {
     test_no_rand = 1;
-    setup_keys keys = perform_setup(&test_mimc_hash);
-    proof p = generate_proof(&test_mimc_hash, &keys.pk);
+    setup_keys keys;
+    perform_setup(&keys, &test_mimc_hash);
+    proof p;
+    generate_proof(&p, &test_mimc_hash, &keys.pk);
 
     // verify the deterministic proof
     cr_assert(verify_proof(&test_mimc_hash, &p, &keys.vk));
 
     // generate a second time and check reproducibility
-    proof p2 = generate_proof(&test_mimc_hash, &keys.pk);
+    proof p2;
+    generate_proof(&p2, &test_mimc_hash, &keys.pk);
     cr_assert(mclBnG1_isEqual(&p.piA, &p2.piA));
     cr_assert(mclBnG2_isEqual(&p.piB2, &p2.piB2));
     cr_assert(mclBnG1_isEqual(&p.piC, &p2.piC));
@@ -273,14 +294,18 @@ Test(zpie, deterministic_mimc)
 
 Test(zpie, proof_serialization)
 {
-    setup_keys keys = perform_setup(&test_single_constraint);
+    setup_keys keys;
+    perform_setup(&keys, &test_single_constraint);
     store_setup(&keys);
 
-    proof p = generate_proof(&test_single_constraint, &keys.pk);
+    proof p;
+    generate_proof(&p, &test_single_constraint, &keys.pk);
     store_proof(&p);
 
-    setup_keys keys2 = read_setup(&test_single_constraint);
-    proof p2 = read_proof();
+    setup_keys keys2;
+    read_setup(&keys2, &test_single_constraint);
+    proof p2;
+    read_proof(&p2);
 
     cr_assert(mclBnG1_isEqual(&p.piA, &p2.piA));
     cr_assert(mclBnG2_isEqual(&p.piB2, &p2.piB2));

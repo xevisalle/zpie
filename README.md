@@ -102,10 +102,12 @@ void circuit()
 int main()
 {
     // we perform the setup
-    setup_keys keys = perform_setup(&circuit); 
+    setup_keys keys;
+    perform_setup(&keys, &circuit);
 
     // we generate a proof
-    proof p = generate_proof(&circuit, &keys.pk);
+    proof p;
+    generate_proof(&p, &circuit, &keys.pk);
 
     // we verify the proof 
     if (verify_proof(&circuit, &p, &keys.vk)) 
@@ -118,7 +120,7 @@ int main()
 And compile and execute using:
 
 ```
-gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include -lcriterion -lm -lstdc++ -D BN128 && ./main
+gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include -lcriterion -lm -lstdc++ -DBN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.
