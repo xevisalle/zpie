@@ -22,12 +22,13 @@ MULTI = off
 
 ifeq ($(MULTI), on)
 	MULTI_SET = -D MULTI_SET -fopenmp
+	MCL_OMP = MCL_USE_OMP=1
 endif 
 
 zpie: $(SRC)
 	mkdir -p build
 	git submodule update --init
-	cd lib/mcl && make -j16
+	cd lib/mcl && make -j16 $(MCL_OMP)
 ifeq ($(ARCH), x86)
 	$(CC) -m32 $(COMMON) $(MCLINCL) $(EXTLIBCROSS) -D $(CURVE) $(MULTI_SET)
 
@@ -73,3 +74,4 @@ endif
 clean:
 	rm -rf data
 	rm -rf build
+	cd lib/mcl && make clean
