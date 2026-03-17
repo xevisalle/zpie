@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
         printf("USAGE: ./build/bench_zpie [ACTIONS] [OPTIONS]\n\n");
         printf("[ACTIONS]:\n");
         printf("-s <c>: Perform setup of 'c' constraints.\n");
-        printf("-p <c>: Generate zpie_proof of 'c' constraints.\n");
-        printf("-v <c>: Verify zpie_proof of 'c' constraints.\n");
+        printf("-p <c>: Generate proof of 'c' constraints.\n");
+        printf("-v <c>: Verify proof of 'c' constraints.\n");
         printf("[OPTIONS]\n");
         printf("-l : Activate logs.\n");
 
