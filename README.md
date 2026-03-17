@@ -67,7 +67,7 @@ BN128 (default)
 BLS12_381
 ```
 
-We can specify to run the code in multi-thread mode (if MCL was compiled accordingly):
+We can specify to compile the code to run in multi-thread mode:
 
 ```
 make bench MULTI=on
@@ -83,34 +83,36 @@ Here there is an example on how to use zk-SNARKs. Copy the following snippet int
 void circuit()
 {
     // set a public element
-    element out;
-    init_public(&out);
+    zpie_element out;
+    zpie_init_public(&out);
 
     // set private elements
-    element a, b;
-    init(&a);
-    init(&b);
+    zpie_element a, b;
+    zpie_init(&a);
+    zpie_init(&b);
 
     // input a value for the elements
-    input(&a, "1234");
-    input(&b, "5678");
+    zpie_input(&a, "1234");
+    zpie_input(&b, "5678");
 
     // apply a constraint multiplying such elements
-    mul(&out, &a, &b);
+    zpie_mul(&out, &a, &b);
 }
 
 int main()
 {
     // we perform the setup
-    setup_keys keys = perform_setup(&circuit); 
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &circuit);
 
     // we generate a proof
-    proof p = generate_proof(&circuit, &keys.pk);
+    zpie_proof p;
+    zpie_generate_proof(&p, &circuit, &keys.pk);
 
-    // we verify the proof 
-    if (verify_proof(&circuit, &p, &keys.vk)) 
+    // we verify the proof
+    if (zpie_verify_proof(&circuit, &p, &keys.vk))
         printf("Proof verified.\n");
-    else 
+    else
         printf("Proof cannot be verified.\n");
 }
 ```
@@ -118,7 +120,7 @@ int main()
 And compile and execute using:
 
 ```
-gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include -lcriterion -lm -lstdc++ -D BN128 && ./main
+gcc main.c -o main build/libzpie.a lib/mcl/lib/lishe384_256.a lib/mcl/lib/libmcl.a -I ./include -I lib/mcl/include -lcriterion -lm -lstdc++ -DBN128 && ./main
 ```
 
 More circuit examples can be found in the `/src/tests.c` file.

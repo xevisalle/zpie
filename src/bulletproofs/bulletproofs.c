@@ -17,7 +17,7 @@ mclBnFr* gammas;
 
 int userGammas = 0;
 
-void bulletproof_prove(unsigned char* si[])
+void zpie_bulletproof_prove(unsigned char* si[])
 {
     struct timespec begin, end;
     double elapsed;
@@ -302,7 +302,7 @@ void bulletproof_prove(unsigned char* si[])
         }
     }
 
-    bulletproof_save();
+    zpie_bulletproof_save();
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - begin.tv_sec);
@@ -315,13 +315,13 @@ void bulletproof_prove(unsigned char* si[])
     }
 }
 
-int bulletproof_verify()
+int zpie_bulletproof_verify()
 {
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
 
-    bulletproof_read();
+    zpie_bulletproof_read();
 
     mclBnFr frFactor, frFactor2, frFactor3, frFactor4;
 
@@ -519,7 +519,7 @@ int bulletproof_verify()
     }
 }
 
-void bulletproof_save()
+void zpie_bulletproof_save()
 {
     char buff[2048];
 
@@ -549,7 +549,7 @@ void bulletproof_save()
     fclose(fbp);
 }
 
-void bulletproof_read()
+void zpie_bulletproof_read()
 {
     char buff[2048];
 
@@ -608,7 +608,7 @@ void bulletproof_read()
     fclose(fbp);
 }
 
-static inline void bulletproof_init(int Nb_set, int Mc_set)
+static inline void zpie_bulletproof_init(int Nb_set, int Mc_set)
 {
     int check = Nb_set * Mc_set;
 
@@ -673,7 +673,7 @@ static inline void bulletproof_init(int Nb_set, int Mc_set)
     }
 }
 
-static inline void bulletproof_get_context(context* ctx)
+static inline void zpie_bulletproof_get_context(context* ctx)
 {
     ctx->V = V;
     ctx->G = Gb;
@@ -681,7 +681,7 @@ static inline void bulletproof_get_context(context* ctx)
     ctx->gammas = gammas;
 }
 
-static inline void bulletproof_user_gammas(int val)
+static inline void zpie_bulletproof_user_gammas(int val)
 {
     userGammas = val;
 }

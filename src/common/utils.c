@@ -2,6 +2,9 @@ double elapsedSort;
 double elapsedBosCoster;
 char* transcript;
 
+/* Forward declaration — defined in parser.c */
+void init_circuit(void* circuit);
+
 void generate_random_scalar(mclBnFr* value)
 {
     if (test_no_rand)
@@ -62,7 +65,7 @@ void init_setup(void* circuit)
     }
 }
 
-void init_prover(void* circuit, proving_key* pk)
+void init_prover(void* circuit, zpie_proving_key* pk)
 {
     init_setup(circuit);
 

@@ -1,5 +1,5 @@
 
-int verify(proof* p, verifying_key* vk)
+int verify(zpie_proof* p, zpie_verifying_key* vk)
 {
     mclBnG1 factorG1;
     mclBnFr frFactor;

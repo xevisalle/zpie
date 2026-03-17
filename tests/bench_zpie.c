@@ -1,22 +1,26 @@
 #include <stdlib.h>
 #include <zpie.h>
+#include <zpie_internal.h>
+
+/* Internal function used by the benchmark */
+extern void init_setup(void* circuit);
 
 int mulsize;
 
 void bench_circuit()
 {
-    element a;
-    init_public(&a);
+    zpie_element a;
+    zpie_init_public(&a);
 
-    element arr[mulsize + 1];
-    init_array(arr, mulsize + 1);
+    zpie_element arr[mulsize + 1];
+    zpie_init_array(arr, mulsize + 1);
 
-    input(&a, "1234");
-    input(&arr[0], "5678");
+    zpie_input(&a, "1234");
+    zpie_input(&arr[0], "5678");
 
     for (int i = 1; i <= mulsize; i++)
     {
-        mul(&arr[i], &a, &arr[i - 1]);
+        zpie_mul(&arr[i], &a, &arr[i - 1]);
     }
 }
 
@@ -73,20 +77,25 @@ int main(int argc, char* argv[])
 
     if (strcmp(argv[1], "-s") == 0)
     {
-        setup_keys keys = perform_setup(&bench_circuit);
-        store_setup(&keys);
+        zpie_setup_keys keys;
+        zpie_perform_setup(&keys, &bench_circuit);
+        zpie_store_setup(&keys, "bench");
     }
     else if (strcmp(argv[1], "-p") == 0)
     {
-        setup_keys keys = read_setup(&bench_circuit);
-        proof p = generate_proof(&bench_circuit, &keys.pk);
-        store_proof(&p);
+        zpie_setup_keys keys;
+        zpie_read_setup(&keys, &bench_circuit, "bench");
+        zpie_proof p;
+        zpie_generate_proof(&p, &bench_circuit, &keys.pk);
+        zpie_store_proof(&p, "bench");
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
-        setup_keys keys = read_setup(&bench_circuit);
-        proof p = read_proof();
-        verify_proof(&bench_circuit, &p, &keys.vk);
+        zpie_setup_keys keys;
+        zpie_read_setup(&keys, &bench_circuit, "bench");
+        zpie_proof p;
+        zpie_read_proof(&p, "bench");
+        zpie_verify_proof(&bench_circuit, &p, &keys.vk);
     }
 
     return 0;

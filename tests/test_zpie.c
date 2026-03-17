@@ -1,22 +1,23 @@
 #include <criterion/criterion.h>
 #include <zpie.h>
+#include <zpie_internal.h>
 
 #include "../gadgets/eddsa.c"
 #include "../gadgets/mimc.c"
 
 void test_single_constraint()
 {
-    element out;
-    init_public(&out);
+    zpie_element out;
+    zpie_init_public(&out);
 
-    element a, b;
-    init(&a);
-    init(&b);
+    zpie_element a, b;
+    zpie_init(&a);
+    zpie_init(&b);
 
-    input(&a, "1234");
-    input(&b, "5678");
+    zpie_input(&a, "1234");
+    zpie_input(&b, "5678");
 
-    mul(&out, &a, &b);
+    zpie_mul(&out, &a, &b);
 }
 
 void test_eddsa_verification()
@@ -41,14 +42,14 @@ void test_eddsa_verification()
 
 void test_mimc_hash()
 {
-    element h, x_in, k;
+    zpie_element h, x_in, k;
 
-    init_public(&h);
-    init(&x_in);
-    init(&k);
+    zpie_init_public(&h);
+    zpie_init(&x_in);
+    zpie_init(&k);
 
-    input(&x_in, "1234");
-    input(&k, "112233445566");
+    zpie_input(&x_in, "1234");
+    zpie_input(&k, "112233445566");
 
     mimc7(&h, &x_in, &k);
 }
@@ -56,8 +57,10 @@ void test_mimc_hash()
 Test(zpie, prover)
 {
     test_no_rand = 1;
-    setup_keys keys = perform_setup(&test_single_constraint);
-    proof p = generate_proof(&test_single_constraint, &keys.pk);
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &test_single_constraint);
+    zpie_proof p;
+    zpie_generate_proof(&p, &test_single_constraint, &keys.pk);
 
     const char* piAstr =
         "1 13398732126763033363928255770670403609664455533535809960659793057603927642327 "
@@ -87,126 +90,136 @@ Test(zpie, prover)
 
 Test(zpie, full_circuits)
 {
-    setup_keys keys_sc = perform_setup(&test_single_constraint);
-    setup_keys keys_mh = perform_setup(&test_mimc_hash);
-    setup_keys keys_ev = perform_setup(&test_eddsa_verification);
+    zpie_setup_keys keys_sc;
+    zpie_perform_setup(&keys_sc, &test_single_constraint);
+    zpie_setup_keys keys_mh;
+    zpie_perform_setup(&keys_mh, &test_mimc_hash);
+    zpie_setup_keys keys_ev;
+    zpie_perform_setup(&keys_ev, &test_eddsa_verification);
 
-    proof p_sc = generate_proof(&test_single_constraint, &keys_sc.pk);
-    proof p_mh = generate_proof(&test_mimc_hash, &keys_mh.pk);
-    proof p_ev = generate_proof(&test_eddsa_verification, &keys_ev.pk);
+    zpie_proof p_sc;
+    zpie_generate_proof(&p_sc, &test_single_constraint, &keys_sc.pk);
+    zpie_proof p_mh;
+    zpie_generate_proof(&p_mh, &test_mimc_hash, &keys_mh.pk);
+    zpie_proof p_ev;
+    zpie_generate_proof(&p_ev, &test_eddsa_verification, &keys_ev.pk);
 
-    cr_assert(verify_proof(&test_single_constraint, &p_sc, &keys_sc.vk));
-    cr_assert(verify_proof(&test_mimc_hash, &p_mh, &keys_mh.vk));
-    cr_assert(verify_proof(&test_eddsa_verification, &p_ev, &keys_ev.vk));
+    cr_assert(zpie_verify_proof(&test_single_constraint, &p_sc, &keys_sc.vk));
+    cr_assert(zpie_verify_proof(&test_mimc_hash, &p_mh, &keys_mh.vk));
+    cr_assert(zpie_verify_proof(&test_eddsa_verification, &p_ev, &keys_ev.vk));
 }
 
 void test_full_api()
 {
-    element e_mul, e_addmul, e_add3mul, e_addmuladd;
-    init(&e_mul);
-    init(&e_addmul);
-    init(&e_add3mul);
-    init(&e_addmuladd);
+    zpie_element e_mul, e_addmul, e_add3mul, e_addmuladd;
+    zpie_init(&e_mul);
+    zpie_init(&e_addmul);
+    zpie_init(&e_add3mul);
+    zpie_init(&e_addmuladd);
 
-    element a, b;
-    init(&a);
-    init(&b);
+    zpie_element a, b;
+    zpie_init(&a);
+    zpie_init(&b);
 
-    input(&a, "5");
-    input(&b, "10");
+    zpie_input(&a, "5");
+    zpie_input(&b, "10");
 
-    mul(&e_mul, &a, &b);
-    addmul(&e_addmul, &a, &b, &b);
-    add3mul(&e_add3mul, &a, &a, &a, &b);
-    addmuladd(&e_addmuladd, &a, &a, &b, &b);
+    zpie_mul(&e_mul, &a, &b);
+    zpie_addmul(&e_addmul, &a, &b, &b);
+    zpie_add3mul(&e_add3mul, &a, &a, &a, &b);
+    zpie_addmuladd(&e_addmuladd, &a, &a, &b, &b);
 }
 
 void test_all_constraints()
 {
-    element a, b, c;
-    init_public(&a);
-    init(&b);
-    init(&c);
+    zpie_element a, b, c;
+    zpie_init_public(&a);
+    zpie_init(&b);
+    zpie_init(&c);
 
-    input(&a, "3");
-    input(&b, "7");
-    input(&c, "5");
+    zpie_input(&a, "3");
+    zpie_input(&b, "7");
+    zpie_input(&c, "5");
 
-    // mul: out = a * b = 21
-    element e_mul;
-    init(&e_mul);
-    mul(&e_mul, &a, &b);
+    // zpie_mul: out = a * b = 21
+    zpie_element e_mul;
+    zpie_init(&e_mul);
+    zpie_mul(&e_mul, &a, &b);
 
-    // addmul: out = (a + b) * c = 50
-    element e_addmul;
-    init(&e_addmul);
-    addmul(&e_addmul, &a, &b, &c);
+    // zpie_addmul: out = (a + b) * c = 50
+    zpie_element e_addmul;
+    zpie_init(&e_addmul);
+    zpie_addmul(&e_addmul, &a, &b, &c);
 
-    // add3mul: out = (a + b + c) * a = 45
-    element e_add3mul;
-    init(&e_add3mul);
-    add3mul(&e_add3mul, &a, &b, &c, &a);
+    // zpie_add3mul: out = (a + b + c) * a = 45
+    zpie_element e_add3mul;
+    zpie_init(&e_add3mul);
+    zpie_add3mul(&e_add3mul, &a, &b, &c, &a);
 
-    // addmuladd: out = (a + b) * (c + a) = 80
-    element e_addmuladd;
-    init(&e_addmuladd);
-    addmuladd(&e_addmuladd, &a, &b, &c, &a);
+    // zpie_addmuladd: out = (a + b) * (c + a) = 80
+    zpie_element e_addmuladd;
+    zpie_init(&e_addmuladd);
+    zpie_addmuladd(&e_addmuladd, &a, &b, &c, &a);
 
-    // add3muladd3: out = (a + b + c) * (a + b + c) = 225
-    element e_add3muladd3;
-    init(&e_add3muladd3);
-    add3muladd3(&e_add3muladd3, &a, &b, &c, &a, &b, &c);
+    // zpie_add3muladd3: out = (a + b + c) * (a + b + c) = 225
+    zpie_element e_add3muladd3;
+    zpie_init(&e_add3muladd3);
+    zpie_add3muladd3(&e_add3muladd3, &a, &b, &c, &a, &b, &c);
 
-    // mul_constants: out = (2*a) * (3*b) = 126
-    element e_mulc;
-    init(&e_mulc);
+    // zpie_mul_constants: out = (2*a) * (3*b) = 126
+    zpie_element e_mulc;
+    zpie_init(&e_mulc);
     int lc = 2, rc = 3;
-    mul_constants(&e_mulc, &lc, &a, &rc, &b);
+    zpie_mul_constants(&e_mulc, &lc, &a, &rc, &b);
 
-    // addmul_constants: out = (2*a + 3*b) * (4*c) = 540
-    element e_addmulc;
-    init(&e_addmulc);
+    // zpie_addmul_constants: out = (2*a + 3*b) * (4*c) = 540
+    zpie_element e_addmulc;
+    zpie_init(&e_addmulc);
     int lc1 = 2, lc2 = 3, rc2 = 4;
-    addmul_constants(&e_addmulc, &lc1, &a, &lc2, &b, &rc2, &c);
+    zpie_addmul_constants(&e_addmulc, &lc1, &a, &lc2, &b, &rc2, &c);
 
-    // mul_big_constants: out = (10*a) * (20*b) = 4200
-    element e_bigc;
-    init(&e_bigc);
+    // zpie_mul_big_constants: out = (10*a) * (20*b) = 4200
+    zpie_element e_bigc;
+    zpie_init(&e_bigc);
     mclBnFr big_lc, big_rc;
     mclBnFr_setInt(&big_lc, 10);
     mclBnFr_setInt(&big_rc, 20);
-    mul_big_constants(&e_bigc, &big_lc, &a, &big_rc, &b);
+    zpie_mul_big_constants(&e_bigc, &big_lc, &a, &big_rc, &b);
 
-    // addsmul: out = (a + b + c) * b = 105
-    element e_addsmul;
-    init(&e_addsmul);
-    element arr[3];
+    // zpie_addsmul: out = (a + b + c) * b = 105
+    zpie_element e_addsmul;
+    zpie_init(&e_addsmul);
+    zpie_element arr[3];
     arr[0] = a;
     arr[1] = b;
     arr[2] = c;
     int sz = 3;
-    addsmul(&e_addsmul, &sz, arr, &b);
+    zpie_addsmul(&e_addsmul, &sz, arr, &b);
 
-    // assert_equal: e_mul should equal a*b = 21
-    element e_check;
-    init(&e_check);
-    mul(&e_check, &a, &b);
-    assert_equal(&e_check, &e_mul);
+    // zpie_assert_equal: e_mul should equal a*b = 21
+    zpie_element e_check;
+    zpie_init(&e_check);
+    zpie_mul(&e_check, &a, &b);
+    zpie_assert_equal(&e_check, &e_mul);
 }
 
 Test(zpie, all_constraints)
 {
-    setup_keys keys = perform_setup(&test_all_constraints);
-    proof p = generate_proof(&test_all_constraints, &keys.pk);
-    cr_assert(verify_proof(&test_all_constraints, &p, &keys.vk));
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &test_all_constraints);
+    zpie_proof p;
+    zpie_generate_proof(&p, &test_all_constraints, &keys.pk);
+    cr_assert(zpie_verify_proof(&test_all_constraints, &p, &keys.vk));
 }
 
 Test(zpie, serialization_roundtrip)
 {
-    setup_keys keys = perform_setup(&test_mimc_hash);
-    store_setup(&keys);
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &test_mimc_hash);
+    zpie_store_setup(&keys, "mimc_hash");
 
-    setup_keys keys2 = read_setup(&test_mimc_hash);
+    zpie_setup_keys keys2;
+    zpie_read_setup(&keys2, &test_mimc_hash, "mimc_hash");
 
     // compare deserialized keys against originals
     cr_assert_eq(keys.pk.Ne, keys2.pk.Ne);
@@ -221,49 +234,58 @@ Test(zpie, serialization_roundtrip)
     cr_assert(mclBnG1_isEqual(&keys.pk.delta1, &keys2.pk.delta1));
 
     // prove with deserialized keys and verify
-    proof p = generate_proof(&test_mimc_hash, &keys2.pk);
-    cr_assert(verify_proof(&test_mimc_hash, &p, &keys2.vk));
+    zpie_proof p;
+    zpie_generate_proof(&p, &test_mimc_hash, &keys2.pk);
+    cr_assert(zpie_verify_proof(&test_mimc_hash, &p, &keys2.vk));
 }
 
 Test(zpie, invalid_proof_rejected)
 {
-    setup_keys keys = perform_setup(&test_single_constraint);
-    proof p = generate_proof(&test_single_constraint, &keys.pk);
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &test_single_constraint);
+    zpie_proof p;
+    zpie_generate_proof(&p, &test_single_constraint, &keys.pk);
 
-    // proof should verify normally
-    cr_assert(verify_proof(&test_single_constraint, &p, &keys.vk));
+    // zpie_proof should verify normally
+    cr_assert(zpie_verify_proof(&test_single_constraint, &p, &keys.vk));
 
     // tamper with piA — add generator to it
     mclBnG1 g;
     mclBnG1_setStr(&g, GGEN, strlen(GGEN), 10);
     mclBnG1_add(&p.piA, &p.piA, &g);
 
-    // tampered proof must not verify
-    cr_assert_not(verify_proof(&test_single_constraint, &p, &keys.vk));
+    // tampered zpie_proof must not verify
+    cr_assert_not(zpie_verify_proof(&test_single_constraint, &p, &keys.vk));
 }
 
 Test(zpie, cross_circuit_rejected)
 {
-    setup_keys keys_sc = perform_setup(&test_single_constraint);
-    setup_keys keys_mh = perform_setup(&test_mimc_hash);
+    zpie_setup_keys keys_sc;
+    zpie_perform_setup(&keys_sc, &test_single_constraint);
+    zpie_setup_keys keys_mh;
+    zpie_perform_setup(&keys_mh, &test_mimc_hash);
 
-    proof p_sc = generate_proof(&test_single_constraint, &keys_sc.pk);
+    zpie_proof p_sc;
+    zpie_generate_proof(&p_sc, &test_single_constraint, &keys_sc.pk);
 
-    // proof for single_constraint must not verify against mimc_hash's vk
-    cr_assert_not(verify_proof(&test_single_constraint, &p_sc, &keys_mh.vk));
+    // zpie_proof for single_constraint must not verify against mimc_hash's vk
+    cr_assert_not(zpie_verify_proof(&test_single_constraint, &p_sc, &keys_mh.vk));
 }
 
 Test(zpie, deterministic_mimc)
 {
     test_no_rand = 1;
-    setup_keys keys = perform_setup(&test_mimc_hash);
-    proof p = generate_proof(&test_mimc_hash, &keys.pk);
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &test_mimc_hash);
+    zpie_proof p;
+    zpie_generate_proof(&p, &test_mimc_hash, &keys.pk);
 
-    // verify the deterministic proof
-    cr_assert(verify_proof(&test_mimc_hash, &p, &keys.vk));
+    // verify the deterministic zpie_proof
+    cr_assert(zpie_verify_proof(&test_mimc_hash, &p, &keys.vk));
 
     // generate a second time and check reproducibility
-    proof p2 = generate_proof(&test_mimc_hash, &keys.pk);
+    zpie_proof p2;
+    zpie_generate_proof(&p2, &test_mimc_hash, &keys.pk);
     cr_assert(mclBnG1_isEqual(&p.piA, &p2.piA));
     cr_assert(mclBnG2_isEqual(&p.piB2, &p2.piB2));
     cr_assert(mclBnG1_isEqual(&p.piC, &p2.piC));
@@ -273,18 +295,22 @@ Test(zpie, deterministic_mimc)
 
 Test(zpie, proof_serialization)
 {
-    setup_keys keys = perform_setup(&test_single_constraint);
-    store_setup(&keys);
+    zpie_setup_keys keys;
+    zpie_perform_setup(&keys, &test_single_constraint);
+    zpie_store_setup(&keys, "single_constraint");
 
-    proof p = generate_proof(&test_single_constraint, &keys.pk);
-    store_proof(&p);
+    zpie_proof p;
+    zpie_generate_proof(&p, &test_single_constraint, &keys.pk);
+    zpie_store_proof(&p, "single_constraint");
 
-    setup_keys keys2 = read_setup(&test_single_constraint);
-    proof p2 = read_proof();
+    zpie_setup_keys keys2;
+    zpie_read_setup(&keys2, &test_single_constraint, "single_constraint");
+    zpie_proof p2;
+    zpie_read_proof(&p2, "single_constraint");
 
     cr_assert(mclBnG1_isEqual(&p.piA, &p2.piA));
     cr_assert(mclBnG2_isEqual(&p.piB2, &p2.piB2));
     cr_assert(mclBnG1_isEqual(&p.piC, &p2.piC));
 
-    cr_assert(verify_proof(&test_single_constraint, &p2, &keys2.vk));
+    cr_assert(zpie_verify_proof(&test_single_constraint, &p2, &keys2.vk));
 }
