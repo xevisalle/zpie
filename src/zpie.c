@@ -240,10 +240,13 @@ void zpie_perform_setup(zpie_setup_keys* keys, void* circuit)
         printf(" %fs\n", elapsed);
 }
 
-void serialize_pk(zpie_proving_key* pk)
+void serialize_pk(zpie_proving_key* pk, const char* name)
 {
+    char path[256];
+    snprintf(path, sizeof(path), "data/%s.pk", name);
+
     FILE* fpk;
-    fpk = fopen("data/provingkey.params", "w");
+    fpk = fopen(path, "w");
 
     int n = pk->Ne;
 
@@ -298,10 +301,13 @@ void serialize_pk(zpie_proving_key* pk)
     fclose(fpk);
 }
 
-void serialize_vk(zpie_verifying_key* vk)
+void serialize_vk(zpie_verifying_key* vk, const char* name)
 {
+    char path[256];
+    snprintf(path, sizeof(path), "data/%s.vk", name);
+
     FILE* fvk;
-    fvk = fopen("data/verifyingkey.params", "w");
+    fvk = fopen(path, "w");
 
     int buff_vk_size = SIZE_GT + SIZE_G2 * 2 + SIZE_G1 * (nPublic + nConst) + SIZE_FR * nConst;
     char buff_vk[buff_vk_size];
@@ -326,24 +332,28 @@ void serialize_vk(zpie_verifying_key* vk)
     fclose(fvk);
 }
 
-void zpie_store_setup(zpie_setup_keys* keys)
+void zpie_store_setup(zpie_setup_keys* keys, const char* name)
 {
     struct stat st = {0};
     if (stat("data", &st) == -1)
         mkdir("data", 0700);
 
-    serialize_pk(&keys->pk);
-    serialize_vk(&keys->vk);
+    serialize_pk(&keys->pk, name);
+    serialize_vk(&keys->vk, name);
 }
 
-void zpie_read_setup(zpie_setup_keys* keys, void* circuit)
+void zpie_read_setup(zpie_setup_keys* keys, void* circuit, const char* name)
 {
     init_setup(circuit);
 
+    char path_pk[256], path_vk[256];
+    snprintf(path_pk, sizeof(path_pk), "data/%s.pk", name);
+    snprintf(path_vk, sizeof(path_vk), "data/%s.vk", name);
+
     FILE *fpk, *fvk;
 
-    fpk = fopen("data/provingkey.params", "r");
-    fvk = fopen("data/verifyingkey.params", "r");
+    fpk = fopen(path_pk, "r");
+    fvk = fopen(path_vk, "r");
 
     size_t __attribute__((unused)) _nr;
     _nr = fread(&keys->pk.Ne, sizeof(int), 1, fpk);
@@ -477,11 +487,14 @@ void zpie_generate_proof(zpie_proof* p, void* circuit, zpie_proving_key* pk)
     rsigmaInv = NULL;
 }
 
-void zpie_store_proof(zpie_proof* p)
+void zpie_store_proof(zpie_proof* p, const char* name)
 {
+    char path[256];
+    snprintf(path, sizeof(path), "data/%s.proof", name);
+
     char buff[2048];
     FILE* fproof;
-    fproof = fopen("data/zpie_proof.params", "w");
+    fproof = fopen(path, "w");
 
     int size = 0;
 
@@ -498,11 +511,14 @@ void zpie_store_proof(zpie_proof* p)
     fclose(fproof);
 }
 
-void zpie_read_proof(zpie_proof* p)
+void zpie_read_proof(zpie_proof* p, const char* name)
 {
+    char path[256];
+    snprintf(path, sizeof(path), "data/%s.proof", name);
+
     char buff[2048];
     FILE* fproof;
-    fproof = fopen("data/zpie_proof.params", "r");
+    fproof = fopen(path, "r");
 
     p->uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
 

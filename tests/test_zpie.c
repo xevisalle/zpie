@@ -216,10 +216,10 @@ Test(zpie, serialization_roundtrip)
 {
     zpie_setup_keys keys;
     zpie_perform_setup(&keys, &test_mimc_hash);
-    zpie_store_setup(&keys);
+    zpie_store_setup(&keys, "mimc_hash");
 
     zpie_setup_keys keys2;
-    zpie_read_setup(&keys2, &test_mimc_hash);
+    zpie_read_setup(&keys2, &test_mimc_hash, "mimc_hash");
 
     // compare deserialized keys against originals
     cr_assert_eq(keys.pk.Ne, keys2.pk.Ne);
@@ -297,16 +297,16 @@ Test(zpie, proof_serialization)
 {
     zpie_setup_keys keys;
     zpie_perform_setup(&keys, &test_single_constraint);
-    zpie_store_setup(&keys);
+    zpie_store_setup(&keys, "single_constraint");
 
     zpie_proof p;
     zpie_generate_proof(&p, &test_single_constraint, &keys.pk);
-    zpie_store_proof(&p);
+    zpie_store_proof(&p, "single_constraint");
 
     zpie_setup_keys keys2;
-    zpie_read_setup(&keys2, &test_single_constraint);
+    zpie_read_setup(&keys2, &test_single_constraint, "single_constraint");
     zpie_proof p2;
-    zpie_read_proof(&p2);
+    zpie_read_proof(&p2, "single_constraint");
 
     cr_assert(mclBnG1_isEqual(&p.piA, &p2.piA));
     cr_assert(mclBnG2_isEqual(&p.piB2, &p2.piB2));

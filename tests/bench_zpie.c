@@ -79,22 +79,22 @@ int main(int argc, char* argv[])
     {
         zpie_setup_keys keys;
         zpie_perform_setup(&keys, &bench_circuit);
-        zpie_store_setup(&keys);
+        zpie_store_setup(&keys, "bench");
     }
     else if (strcmp(argv[1], "-p") == 0)
     {
         zpie_setup_keys keys;
-        zpie_read_setup(&keys, &bench_circuit);
+        zpie_read_setup(&keys, &bench_circuit, "bench");
         zpie_proof p;
         zpie_generate_proof(&p, &bench_circuit, &keys.pk);
-        zpie_store_proof(&p);
+        zpie_store_proof(&p, "bench");
     }
     else if (strcmp(argv[1], "-v") == 0)
     {
         zpie_setup_keys keys;
-        zpie_read_setup(&keys, &bench_circuit);
+        zpie_read_setup(&keys, &bench_circuit, "bench");
         zpie_proof p;
-        zpie_read_proof(&p);
+        zpie_read_proof(&p, "bench");
         zpie_verify_proof(&bench_circuit, &p, &keys.vk);
     }
 

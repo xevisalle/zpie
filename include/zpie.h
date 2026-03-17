@@ -89,10 +89,10 @@ void zpie_perform_setup(zpie_setup_keys* keys, void* circuit);
 void zpie_generate_proof(zpie_proof* p, void* circuit, zpie_proving_key* pk);
 int zpie_verify_proof(void* circuit, zpie_proof* p, zpie_verifying_key* vk);
 
-void zpie_store_setup(zpie_setup_keys* keys);
-void zpie_read_setup(zpie_setup_keys* keys, void* circuit);
-void zpie_store_proof(zpie_proof* p);
-void zpie_read_proof(zpie_proof* p);
+void zpie_store_setup(zpie_setup_keys* keys, const char* name);
+void zpie_read_setup(zpie_setup_keys* keys, void* circuit, const char* name);
+void zpie_store_proof(zpie_proof* p, const char* name);
+void zpie_read_proof(zpie_proof* p, const char* name);
 
 /* ------------------------------------------------------------------------- */
 /* Bulletproofs API                                                          */
