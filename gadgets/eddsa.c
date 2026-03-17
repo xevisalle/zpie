@@ -11,45 +11,45 @@ typedef struct
 
 void verify_eddsa(eddsa_signature edsig, point B, point A, char* msg)
 {
-    element out[4];
+    zpie_element out[4];
 
     for (int i = 0; i < 4; ++i)
     {
-        init(&out[i]);
+        zpie_init(&out[i]);
     }
 
-    element outPrivate[3];
-    init_array(outPrivate, 3);
+    zpie_element outPrivate[3];
+    zpie_init_array(outPrivate, 3);
 
-    element Bx, By;
-    init(&Bx);
-    init(&By);
+    zpie_element Bx, By;
+    zpie_init(&Bx);
+    zpie_init(&By);
 
-    input(&Bx, B.x);
-    input(&By, B.y);
+    zpie_input(&Bx, B.x);
+    zpie_input(&By, B.y);
 
     int arraySize = 5;
-    element ram[arraySize];
-    init_array(ram, arraySize);
+    zpie_element ram[arraySize];
+    zpie_init_array(ram, arraySize);
 
-    input(&ram[0], edsig.R.x);
-    input(&ram[1], edsig.R.y);
-    input(&ram[2], A.x);
-    input(&ram[3], A.y);
-    input(&ram[4], msg);
+    zpie_input(&ram[0], edsig.R.x);
+    zpie_input(&ram[1], edsig.R.y);
+    zpie_input(&ram[2], A.x);
+    zpie_input(&ram[3], A.y);
+    zpie_input(&ram[4], msg);
 
-    element signature;
-    init(&signature);
-    input(&signature, edsig.S);
+    zpie_element signature;
+    zpie_init(&signature);
+    zpie_input(&signature, edsig.S);
 
     multi_hash(outPrivate[0], ram, 5);
 
     int size = 254;
-    element hBits[size];
-    element sBits[size];
+    zpie_element hBits[size];
+    zpie_element sBits[size];
 
-    init_array(hBits, size);
-    init_array(sBits, size);
+    zpie_init_array(hBits, size);
+    zpie_init_array(sBits, size);
 
     to_bits(hBits, outPrivate[0], size);
     to_bits(sBits, signature, size - 1);
@@ -59,8 +59,8 @@ void verify_eddsa(eddsa_signature edsig, point B, point A, char* msg)
 
     mul_scalar(out[2], out[3], Bx, By, sBits, size - 1);
 
-    assert_equal(&out[2], &out[0]);
-    assert_equal(&out[3], &out[1]);
+    zpie_assert_equal(&out[2], &out[0]);
+    zpie_assert_equal(&out[3], &out[1]);
 }
 
 #endif

@@ -6,7 +6,7 @@
 int logs;
 int test_no_rand;
 
-element one, oneNeg, c_mimc[91];
+zpie_element one, oneNeg, c_mimc[91];
 int bench;
 
 int** L;
@@ -54,7 +54,7 @@ int constant_n;
 #include "../src/gro16/setup.c"
 #include "../src/gro16/verifier.c"
 
-void perform_setup(setup_keys* keys, void* circuit)
+void zpie_perform_setup(zpie_setup_keys* keys, void* circuit)
 {
     init_setup(circuit);
 
@@ -240,7 +240,7 @@ void perform_setup(setup_keys* keys, void* circuit)
         printf(" %fs\n", elapsed);
 }
 
-void serialize_pk(proving_key* pk)
+void serialize_pk(zpie_proving_key* pk)
 {
     FILE* fpk;
     fpk = fopen("data/provingkey.params", "w");
@@ -298,7 +298,7 @@ void serialize_pk(proving_key* pk)
     fclose(fpk);
 }
 
-void serialize_vk(verifying_key* vk)
+void serialize_vk(zpie_verifying_key* vk)
 {
     FILE* fvk;
     fvk = fopen("data/verifyingkey.params", "w");
@@ -326,7 +326,7 @@ void serialize_vk(verifying_key* vk)
     fclose(fvk);
 }
 
-void store_setup(setup_keys* keys)
+void zpie_store_setup(zpie_setup_keys* keys)
 {
     struct stat st = {0};
     if (stat("data", &st) == -1)
@@ -336,7 +336,7 @@ void store_setup(setup_keys* keys)
     serialize_vk(&keys->vk);
 }
 
-void read_setup(setup_keys* keys, void* circuit)
+void zpie_read_setup(zpie_setup_keys* keys, void* circuit)
 {
     init_setup(circuit);
 
@@ -433,7 +433,7 @@ void read_setup(setup_keys* keys, void* circuit)
     fclose(fvk);
 }
 
-void generate_proof(proof* p, void* circuit, proving_key* pk)
+void zpie_generate_proof(zpie_proof* p, void* circuit, zpie_proving_key* pk)
 {
     init_prover(circuit, pk);
 
@@ -450,7 +450,7 @@ void generate_proof(proof* p, void* circuit, proving_key* pk)
     p->uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
 
     if (bench)
-        printf("--- Computing proof...\n");
+        printf("--- Computing zpie_proof...\n");
     struct timespec begin, end;
     double elapsed;
     clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -477,11 +477,11 @@ void generate_proof(proof* p, void* circuit, proving_key* pk)
     rsigmaInv = NULL;
 }
 
-void store_proof(proof* p)
+void zpie_store_proof(zpie_proof* p)
 {
     char buff[2048];
     FILE* fproof;
-    fproof = fopen("data/proof.params", "w");
+    fproof = fopen("data/zpie_proof.params", "w");
 
     int size = 0;
 
@@ -498,11 +498,11 @@ void store_proof(proof* p)
     fclose(fproof);
 }
 
-void read_proof(proof* p)
+void zpie_read_proof(zpie_proof* p)
 {
     char buff[2048];
     FILE* fproof;
-    fproof = fopen("data/proof.params", "r");
+    fproof = fopen("data/zpie_proof.params", "r");
 
     p->uwProof = (mclBnFr*) malloc((nPublic) * sizeof(mclBnFr));
 
@@ -523,7 +523,7 @@ void read_proof(proof* p)
     fclose(fproof);
 }
 
-int verify_proof(void* circuit, proof* p, verifying_key* vk)
+int zpie_verify_proof(void* circuit, zpie_proof* p, zpie_verifying_key* vk)
 {
     init_setup(circuit);
 

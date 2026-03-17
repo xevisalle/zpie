@@ -1,5 +1,5 @@
 
-void h_coefficients(proving_key* pk)
+void h_coefficients(zpie_proving_key* pk)
 {
     int n = pk->Ne;
 
@@ -95,7 +95,7 @@ void h_coefficients(proving_key* pk)
     ifft(n, pk->wM, AsFr);
 }
 
-void mul_exp(struct mulExpResult* result, mclBnFr* uwProof, proving_key* pk)
+void mul_exp(struct mulExpResult* result, mclBnFr* uwProof, zpie_proving_key* pk)
 {
     int n = pk->Ne;
 
@@ -119,7 +119,7 @@ void mul_exp(struct mulExpResult* result, mclBnFr* uwProof, proving_key* pk)
 }
 
 void prove(int* circuit, mclBnG1* piA, mclBnG2* piB2, mclBnG1* piC, mclBnFr* uwProof,
-           proving_key* pk)
+           zpie_proving_key* pk)
 {
     prover = 1;
 

@@ -90,7 +90,7 @@ typedef struct
     mclBnFr* uwProof;
     mclBnG1 piA, piC;
     mclBnG2 piB2;
-} proof;
+} zpie_proof;
 
 typedef struct
 {
@@ -99,7 +99,7 @@ typedef struct
     mclBnG2 gamma2;
     mclBnG2 delta2;
     mclBnG1* vk1;
-} verifying_key;
+} zpie_verifying_key;
 
 typedef struct
 {
@@ -122,18 +122,18 @@ typedef struct
     mclBnG1* pk1;
     mclBnG1* xt1;
     mclBnG1* xt1_rand;
-} proving_key;
+} zpie_proving_key;
 
 typedef struct
 {
-    proving_key pk;
-    verifying_key vk;
-} setup_keys;
+    zpie_proving_key pk;
+    zpie_verifying_key vk;
+} zpie_setup_keys;
 
 typedef struct
 {
     int index;
-} element;
+} zpie_element;
 
 struct Trapdoor
 {
@@ -178,7 +178,7 @@ struct mulExpResult
 /* ------------------------------------------------------------------------- */
 
 extern int test_no_rand;
-extern element one, oneNeg, c_mimc[91];
+extern zpie_element one, oneNeg, c_mimc[91];
 extern mclBnFr* uw;
 extern int setParams;
 
@@ -201,43 +201,40 @@ extern int wn;
 /* Groth'16 API                                                              */
 /* ------------------------------------------------------------------------- */
 
-void init(element* toAdd);
-void init_array(element* toAdd, int size);
-void init_public(element* toAdd);
-void input(element* var, char* val);
-void mul(element* oo, element* lo, element* ro);
-void assert_equal(element* lo, element* ro);
-void addmul(element* oo, element* lo1, element* lo2, element* ro);
-void add3mul(element* oo, element* lo1, element* lo2, element* lo3, element* ro);
-void addmuladd(element* oo, element* lo1, element* lo2, element* ro1, element* ro2);
-void add3muladd3(element* oo, element* lo1, element* lo2, element* lo3, element* ro1, element* ro2,
-                 element* ro3);
-void addsmul(element* oo, int* size, element* los, element* ro);
-void addmul_constants(element* oo, int* lc1, element* lo1, int* lc2, element* lo2, int* rc,
-                      element* ro);
-void mul_constants(element* oo, int* lc, element* lo, int* rc, element* ro);
-void mul_big_constants(element* oo, mclBnFr* lc, element* lo, mclBnFr* rc, element* ro);
+void zpie_init(zpie_element* toAdd);
+void zpie_init_array(zpie_element* toAdd, int size);
+void zpie_init_public(zpie_element* toAdd);
+void zpie_input(zpie_element* var, char* val);
+void zpie_mul(zpie_element* oo, zpie_element* lo, zpie_element* ro);
+void zpie_assert_equal(zpie_element* lo, zpie_element* ro);
+void zpie_addmul(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* ro);
+void zpie_add3mul(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* lo3, zpie_element* ro);
+void zpie_addmuladd(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* ro1, zpie_element* ro2);
+void zpie_add3muladd3(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* lo3, zpie_element* ro1, zpie_element* ro2,
+                 zpie_element* ro3);
+void zpie_addsmul(zpie_element* oo, int* size, zpie_element* los, zpie_element* ro);
+void zpie_addmul_constants(zpie_element* oo, int* lc1, zpie_element* lo1, int* lc2, zpie_element* lo2, int* rc,
+                      zpie_element* ro);
+void zpie_mul_constants(zpie_element* oo, int* lc, zpie_element* lo, int* rc, zpie_element* ro);
+void zpie_mul_big_constants(zpie_element* oo, mclBnFr* lc, zpie_element* lo, mclBnFr* rc, zpie_element* ro);
 
-void perform_setup(setup_keys* keys, void* circuit);
-void generate_proof(proof* p, void* circuit, proving_key* pk);
-int verify_proof(void* circuit, proof* p, verifying_key* vk);
+void zpie_perform_setup(zpie_setup_keys* keys, void* circuit);
+void zpie_generate_proof(zpie_proof* p, void* circuit, zpie_proving_key* pk);
+int zpie_verify_proof(void* circuit, zpie_proof* p, zpie_verifying_key* vk);
 
-void init_circuit(void* circuit);
-void init_setup(void* circuit);
-void init_prover(void* circuit, proving_key* pk);
-void store_setup(setup_keys* keys);
-void read_proof(proof* p);
-void read_setup(setup_keys* keys, void* circuit);
-void store_proof(proof* p);
+void zpie_store_setup(zpie_setup_keys* keys);
+void zpie_read_proof(zpie_proof* p);
+void zpie_read_setup(zpie_setup_keys* keys, void* circuit);
+void zpie_store_proof(zpie_proof* p);
 
 /* ------------------------------------------------------------------------- */
 /* Bulletproofs API                                                          */
 /* ------------------------------------------------------------------------- */
 
-void bulletproof_prove(unsigned char* si[]);
-int bulletproof_verify();
-void bulletproof_save();
-void bulletproof_read();
-static inline void bulletproof_init(int Nb_set, int Mc_set);
-static inline void bulletproof_get_context(context* ctx);
-static inline void bulletproof_user_gammas(int val);
+void zpie_bulletproof_prove(unsigned char* si[]);
+int zpie_bulletproof_verify();
+void zpie_bulletproof_save();
+void zpie_bulletproof_read();
+static inline void zpie_bulletproof_init(int Nb_set, int Mc_set);
+static inline void zpie_bulletproof_get_context(context* ctx);
+static inline void zpie_bulletproof_user_gammas(int val);

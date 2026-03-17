@@ -1,5 +1,5 @@
 
-void addmul(element* oo, element* lo1, element* lo2, element* ro)
+void zpie_addmul(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* ro)
 {
     if (setParams)
         N++;
@@ -19,7 +19,7 @@ void addmul(element* oo, element* lo1, element* lo2, element* ro)
     }
 }
 
-void add3mul(element* oo, element* lo1, element* lo2, element* lo3, element* ro)
+void zpie_add3mul(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* lo3, zpie_element* ro)
 {
     if (setParams)
         N++;
@@ -41,7 +41,7 @@ void add3mul(element* oo, element* lo1, element* lo2, element* lo3, element* ro)
     }
 }
 
-void addsmul(element* oo, int* size, element* los, element* ro)
+void zpie_addsmul(zpie_element* oo, int* size, zpie_element* los, zpie_element* ro)
 {
     if (setParams)
         N++;
@@ -68,8 +68,8 @@ void addsmul(element* oo, int* size, element* los, element* ro)
     }
 }
 
-void add3muladd3(element* oo, element* lo1, element* lo2, element* lo3, element* ro1, element* ro2,
-                 element* ro3)
+void zpie_add3muladd3(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* lo3, zpie_element* ro1, zpie_element* ro2,
+                 zpie_element* ro3)
 {
     if (setParams)
         N++;
@@ -96,7 +96,7 @@ void add3muladd3(element* oo, element* lo1, element* lo2, element* lo3, element*
     }
 }
 
-void addmuladd(element* oo, element* lo1, element* lo2, element* ro1, element* ro2)
+void zpie_addmuladd(zpie_element* oo, zpie_element* lo1, zpie_element* lo2, zpie_element* ro1, zpie_element* ro2)
 {
     if (setParams)
         N++;
@@ -119,7 +119,7 @@ void addmuladd(element* oo, element* lo1, element* lo2, element* ro1, element* r
     }
 }
 
-void mul(element* oo, element* lo, element* ro)
+void zpie_mul(zpie_element* oo, zpie_element* lo, zpie_element* ro)
 {
     if (setParams)
         N++;
@@ -137,8 +137,8 @@ void mul(element* oo, element* lo, element* ro)
     }
 }
 
-void addmul_constants(element* oo, int* lc1, element* lo1, int* lc2, element* lo2, int* rc,
-                      element* ro)
+void zpie_addmul_constants(zpie_element* oo, int* lc1, zpie_element* lo1, int* lc2, zpie_element* lo2, int* rc,
+                      zpie_element* ro)
 {
     if (setParams)
         N++;
@@ -165,7 +165,7 @@ void addmul_constants(element* oo, int* lc1, element* lo1, int* lc2, element* lo
     }
 }
 
-void mul_constants(element* oo, int* lc, element* lo, int* rc, element* ro)
+void zpie_mul_constants(zpie_element* oo, int* lc, zpie_element* lo, int* rc, zpie_element* ro)
 {
     if (setParams)
         N++;
@@ -188,7 +188,7 @@ void mul_constants(element* oo, int* lc, element* lo, int* rc, element* ro)
     }
 }
 
-void mul_big_constants(element* oo, mclBnFr* lc, element* lo, mclBnFr* rc, element* ro)
+void zpie_mul_big_constants(zpie_element* oo, mclBnFr* lc, zpie_element* lo, mclBnFr* rc, zpie_element* ro)
 {
     if (setParams)
     {
@@ -215,13 +215,13 @@ void mul_big_constants(element* oo, mclBnFr* lc, element* lo, mclBnFr* rc, eleme
     }
 }
 
-void assert_equal(element* lo, element* ro)
+void zpie_assert_equal(zpie_element* lo, zpie_element* ro)
 {
-    element factor1, factor2;
-    init(&factor1);
-    init(&factor2);
+    zpie_element factor1, factor2;
+    zpie_init(&factor1);
+    zpie_init(&factor2);
 
-    mul(&factor1, ro, &oneNeg);
+    zpie_mul(&factor1, ro, &oneNeg);
 
     if (setParams)
         N++;
@@ -239,13 +239,13 @@ void assert_equal(element* lo, element* ro)
     }
 }
 
-void input(element* var, char* val)
+void zpie_input(zpie_element* var, char* val)
 {
     if (!setParams)
         mclBnFr_setStr(&uw[var->index], val, strlen(val), 10);
 }
 
-void init_constant(element* toAdd, char* val)
+void init_constant(zpie_element* toAdd, char* val)
 {
     if (setParams)
         M++;
@@ -259,7 +259,7 @@ void init_constant(element* toAdd, char* val)
         nConst++;
 }
 
-void init_public(element* toAdd)
+void zpie_init_public(zpie_element* toAdd)
 {
     if (setParams)
         M++;
@@ -272,15 +272,15 @@ void init_public(element* toAdd)
         nPublic++;
 }
 
-void init_array(element* toAdd, int size)
+void zpie_init_array(zpie_element* toAdd, int size)
 {
     for (int i = 0; i < size; i++)
     {
-        init(&toAdd[i]);
+        zpie_init(&toAdd[i]);
     }
 }
 
-void init(element* toAdd)
+void zpie_init(zpie_element* toAdd)
 {
     if (setParams)
         M++;
